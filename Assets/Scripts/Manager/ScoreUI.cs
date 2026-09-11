@@ -6,6 +6,7 @@ public class ScoreUI : MonoBehaviour
 {
     [Header("UI Reference")]
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI RejectText;
 
     private void Start()
     {
@@ -14,9 +15,11 @@ public class ScoreUI : MonoBehaviour
         {
             // อัปเดตแสดงผลคะแนนเริ่มต้นทันที
             UpdateScoreText(ScoreManager.Instance.totalScore);
+            UpdateRejectText(ScoreManager.Instance.rejectedPackagesCount);
 
             // สมัครรับ Event การเปลี่ยนแปลงคะแนน
             ScoreManager.Instance.OnScoreChanged += UpdateScoreText;
+            ScoreManager.Instance.rejectedPackagesCountChanged += UpdateRejectText;
         }
         else
         {
@@ -40,4 +43,11 @@ public class ScoreUI : MonoBehaviour
             scoreText.text = "Score: " + newScore.ToString();
         }
     }
+    private void UpdateRejectText(int newReject)
+    {
+        if(RejectText != null)
+        {
+            RejectText.text = newReject.ToString();
+        }    
+    }    
 }

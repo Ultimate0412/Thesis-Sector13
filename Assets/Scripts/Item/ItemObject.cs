@@ -1,11 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public enum ItemCategory
-{
-    Legal,
-    Illegal,
-    Alien
-}
+public enum ItemCategory { Legal, Illegal, Alien }
 
 public class ItemObject : MonoBehaviour
 {
@@ -13,9 +8,4 @@ public class ItemObject : MonoBehaviour
     public string itemName = "Unknown Item";
     public float itemWeight = 5f;
     public ItemCategory category = ItemCategory.Legal;
-
-    [Header("Inspection Data")]
-    [TextArea]
-    public string itemDescription = "Standard cargo unit.";
-    public bool isInspectionPassed = false;
 }
