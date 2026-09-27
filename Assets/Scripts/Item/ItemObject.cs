@@ -8,4 +8,6 @@ public class ItemObject : MonoBehaviour
     public string itemName = "Unknown Item";
     public float itemWeight = 5f;
     public ItemCategory category = ItemCategory.Legal;
+    [Header("Size & Grid Settings")]
+    public int sizeInSlots = 1;
 }

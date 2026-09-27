@@ -112,9 +112,13 @@ public class PlayerPickupSystem : MonoBehaviour
     {
         Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
 
+        // ยิงเช็คเลเยอร์ DropPoint
         if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, dropPointLayer))
         {
             BaseDropPoint detectedDropPoint = hit.collider.GetComponent<BaseDropPoint>();
+
+            // [เพิ่ม Debug เช็ค]
+            Debug.Log($"[Debug Raycast] ยิงโดน DropPoint: {hit.collider.name} | มีของถืออยู่ไหม: {heldObject != null}");
 
             if (heldObject != null && detectedDropPoint != null && detectedDropPoint.currentPlacedItem == null)
             {
@@ -123,8 +127,17 @@ public class PlayerPickupSystem : MonoBehaviour
                     ClearHoveredDropPoint();
                     currentHoveredDropPoint = detectedDropPoint;
                     currentHoveredDropPoint.ShowHologram(heldObject);
+                    Debug.Log("[Debug Hologram] สั่งแสดง Hologram สำเร็จ!");
                 }
                 return;
+            }
+        }
+        else
+        {
+            // ถ้าผู้เล่นถือของอยู่แต่กวาดสายตาแล้วไม่โดน Layer DropPoint จะขึ้นเตือนตรงนี้
+            if (heldObject != null && Input.GetMouseButton(1)) // หรือเช็คตอนถือของ
+            {
+                // Debug.Log("Raycast ยังไม่โดน Layer DropPoint เช็ค Layer ดูอีกทีนะ");
             }
         }
 
@@ -138,5 +151,49 @@ public class PlayerPickupSystem : MonoBehaviour
             currentHoveredDropPoint.HideHologram();
             currentHoveredDropPoint = null;
         }
+    }
+    // เพิ่มฟังก์ชันนี้เข้าไปใน PlayerPickupSystem.cs
+    public void PickUpItemFromDropPoint(BaseDropPoint dropPoint)
+    {
+        if (heldObject != null) return; // ถ้ามือถือของอยู่แล้ว ให้หยิบเพิ่มไม่ได้
+
+        GameObject itemToTake = dropPoint.RemoveItem();
+        if (itemToTake != null)
+        {
+            // คำนวณน้ำหนัก (ถ้าเป็นกล่องพัสดุหรือไอเท็ม ให้ดึงน้ำหนักตามจริง)
+            // หมายเหตุ: ถ้ากล่องพัสดุไม่มีน้ำหนักเฉพาะ ให้กำหนดค่าคงที่หรือดึงจาก ItemObject ด้านใน
+            float weight = 5f;
+            ItemObject itemComp = itemToTake.GetComponent<ItemObject>();
+            if (itemComp != null) weight = itemComp.itemWeight;
+
+            // เช็คโควต้าน้ำหนักผู้เล่น
+            bool canAdd = playerStats.AddWeight(weight);
+            if (canAdd)
+            {
+                heldObject = itemToTake;
+
+                Rigidbody rb = heldObject.GetComponent<Rigidbody>();
+                if (rb != null) { rb.isKinematic = true; }
+
+                Collider col = heldObject.GetComponent<Collider>();
+                if (col != null) { col.enabled = true; } // เปิด Collider กลับมา
+
+                heldObject.transform.SetParent(holdPosition);
+                heldObject.transform.localPosition = Vector3.zero;
+                heldObject.transform.localRotation = Quaternion.identity;
+
+                Debug.Log("หยิบวัตถุออกจาก Drop Point กลับขึ้นมือสำเร็จ");
+            }
+            else
+            {
+                // ถ้าแบกน้ำหนักไม่ไหว ให้วางกลับที่เดิม
+                dropPoint.PlaceItem(itemToTake, weight);
+                Debug.Log("น้ำหนักเกิน ไม่สามารถหยิบขึ้นมาได้!");
+            }
+        }
+    }
+    public GameObject GetHeldObject()
+    {
+        return heldObject;
     }
 }

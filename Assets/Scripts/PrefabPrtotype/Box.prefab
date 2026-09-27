@@ -155,6 +155,7 @@ GameObject:
   - component: {fileID: 7758074212420461020}
   - component: {fileID: 4997966856643485255}
   - component: {fileID: 847272774406582524}
+  - component: {fileID: -2293546493818392279}
   m_Layer: 6
   m_Name: Box
   m_TagString: Untagged
@@ -239,6 +240,34 @@ MonoBehaviour:
   itemName: Unknown Item
   itemWeight: 5
   category: 0
+  sizeInSlots: 1
+--- !u!54 &-2293546493818392279
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3277296079550629395}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &3617691982163448093
 GameObject:
   m_ObjectHideFlags: 0
