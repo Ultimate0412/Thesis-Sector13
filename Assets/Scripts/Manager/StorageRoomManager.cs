@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class StorageRoomManager : MonoBehaviour
 {
+    public static StorageRoomManager Instance { get; private set; }
+
     [Header("Storage Grid Settings")]
     public int totalSlots = 10;                // จำนวน Slot ทั้งหมดในห้อง (เช่น 10 Slot)
     public Transform[] slotPositions;          // ตำแหน่ง Transform ของแต่ละ Slot เรียงตามลำดับ (0 ถึง 9)
@@ -12,8 +14,58 @@ public class StorageRoomManager : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         slotOccupied = new bool[totalSlots];
         itemsInSlots = new GameObject[totalSlots];
+    }
+
+    // ฟังก์ชันเช็คว่าวัตถุนี้ถูกจัดเก็บอยู่ใน Storage หรือไม่
+    public bool IsItemInStorage(GameObject itemObj)
+    {
+        if (itemObj == null) return false;
+
+        // เช็คจาก itemsInSlots
+        if (itemsInSlots != null)
+        {
+            for (int i = 0; i < itemsInSlots.Length; i++)
+            {
+                if (itemsInSlots[i] == itemObj) return true;
+            }
+        }
+
+        // เช็คว่า parent ของวัตถุเป็นหนึ่งใน slotPositions หรือไม่
+        if (slotPositions != null)
+        {
+            for (int i = 0; i < slotPositions.Length; i++)
+            {
+                if (slotPositions[i] != null && itemObj.transform.IsChildOf(slotPositions[i]))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public int GetStoredItemCount()
+    {
+        if (itemsInSlots == null) return 0;
+        int count = 0;
+        for (int i = 0; i < itemsInSlots.Length; i++)
+        {
+            if (itemsInSlots[i] != null) count++;
+        }
+        return count;
     }
 
     // ฟังก์ชันเช็คว่าสามารถวางไอเท็มขนาด size ลงที่ startIndex ได้หรือไม่

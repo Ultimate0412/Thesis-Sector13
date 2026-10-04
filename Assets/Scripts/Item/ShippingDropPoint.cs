@@ -1,9 +1,20 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class ShippingDropPoint : BaseDropPoint
 {
     [Header("Shipping Settings")]
     public KeyCode shipKey = KeyCode.F; // ปุ่มกดส่งสินค้าออก
+
+    public override string GetInteractPrompt()
+    {
+        if (currentPlacedItem != null)
+        {
+            PackageBox box = currentPlacedItem.GetComponent<PackageBox>();
+            string itemName = box != null ? "Box" : "Item";
+            return $"[Q]/[E] Pick Up {itemName} | [F] Ship Item";
+        }
+        return string.Empty;
+    }
 
     protected override void Update()
     {
@@ -27,7 +38,14 @@ public class ShippingDropPoint : BaseDropPoint
             return;
         }
 
-        // 2. เช็คว่าประทับตราหรือยัง
+        // 2. เช็คว่ากล่องว่างเปล่าหรือไม่ (ห้ามส่งกล่องเปล่าที่สินค้าถูกนำออกไปแล้ว)
+        if (packageBox.isItemExtracted)
+        {
+            Debug.LogWarning("[Shipping Point] ส่งไม่สำเร็จ: กล่องนี้เป็นกล่องเปล่า (สินค้าถูกนำออกไปแล้ว)! กรุณาใส่สินค้ากลับเข้ากล่องก่อนส่ง", currentPlacedItem);
+            return;
+        }
+
+        // 3. เช็คว่าประทับตราหรือยัง
         if (packageBox.currentStamp == InspectionStatus.None)
         {
             Debug.LogWarning("[Shipping Point] ส่งไม่สำเร็จ: กล่องนี้ยังไม่ได้ประทับตรา (Approved/Rejected)!");

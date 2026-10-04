@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public abstract class BaseDropPoint : MonoBehaviour, IInteractable
 {
@@ -11,6 +11,45 @@ public abstract class BaseDropPoint : MonoBehaviour, IInteractable
 
     [HideInInspector] public GameObject currentPlacedItem = null;
     [HideInInspector] public GameObject hologramInstance = null;
+
+    public static readonly System.Collections.Generic.List<BaseDropPoint> allDropPoints = new System.Collections.Generic.List<BaseDropPoint>();
+
+    protected virtual void OnEnable()
+    {
+        if (!allDropPoints.Contains(this))
+        {
+            allDropPoints.Add(this);
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        allDropPoints.Remove(this);
+    }
+
+    public static BaseDropPoint GetDropPointHolding(GameObject item)
+    {
+        if (item == null) return null;
+        for (int i = 0; i < allDropPoints.Count; i++)
+        {
+            if (allDropPoints[i] != null && allDropPoints[i].currentPlacedItem == item)
+            {
+                return allDropPoints[i];
+            }
+        }
+
+        // Fallback ในกรณีที่ไม่ได้ลงทะเบียน
+        BaseDropPoint[] dropPoints = Object.FindObjectsByType<BaseDropPoint>(FindObjectsSortMode.None);
+        for (int i = 0; i < dropPoints.Length; i++)
+        {
+            if (dropPoints[i] != null && dropPoints[i].currentPlacedItem == item)
+            {
+                return dropPoints[i];
+            }
+        }
+
+        return null;
+    }
 
     protected virtual void Update()
     {
@@ -48,18 +87,18 @@ public abstract class BaseDropPoint : MonoBehaviour, IInteractable
     }
 
     // --- Implement จาก IInteractable ---
-    public string GetInteractPrompt()
+    public virtual string GetInteractPrompt()
     {
         if (currentPlacedItem != null)
         {
             PackageBox box = currentPlacedItem.GetComponent<PackageBox>();
-            string itemName = box != null ? "กล่องพัสดุ" : "วัตถุ";
-            return $"กด E เพื่อหยิบ {itemName} กลับขึ้นมา";
+            string itemName = box != null ? "Box" : "Item";
+            return $"[Q] or [E] Pick Up {itemName}";
         }
         return string.Empty;
     }
 
-    public void Interact(PlayerInteractor interactor)
+    public virtual void Interact(PlayerInteractor interactor)
     {
         if (currentPlacedItem != null)
         {
@@ -135,7 +174,7 @@ public abstract class BaseDropPoint : MonoBehaviour, IInteractable
         if (rb != null) { rb.isKinematic = true; }
 
         Collider col = currentPlacedItem.GetComponent<Collider>();
-        if (col != null) { col.enabled = false; }
+        if (col != null) { col.enabled = true; }
     }
 
     public virtual GameObject RemoveItem()

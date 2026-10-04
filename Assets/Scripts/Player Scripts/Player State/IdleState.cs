@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class IdleState : PlayerStateBase
 {
@@ -8,6 +8,9 @@ public class IdleState : PlayerStateBase
 
     public override void UpdateState()
     {
+        // สั่งให้ความเร็วแนวราบเป็น 0 ตอนยืนนิ่ง (แรงโน้มถ่วงยังคงทำงานตามปกติ)
+        player.ApplyMovement(0f);
+
         // ฟื้นฟู Stamina ตอนยืนพัก
         player.stats.ModifyStamina(player.stats.staminaRegenRate * Time.deltaTime);
 
