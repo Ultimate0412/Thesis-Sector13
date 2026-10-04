@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class StorageDropPoint : BaseDropPoint
 {
@@ -95,7 +95,7 @@ public class StorageDropPoint : BaseDropPoint
             if (rb != null) { rb.isKinematic = true; }
 
             Collider col = currentPlacedItem.GetComponent<Collider>();
-            if (col != null) { col.enabled = false; }
+            if (col != null) { col.enabled = true; }
 
             if (itemData != null && itemData.category == ItemCategory.Alien)
             {

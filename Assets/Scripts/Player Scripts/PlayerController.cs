@@ -1,29 +1,36 @@
-﻿using NUnit.Framework.Interfaces;
-using Unity.IO.LowLevel.Unsafe;
-using UnityEngine;
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(PlayerStats))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Speeds")]
     public float walkSpeed = 4f;
     public float runSpeed = 7f;
-    public float gravity = -9.81f;
     public float jumpHeight = 1.2f;
+
+    [Header("Ground Check Settings")]
+    public LayerMask groundMask = ~0;
+    public float groundCheckDistance = 0.15f;
+    [SerializeField] private bool _isGrounded;
+    public bool isGrounded => _isGrounded;
 
     [Header("Camera Settings")]
     public Transform playerCamera;
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
-    [HideInInspector] public CharacterController controller;
+    [HideInInspector] public Rigidbody rb;
+    [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
-    [HideInInspector] public Vector3 moveDirection = Vector3.zero;
-    [HideInInspector] public float rotationX = 0;
+    [HideInInspector] public float rotationX = 0f;
 
-    // เหลือแค่ Idle, Walk, Run
+    // Movement vectors
+    private Vector3 targetMoveDirection = Vector3.zero;
+    private bool jumpRequested = false;
+
+    // States
     private PlayerStateBase currentState;
     public IdleState idleState;
     public WalkState walkState;
@@ -31,10 +38,30 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        controller = GetComponent<CharacterController>();
+        rb = GetComponent<Rigidbody>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         stats = GetComponent<PlayerStats>();
 
-        // สร้าง States (ตัด Crouch และ Jump ออกจาก State)
+        // ตั้งค่า Rigidbody สำหรับ First-Person Controller
+        rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+        // ป้องกันตัวละครติดขอบกำแพงเวลาเดินเบียดหรือกระโดดชนผนัง
+        if (capsuleCollider.sharedMaterial == null)
+        {
+            PhysicsMaterial frictionless = new PhysicsMaterial("PlayerFrictionless")
+            {
+                dynamicFriction = 0f,
+                staticFriction = 0f,
+                frictionCombine = PhysicsMaterialCombine.Minimum,
+                bounciness = 0f,
+                bounceCombine = PhysicsMaterialCombine.Minimum
+            };
+            capsuleCollider.sharedMaterial = frictionless;
+        }
+
+        // สร้าง States (Idle, Walk, Run)
         idleState = new IdleState(this);
         walkState = new WalkState(this);
         runState = new RunState(this);
@@ -50,7 +77,20 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         HandleCameraLook();
+        CheckGrounded();
+
+        // ตรวจสอบการกดปุ่มกระโดดใน Update เพื่อไม่ให้พลาด input ในแต่ละเฟรม
+        if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
+        {
+            jumpRequested = true;
+        }
+
         currentState?.UpdateState();
+    }
+
+    private void FixedUpdate()
+    {
+        ApplyPhysicsMovement();
     }
 
     public void SwitchState(PlayerStateBase newState)
@@ -62,42 +102,87 @@ public class PlayerController : MonoBehaviour
 
     private void HandleCameraLook()
     {
+        if (playerCamera == null) return;
+
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
     }
 
-    // ฟังก์ชันคำนวณการเคลื่อนที่ + รองรับการกระโดดตลอดเวลา
-    public void ApplyMovement(float speed)
+    private void CheckGrounded()
     {
-        float curSpeedX = speed * Input.GetAxis("Vertical");
-        float curSpeedY = speed * Input.GetAxis("Horizontal");
+        if (capsuleCollider == null) return;
 
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        Vector3 right = transform.TransformDirection(Vector3.right);
+        Vector3 origin = transform.position + capsuleCollider.center;
+        float radius = capsuleCollider.radius * 0.9f;
+        float castDistance = (capsuleCollider.height * 0.5f) - radius + groundCheckDistance;
 
-        float movementDirectionY = moveDirection.y;
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
-        moveDirection.Normalize();
-        moveDirection *= speed;
-
-        if (controller.isGrounded)
+        RaycastHit[] hits = Physics.SphereCastAll(origin, radius, Vector3.down, castDistance, groundMask, QueryTriggerInteraction.Ignore);
+        _isGrounded = false;
+        foreach (var hit in hits)
         {
-            moveDirection.y = -0.5f; // กดตัวละครติดพื้นเวลาอยู่บนพื้น
-
-            // เช็คปุ่มกระโดดตรงนี้ เพื่อให้กดกระโดดได้ทุก State (ไม่ว่าจะเดินหรือวิ่งอยู่)
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (hit.collider != capsuleCollider && !hit.collider.transform.IsChildOf(transform))
             {
-                moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                _isGrounded = true;
+                break;
             }
         }
-        else
+    }
+
+    // เรียกใช้โดยแต่ละ State เพื่อกำหนดทิศทางและความเร็วที่ต้องการเคลื่อนที่
+    public void ApplyMovement(float speed)
+    {
+        float curSpeedX = Input.GetAxisRaw("Vertical");
+        float curSpeedY = Input.GetAxisRaw("Horizontal");
+
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+
+        Vector3 inputDir = (forward * curSpeedX) + (right * curSpeedY);
+        if (inputDir.sqrMagnitude > 1f)
         {
-            // ถ้าอยู่กลางอากาศ แรงโน้มถ่วงจะดึงลงเรื่อยๆ แต่ยังรักษาทิศทางเดิน/วิ่งกลางอากาศได้ระดับหนึ่ง
-            moveDirection.y = movementDirectionY + (gravity * Time.deltaTime);
+            inputDir.Normalize();
         }
 
-        controller.Move(moveDirection * Time.deltaTime);
+        targetMoveDirection = inputDir * speed;
+    }
+
+    private void ApplyPhysicsMovement()
+    {
+#if UNITY_6000_0_OR_NEWER
+        Vector3 currentVel = rb.linearVelocity;
+#else
+        Vector3 currentVel = rb.velocity;
+#endif
+
+        // ทำการกระโดด
+        if (jumpRequested)
+        {
+            float jumpVelocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * jumpHeight);
+            currentVel.y = jumpVelocity;
+            jumpRequested = false;
+        }
+
+        // ควบคุมความเร็วแนวราบ (X และ Z)
+        currentVel.x = targetMoveDirection.x;
+        currentVel.z = targetMoveDirection.z;
+
+#if UNITY_6000_0_OR_NEWER
+        rb.linearVelocity = currentVel;
+#else
+        rb.velocity = currentVel;
+#endif
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (capsuleCollider == null) return;
+
+        Gizmos.color = _isGrounded ? Color.green : Color.red;
+        Vector3 origin = transform.position + capsuleCollider.center;
+        float radius = capsuleCollider.radius * 0.9f;
+        float castDistance = (capsuleCollider.height * 0.5f) - radius + groundCheckDistance;
+        Gizmos.DrawWireSphere(origin + Vector3.down * castDistance, radius);
     }
 }

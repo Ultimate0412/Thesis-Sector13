@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PlayerPickupSystem : MonoBehaviour
 {
@@ -13,6 +13,13 @@ public class PlayerPickupSystem : MonoBehaviour
     private Camera playerCam;
     private BaseDropPoint currentHoveredDropPoint;
 
+    [Header("Extraction Hold Settings")]
+    [Tooltip("ระยะเวลากดปุ่ม Q ค้างเพื่อหยิบสินค้าออกจากกล่อง (วินาที)")]
+    public float holdExtractDuration = 0.5f;
+    private float currentHoldTimer = 0f;
+    private bool isHoldingQ = false;
+    private PackageBox targetHoldBox = null;
+
     private void Start()
     {
         playerStats = GetComponent<PlayerStats>();
@@ -22,14 +29,22 @@ public class PlayerPickupSystem : MonoBehaviour
     private void Update()
     {
         HandleDropPointHover();
+        HandleHoldQExtraction();
 
-        // ใช้ปุ่มคลิกซ้ายหรือปุ่มอื่น (เช่น ปุ่ม G หรือคลิกขวา) สำหรับการหยิบ/วางของ
-        // หรือถ้ายังใช้ปุ่ม E ร่วมกัน สามารถปรับเปลี่ยนเงื่อนไขตรงนี้ได้ตามความเหมาะสม
-        if (Input.GetKeyDown(KeyCode.Q)) // ตัวอย่างใช้ปุ่ม Q หรือ F ในการหยิบ/วาง หรือจะใช้ E ก็ได้
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             if (heldObject == null)
             {
-                TryPickUp();
+                // ถ้าเล็งไปที่กล่องพัสดุที่เปิดอยู่และมีของข้างใน ให้เข้าสู่โหมดกด Q ค้างเพื่อหยิบของ (ป้องกันการกดผิด)
+                PackageBox openBox = GetTargetOpenPackageBoxWithItem();
+                if (openBox != null)
+                {
+                    StartHoldQ(openBox);
+                }
+                else
+                {
+                    TryPickUp();
+                }
             }
             else
             {
@@ -38,13 +53,168 @@ public class PlayerPickupSystem : MonoBehaviour
         }
     }
 
+    private PackageBox GetTargetOpenPackageBoxWithItem()
+    {
+        if (playerCam == null) return null;
+
+        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        LayerMask combinedMask = itemLayer | dropPointLayer;
+        if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, combinedMask))
+        {
+            PackageBox box = hit.collider.GetComponentInParent<PackageBox>();
+            if (box != null && box.isOpen && !box.isItemExtracted)
+            {
+                return box;
+            }
+        }
+        return null;
+    }
+
+    private void StartHoldQ(PackageBox box)
+    {
+        isHoldingQ = true;
+        targetHoldBox = box;
+        currentHoldTimer = 0f;
+    }
+
+    private void HandleHoldQExtraction()
+    {
+        if (!isHoldingQ) return;
+
+        // หากผู้เล่นถือของอยู่ หรือปล่อยปุ่ม Q ก่อนครบกำหนด ให้ยกเลิกการหยิบของทันที
+        if (heldObject != null || Input.GetKeyUp(KeyCode.Q))
+        {
+            ResetHoldQ();
+            return;
+        }
+
+        // หากยังกดปุ่ม Q ค้างอยู่
+        if (Input.GetKey(KeyCode.Q))
+        {
+            PackageBox currentBox = GetTargetOpenPackageBoxWithItem();
+            if (currentBox != null && currentBox == targetHoldBox)
+            {
+                currentHoldTimer += Time.deltaTime;
+                float progress = Mathf.Clamp01(currentHoldTimer / holdExtractDuration);
+
+                if (CrosshairUI.Instance != null)
+                {
+                    CrosshairUI.Instance.SetHoldProgress(progress);
+                }
+
+                if (currentHoldTimer >= holdExtractDuration)
+                {
+                    ExtractItemFromBox(targetHoldBox);
+                    ResetHoldQ();
+                }
+            }
+            else
+            {
+                // ผู้เล่นหันเป้าเล็งหนีออกจากกล่อง
+                ResetHoldQ();
+            }
+        }
+        else
+        {
+            ResetHoldQ();
+        }
+    }
+
+    private void ResetHoldQ()
+    {
+        isHoldingQ = false;
+        targetHoldBox = null;
+        currentHoldTimer = 0f;
+
+        if (CrosshairUI.Instance != null)
+        {
+            CrosshairUI.Instance.SetHoldProgress(0f);
+        }
+    }
+
+    private void ExtractItemFromBox(PackageBox box)
+    {
+        if (box == null || !box.isOpen || box.isItemExtracted) return;
+
+        GameObject item = box.ExtractInnerItem();
+        if (item != null)
+        {
+            ItemObject itemComp = item.GetComponent<ItemObject>();
+            if (itemComp == null) itemComp = item.GetComponentInParent<ItemObject>();
+            float weight = itemComp != null ? itemComp.itemWeight : 5f;
+
+            bool canAdd = playerStats.AddWeight(weight);
+            if (canAdd)
+            {
+                heldObject = item;
+                if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
+
+                Rigidbody rb = heldObject.GetComponent<Rigidbody>();
+                if (rb != null) { rb.isKinematic = true; }
+
+                Collider col = heldObject.GetComponent<Collider>();
+                if (col != null) { col.enabled = true; }
+
+                heldObject.transform.SetParent(holdPosition);
+                heldObject.transform.localPosition = Vector3.zero;
+                heldObject.transform.localRotation = Quaternion.identity;
+
+                Debug.Log($"[PlayerPickupSystem] หยิบสินค้า '{heldObject.name}' ออกจากกล่องสำเร็จ");
+            }
+            else
+            {
+                // ถ้าน้ำหนักเกิน ให้ใส่ของกลับเข้ากล่อง
+                box.PutItemBack(item);
+                Debug.LogWarning("[PlayerPickupSystem] น้ำหนักเกิน! ไม่สามารถหยิบสินค้าออกจากกล่องได้");
+            }
+        }
+    }
+
     private void TryPickUp()
     {
         Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, itemLayer))
+        LayerMask combinedMask = itemLayer | dropPointLayer;
+        if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, combinedMask))
         {
+            // 1. ตรวจสอบว่าเล็งโดน BaseDropPoint โดยตรงหรือไม่ (เช่น โต๊ะจัดส่ง, จุดวางของ)
+            BaseDropPoint dropPoint = hit.collider.GetComponentInParent<BaseDropPoint>();
+            if (dropPoint != null && dropPoint.currentPlacedItem != null)
+            {
+                PickUpItemFromDropPoint(dropPoint);
+                return;
+            }
+
+            // 2. ตรวจสอบวัตถุเป้าหมาย
             GameObject targetItem = hit.collider.gameObject;
+            PackageBox parentBox = targetItem.GetComponentInParent<PackageBox>();
+
+            // ถ้าวัตถุเป้าหมายวางอยู่บน DropPoint (เช่น ใน Storage หรือ Shipping)
+            BaseDropPoint itemDropPoint = BaseDropPoint.GetDropPointHolding(targetItem);
+            if (itemDropPoint == null && parentBox != null)
+            {
+                itemDropPoint = BaseDropPoint.GetDropPointHolding(parentBox.gameObject);
+            }
+            if (itemDropPoint == null)
+            {
+                itemDropPoint = targetItem.GetComponentInParent<BaseDropPoint>();
+            }
+
+            if (itemDropPoint != null)
+            {
+                PickUpItemFromDropPoint(itemDropPoint);
+                return;
+            }
+
+            // 3. หยิบสินค้าทั่วไป (เช่น บนพื้น หรือบนสปาวน์เนอร์)
             ItemObject itemComponent = targetItem.GetComponent<ItemObject>();
+            if (itemComponent == null)
+            {
+                itemComponent = targetItem.GetComponentInParent<ItemObject>();
+                if (itemComponent != null)
+                {
+                    targetItem = itemComponent.gameObject;
+                }
+            }
 
             if (itemComponent != null)
             {
@@ -52,6 +222,7 @@ public class PlayerPickupSystem : MonoBehaviour
                 if (canAdd)
                 {
                     heldObject = targetItem;
+                    if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                     Rigidbody rb = heldObject.GetComponent<Rigidbody>();
                     if (rb != null) { rb.isKinematic = true; }
@@ -72,6 +243,12 @@ public class PlayerPickupSystem : MonoBehaviour
         // 1. ถ้ามองจุดวางของอยู่ (DropPoint)
         if (currentHoveredDropPoint != null && currentHoveredDropPoint.currentPlacedItem == null)
         {
+            if (!currentHoveredDropPoint.CanPlaceHere())
+            {
+                Debug.LogWarning("ไม่สามารถวางตรงนี้ได้!");
+                return;
+            }
+
             ItemObject item = heldObject.GetComponent<ItemObject>();
             float weight = item != null ? item.itemWeight : 0f;
 
@@ -83,7 +260,24 @@ public class PlayerPickupSystem : MonoBehaviour
             return;
         }
 
-        // 2. ถ้าไม่ได้มองจุดวาง ให้ทิ้งลงพื้น
+        // 2. ถ้าถือสินค้าอยู่ แล้วเล็งไปที่ PackageBox ที่เปิดอยู่และว่างเปล่า (ใส่สินค้ากลับเข้ากล่อง)
+        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance))
+        {
+            PackageBox targetBox = hit.collider.GetComponentInParent<PackageBox>();
+            if (targetBox != null && targetBox.CanPutItemBack(heldObject))
+            {
+                ItemObject item = heldObject.GetComponent<ItemObject>();
+                float weight = item != null ? item.itemWeight : 0f;
+                playerStats.RemoveWeight(weight);
+
+                targetBox.PutItemBack(heldObject);
+                heldObject = null;
+                return;
+            }
+        }
+
+        // 3. ถ้าไม่ได้มองจุดวางหรือกล่อง ให้ทิ้งลงพื้น
         DropObjectToFloor();
     }
 
@@ -115,10 +309,7 @@ public class PlayerPickupSystem : MonoBehaviour
         // ยิงเช็คเลเยอร์ DropPoint
         if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, dropPointLayer))
         {
-            BaseDropPoint detectedDropPoint = hit.collider.GetComponent<BaseDropPoint>();
-
-            // [เพิ่ม Debug เช็ค]
-            Debug.Log($"[Debug Raycast] ยิงโดน DropPoint: {hit.collider.name} | มีของถืออยู่ไหม: {heldObject != null}");
+            BaseDropPoint detectedDropPoint = hit.collider.GetComponentInParent<BaseDropPoint>();
 
             if (heldObject != null && detectedDropPoint != null && detectedDropPoint.currentPlacedItem == null)
             {
@@ -171,6 +362,7 @@ public class PlayerPickupSystem : MonoBehaviour
             if (canAdd)
             {
                 heldObject = itemToTake;
+                if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                 Rigidbody rb = heldObject.GetComponent<Rigidbody>();
                 if (rb != null) { rb.isKinematic = true; }
