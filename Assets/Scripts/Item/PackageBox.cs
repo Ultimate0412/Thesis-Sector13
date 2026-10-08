@@ -31,7 +31,7 @@ public class PackageBox : MonoBehaviour, IInteractable
     public PackageManifestData officialDatabaseData;
     [Tooltip("ข้อมูลที่พิมพ์ลงบนใบปะหน้าจริงของกล่อง")]
     public PackageManifestData physicalLabelData;
-    [Tooltip("ประเภทข้อผิดพลาด (ถ้ามี)")]
+    [Tooltip("ประเภทข้อผิดพลาด")]
     public DiscrepancyType discrepancyType = DiscrepancyType.None;
     [Tooltip("โอกาสเกิดข้อผิดพลาดบนใบปะหน้า สำหรับสินค้า Illegal และ Alien (%)")]
     [Range(0f, 100f)] public float discrepancyChance = 75f;
@@ -61,19 +61,22 @@ public class PackageBox : MonoBehaviour, IInteractable
         ItemCategory category = ItemCategory.Legal;
         float weight = 5f;
         string itemName = "Standard Freight";
+        ItemSubCategory subCategory = ItemSubCategory.Medical;
+        ItemObject itemObj = null;
 
         if (innerItemPrefab != null)
         {
-            ItemObject itemObj = innerItemPrefab.GetComponent<ItemObject>();
+            itemObj = innerItemPrefab.GetComponent<ItemObject>();
             if (itemObj != null)
             {
                 category = itemObj.category;
                 weight = itemObj.itemWeight;
                 itemName = itemObj.itemName;
+                subCategory = itemObj.subCategory;
             }
         }
 
-        officialDatabaseData = PackageManifestData.GenerateOfficialManifest(category, weight, itemName);
+        officialDatabaseData = PackageManifestData.GenerateOfficialManifest(category, weight, itemName, subCategory);
 
         bool shouldDiscrepancy = false;
         if (category == ItemCategory.Illegal || category == ItemCategory.Alien)
@@ -97,6 +100,14 @@ public class PackageBox : MonoBehaviour, IInteractable
         }
 
         labelView.SetLabelData(physicalLabelData);
+
+        // สุ่มสร้างร่องรอยบนกล่องพัสดุ (Decals: รอยกรงเล็บ, คราบน้ำมัน, คราบน้ำ, หรือคราบเมือก UV)
+        PackageTraceApplier traceApplier = GetComponent<PackageTraceApplier>();
+        if (traceApplier == null)
+        {
+            traceApplier = gameObject.AddComponent<PackageTraceApplier>();
+        }
+        traceApplier.ApplyTraces(category, itemObj);
     }
 
     public void SetInnerItemPrefab(GameObject prefab)
@@ -111,7 +122,7 @@ public class PackageBox : MonoBehaviour, IInteractable
         // หากกำลังถือแท็บเล็ตตรวจข้อมูลอยู่
         if (InspectionTablet.Instance != null && InspectionTablet.Instance.IsTabletHeld)
         {
-            return $"[E] Scan into Tablet | [RMB] Close-up | [R] Stamp ({currentStamp})";
+            return $"[E] Scan into Tablet | [RMB] Close-up | [F] UV Light | [R] Stamp ({currentStamp})";
         }
 
         if (isOpen)

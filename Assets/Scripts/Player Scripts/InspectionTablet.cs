@@ -40,9 +40,20 @@ public class InspectionTablet : MonoBehaviour
     [Header("Procedural Visual References")]
     public Transform tabletTransform;
     public GameObject tabletContainer;
-    public TextMeshProUGUI statusText;
-    public TextMeshProUGUI manifestContentText;
     public Image screenGlowImage;
+
+    [Header("Modular Screen UI Elements (ปรับแต่งตำแหน่งใน Editor ได้อิสระ)")]
+    public TextMeshProUGUI headerText;
+    public TextMeshProUGUI statusText;
+    public TextMeshProUGUI recipientText;
+    public TextMeshProUGUI destinationText;
+    public TextMeshProUGUI subCategoryText;
+    public TextMeshProUGUI serialText;
+    public TextMeshProUGUI weightText;
+    public TextMeshProUGUI hintText;
+
+    [Header("Fallback / Standby Display Text")]
+    public TextMeshProUGUI manifestContentText;
 
     private Camera playerCam;
     private PlayerPickupSystem pickupSystem;
@@ -221,8 +232,6 @@ public class InspectionTablet : MonoBehaviour
 
     private void UpdateScreenDisplay(PackageManifestData data)
     {
-        if (manifestContentText == null) return;
-
         if (data == null)
         {
             if (statusText != null)
@@ -230,12 +239,24 @@ public class InspectionTablet : MonoBehaviour
                 statusText.text = "<color=#ffaa00>● STANDBY</color> // READY TO SCAN";
             }
 
-            manifestContentText.text =
-                "<align=center><color=#668899>\n\n\n\n" +
-                "[ NO CARGO MANIFEST LOADED ]\n\n" +
-                "Aim at a package box and press <b>[E]</b>\n" +
-                "to query Central Customs Database\n\n" +
-                "</color></align>";
+            // ซ่อนฟิลด์ข้อมูลเมื่อยังไม่ได้สแกนกล่อง
+            if (recipientText != null) recipientText.gameObject.SetActive(false);
+            if (destinationText != null) destinationText.gameObject.SetActive(false);
+            if (subCategoryText != null) subCategoryText.gameObject.SetActive(false);
+            if (serialText != null) serialText.gameObject.SetActive(false);
+            if (weightText != null) weightText.gameObject.SetActive(false);
+            if (hintText != null) hintText.gameObject.SetActive(false);
+
+            if (manifestContentText != null)
+            {
+                manifestContentText.gameObject.SetActive(true);
+                manifestContentText.text =
+                    "<align=center><color=#668899>\n\n\n\n" +
+                    "[ NO CARGO MANIFEST LOADED ]\n\n" +
+                    "Aim at a package box and press <b>[E]</b>\n" +
+                    "to query Central Customs Database\n\n" +
+                    "</color></align>";
+            }
         }
         else
         {
@@ -244,19 +265,54 @@ public class InspectionTablet : MonoBehaviour
                 statusText.text = "<color=#00ff88>● VERIFIED</color> // RECORD RETRIEVED";
             }
 
-            string catColor = "#00e6ff";
-            if (data.declaredCategory == ItemCategory.Illegal) catColor = "#ff4444";
-            else if (data.declaredCategory == ItemCategory.Alien) catColor = "#d444ff";
+            string subName = ItemObject.GetSubCategoryDisplayName(data.declaredSubCategory);
 
-            manifestContentText.text =
-                $"<b>RECIPIENT :</b> <color=#ffffff>{data.recipientName}</color>\n" +
-                $"<b>DESTINATION :</b> <color=#ffffff>{data.destinationAddress}</color>\n" +
-                $"<b>SERIAL NO  :</b> <color=#ffea00><b>{data.serialNumber}</b></color>\n" +
-                $"<b>CATEGORY   :</b> <color={catColor}>{data.declaredCategory}</color>\n" +
-                $"<b>WEIGHT     :</b> {data.declaredWeight:F1} kg\n" +
-                $"──────────────────────────────\n" +
-                $"<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\n" +
-                $"PRESS <b>[R]</b> TO STAMP APPROVE OR REJECT</color></size>";
+            // หากมีฟิลด์แยกส่วน (Modular) ให้แสดงผลแยกชิ้น เพื่อให้ผู้ใช้ปรับตำแหน่งใน Unity Editor ได้อิสระ
+            if (recipientText != null && destinationText != null && serialText != null && weightText != null)
+            {
+                if (manifestContentText != null) manifestContentText.gameObject.SetActive(false);
+
+                recipientText.gameObject.SetActive(true);
+                recipientText.text = $"<b>RECIPIENT :</b> <color=#ffffff>{data.recipientName}</color>";
+
+                destinationText.gameObject.SetActive(true);
+                destinationText.text = $"<b>DESTINATION :</b> <color=#ffffff>{data.destinationAddress}</color>";
+
+                if (subCategoryText != null)
+                {
+                    subCategoryText.gameObject.SetActive(true);
+                    subCategoryText.text = $"<b>CARGO TYPE  :</b> <color=#00e6ff>{subName}</color>";
+                }
+
+                serialText.gameObject.SetActive(true);
+                serialText.text = $"<b>SERIAL NO  :</b> <color=#ffea00><b>{data.serialNumber}</b></color>";
+
+                weightText.gameObject.SetActive(true);
+                weightText.text = $"<b>WEIGHT     :</b> <color=#ffffff>{data.declaredWeight:F1} kg</color>";
+
+                if (hintText != null)
+                {
+                    hintText.gameObject.SetActive(true);
+                    hintText.text =
+                        $"──────────────────────────────\n" +
+                        $"<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\n" +
+                        $"PRESS <b>[F]</b> FOR UV LIGHT | PRESS <b>[R]</b> TO STAMP</color></size>";
+                }
+            }
+            else if (manifestContentText != null)
+            {
+                // Fallback กรณีใช้ Text ก้อนเดียว (แสดง SubCategory และ Weight บนแท็บเล็ต)
+                manifestContentText.gameObject.SetActive(true);
+                manifestContentText.text =
+                    $"<b>RECIPIENT  :</b> <color=#ffffff>{data.recipientName}</color>\n" +
+                    $"<b>DESTINATION:</b> <color=#ffffff>{data.destinationAddress}</color>\n" +
+                    $"<b>CARGO TYPE :</b> <color=#00e6ff>{subName}</color>\n" +
+                    $"<b>SERIAL NO  :</b> <color=#ffea00><b>{data.serialNumber}</b></color>\n" +
+                    $"<b>WEIGHT     :</b> <color=#ffffff>{data.declaredWeight:F1} kg</color>\n" +
+                    $"──────────────────────────────\n" +
+                    $"<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\n" +
+                    $"PRESS <b>[F]</b> FOR UV LIGHT | PRESS <b>[R]</b> TO STAMP</color></size>";
+            }
         }
     }
 
@@ -281,6 +337,26 @@ public class InspectionTablet : MonoBehaviour
     }
 
     #region Procedural Tablet Generation
+
+    [ContextMenu("Rebuild Procedural Tablet Hierarchy")]
+    public void RebuildTabletUI()
+    {
+        if (playerCam == null)
+        {
+            playerCam = Camera.main;
+            if (playerCam == null) playerCam = GetComponentInChildren<Camera>();
+        }
+        if (playerCam == null) return;
+
+        Transform existing = playerCam.transform.Find("InspectionTabletRoot");
+        if (existing != null)
+        {
+            DestroyImmediate(existing.gameObject);
+            tabletTransform = null;
+            tabletContainer = null;
+        }
+        CreateProceduralTabletIfNeeded();
+    }
 
     public void CreateProceduralTabletIfNeeded()
     {
@@ -316,7 +392,11 @@ public class InspectionTablet : MonoBehaviour
         bodyObj.transform.SetParent(tabletRoot.transform, false);
         bodyObj.transform.localScale = new Vector3(0.24f, 0.17f, 0.012f);
         Collider bodyCol = bodyObj.GetComponent<Collider>();
-        if (bodyCol != null) Destroy(bodyCol); // ไม่ต้องการ Collider
+        if (bodyCol != null)
+        {
+            if (Application.isPlaying) Destroy(bodyCol);
+            else DestroyImmediate(bodyCol);
+        }
 
         // Material สีดำเข้มด้านสไตล์ฮาร์ดแวร์อุตสาหกรรมอวกาศ
         Renderer bodyRend = bodyObj.GetComponent<Renderer>();
@@ -365,9 +445,9 @@ public class InspectionTablet : MonoBehaviour
         headerRt.anchorMax = new Vector2(1f, 1f);
         headerRt.pivot = new Vector2(0.5f, 1f);
         headerRt.anchoredPosition = new Vector2(0f, -8f);
-        headerRt.sizeDelta = new Vector2(-24f, 42f);
+        headerRt.sizeDelta = new Vector2(-24f, 38f);
 
-        TextMeshProUGUI headerText = headerObj.AddComponent<TextMeshProUGUI>();
+        headerText = headerObj.AddComponent<TextMeshProUGUI>();
         headerText.text = "<b><color=#00e6ff>SECTOR 13</color> // MANIFEST DATABASE</b>";
         headerText.fontSize = 20f;
         headerText.alignment = TextAlignmentOptions.Center;
@@ -391,7 +471,27 @@ public class InspectionTablet : MonoBehaviour
         statusText.color = Color.white;
         statusText.raycastTarget = false;
 
-        // ข้อความเนื้อหาข้อมูลพัสดุ
+        // ฟิลด์แยกชิ้น (Modular Elements) - ผู้ใช้สามารถคลิกขยับตำแหน่งและปรับแก้ได้ใน Unity Inspector/Scene
+        recipientText = CreateScreenTextField(canvasObj.transform, "RecipientText", new Vector2(0f, -80f), new Vector2(-40f, 26f), 16f,
+            "<b>RECIPIENT :</b> <color=#ffffff>Unknown</color>");
+
+        destinationText = CreateScreenTextField(canvasObj.transform, "DestinationText", new Vector2(0f, -108f), new Vector2(-40f, 26f), 16f,
+            "<b>DESTINATION :</b> <color=#ffffff>Unknown</color>");
+
+        subCategoryText = CreateScreenTextField(canvasObj.transform, "SubCategoryText", new Vector2(0f, -136f), new Vector2(-40f, 26f), 16f,
+            "<b>CARGO TYPE  :</b> <color=#00e6ff>UNKNOWN</color>");
+
+        serialText = CreateScreenTextField(canvasObj.transform, "SerialText", new Vector2(0f, -164f), new Vector2(-40f, 26f), 16f,
+            "<b>SERIAL NO  :</b> <color=#ffea00><b>UNKNOWN</b></color>");
+
+        weightText = CreateScreenTextField(canvasObj.transform, "WeightText", new Vector2(0f, -192f), new Vector2(-40f, 26f), 16f,
+            "<b>WEIGHT     :</b> <color=#00e6ff>0.0 kg</color>");
+
+        hintText = CreateScreenTextField(canvasObj.transform, "HintText", new Vector2(0f, -236f), new Vector2(-40f, 50f), 12f,
+            "──────────────────────────────\n<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\nPRESS <b>[R]</b> TO STAMP APPROVE OR REJECT</color></size>");
+        hintText.lineSpacing = -8f;
+
+        // ข้อความเนื้อหาข้อมูลพัสดุสำหรับ Standby หรือกรณีสำรอง
         GameObject contentObj = new GameObject("ManifestContent");
         contentObj.transform.SetParent(canvasObj.transform, false);
         RectTransform contentRt = contentObj.AddComponent<RectTransform>();
@@ -421,11 +521,43 @@ public class InspectionTablet : MonoBehaviour
         screenGlowImage.raycastTarget = false;
     }
 
+    private TextMeshProUGUI CreateScreenTextField(Transform parent, string name, Vector2 anchoredPos, Vector2 sizeDelta, float fontSize, string defaultText)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+
+        RectTransform rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = sizeDelta;
+
+        TextMeshProUGUI tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = defaultText;
+        tmp.fontSize = fontSize;
+        tmp.color = Color.white;
+        tmp.enableWordWrapping = true;
+        tmp.raycastTarget = false;
+
+        return tmp;
+    }
+
     private void BindExistingReferences(Transform root)
     {
-        statusText = root.Find("TabletScreenCanvas/StatusBar")?.GetComponent<TextMeshProUGUI>();
-        manifestContentText = root.Find("TabletScreenCanvas/ManifestContent")?.GetComponent<TextMeshProUGUI>();
-        screenGlowImage = root.Find("TabletScreenCanvas/ScanGlow")?.GetComponent<Image>();
+        Transform canvas = root.Find("TabletScreenCanvas");
+        if (canvas == null) return;
+
+        headerText = canvas.Find("HeaderBar")?.GetComponent<TextMeshProUGUI>();
+        statusText = canvas.Find("StatusBar")?.GetComponent<TextMeshProUGUI>();
+        recipientText = canvas.Find("RecipientText")?.GetComponent<TextMeshProUGUI>();
+        destinationText = canvas.Find("DestinationText")?.GetComponent<TextMeshProUGUI>();
+        subCategoryText = canvas.Find("SubCategoryText")?.GetComponent<TextMeshProUGUI>();
+        serialText = canvas.Find("SerialText")?.GetComponent<TextMeshProUGUI>();
+        weightText = canvas.Find("WeightText")?.GetComponent<TextMeshProUGUI>();
+        hintText = canvas.Find("HintText")?.GetComponent<TextMeshProUGUI>();
+        manifestContentText = canvas.Find("ManifestContent")?.GetComponent<TextMeshProUGUI>();
+        screenGlowImage = canvas.Find("ScanGlow")?.GetComponent<Image>();
     }
 
     private void CreateBeepAudioClip()
