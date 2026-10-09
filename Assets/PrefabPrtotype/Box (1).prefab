@@ -1653,7 +1653,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageBox
   possibleInnerItemPrefabs:
-  - {fileID: 0}
+  - {fileID: 3631325783640814000, guid: 56ab0d6928c17c047a1b47be428a7050, type: 3}
   - {fileID: 0}
   innerItemPrefab: {fileID: 3631325783640814000, guid: 56ab0d6928c17c047a1b47be428a7050, type: 3}
   openSlot: {fileID: 5139694660693575120}
@@ -1721,7 +1721,7 @@ MonoBehaviour:
   itemWeight: 5
   category: 1
   subCategory: 0
-  allowedTraces: 
+  allowedTraces: 000000000100000002000000030000000400000005000000
   sizeInSlots: 2
 --- !u!54 &-310519432165398723
 Rigidbody:
@@ -1788,17 +1788,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageTraceApplier
   legalSettings:
-    spawnChancePercent: 25
-    minTraces: 0
-    maxTraces: 1
+    spawnChancePercent: 85
+    minTraces: 1
+    maxTraces: 2
     uvTraceRatioPercent: 0
   illegalSettings:
-    spawnChancePercent: 75
+    spawnChancePercent: 90
     minTraces: 1
     maxTraces: 3
     uvTraceRatioPercent: 35
   alienSettings:
-    spawnChancePercent: 95
+    spawnChancePercent: 100
     minTraces: 2
     maxTraces: 4
     uvTraceRatioPercent: 70
@@ -1808,9 +1808,9 @@ MonoBehaviour:
   cardboardScuffMat: {fileID: 2100000, guid: a9a5a2d2d370a5744a968e78373e413e, type: 2}
   alienSlimeUVMat: {fileID: 2100000, guid: 67e96424029f58f4b9294af3ac76a9b1, type: 2}
   chemicalResidueUVMat: {fileID: 2100000, guid: b29dea490383f0b47a666fe29cd72f64, type: 2}
-  minTraceSize: {x: 0.28, y: 0.28}
-  maxTraceSize: {x: 0.48, y: 0.48}
-  projectionDepth: 0.45
+  minTraceSize: {x: 0.38, y: 0.38}
+  maxTraceSize: {x: 0.6, y: 0.6}
+  projectionDepth: 0.9
   currentCategory: 0
   isUVIlluminated: 0
 --- !u!1 &6873221308193235937

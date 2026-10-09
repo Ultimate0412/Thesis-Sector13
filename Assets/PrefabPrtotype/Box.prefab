@@ -431,10 +431,10 @@ GameObject:
   - component: {fileID: 8956437872127055747}
   - component: {fileID: 7758074212420461020}
   - component: {fileID: 4997966856643485255}
-  - component: {fileID: 847272774406582524}
   - component: {fileID: -2293546493818392279}
   - component: {fileID: 4099973611045106714}
   - component: {fileID: 5405559009351015441}
+  - component: {fileID: -6994921876366435508}
   m_Layer: 6
   m_Name: Box
   m_TagString: Untagged
@@ -531,24 +531,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &847272774406582524
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3277296079550629395}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
-  itemName: Unknown Item
-  itemWeight: 5
-  category: 0
-  subCategory: 0
-  allowedTraces: 
-  sizeInSlots: 1
 --- !u!54 &-2293546493818392279
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -614,17 +596,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageTraceApplier
   legalSettings:
-    spawnChancePercent: 25
-    minTraces: 0
-    maxTraces: 1
+    spawnChancePercent: 85
+    minTraces: 1
+    maxTraces: 2
     uvTraceRatioPercent: 0
   illegalSettings:
-    spawnChancePercent: 75
+    spawnChancePercent: 90
     minTraces: 1
     maxTraces: 3
     uvTraceRatioPercent: 35
   alienSettings:
-    spawnChancePercent: 95
+    spawnChancePercent: 100
     minTraces: 2
     maxTraces: 4
     uvTraceRatioPercent: 70
@@ -634,11 +616,29 @@ MonoBehaviour:
   cardboardScuffMat: {fileID: 2100000, guid: a9a5a2d2d370a5744a968e78373e413e, type: 2}
   alienSlimeUVMat: {fileID: 2100000, guid: 67e96424029f58f4b9294af3ac76a9b1, type: 2}
   chemicalResidueUVMat: {fileID: 2100000, guid: b29dea490383f0b47a666fe29cd72f64, type: 2}
-  minTraceSize: {x: 0.28, y: 0.28}
-  maxTraceSize: {x: 0.48, y: 0.48}
-  projectionDepth: 0.45
+  minTraceSize: {x: 0.38, y: 0.38}
+  maxTraceSize: {x: 0.6, y: 0.6}
+  projectionDepth: 0.9
   currentCategory: 0
   isUVIlluminated: 0
+--- !u!114 &-6994921876366435508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3277296079550629395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
+  itemName: Unknown Item
+  itemWeight: 5
+  category: 0
+  subCategory: 0
+  allowedTraces: 
+  sizeInSlots: 1
 --- !u!1 &3450567964808641930
 GameObject:
   m_ObjectHideFlags: 0

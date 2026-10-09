@@ -346,4 +346,11 @@ public class PackageBox : MonoBehaviour, IInteractable
             }
         }
     }
+
+    [ContextMenu("Preview Manifest & Traces")]
+    public void PreviewManifestAndTraces()
+    {
+        InitializeInnerItem();
+        InitializeManifest();
+    }
 }
