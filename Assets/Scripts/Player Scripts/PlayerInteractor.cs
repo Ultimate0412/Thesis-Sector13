@@ -1,138 +1,56 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PlayerInteractor : MonoBehaviour
 {
     [Header("Interaction Settings")]
     public float interactDistance = 3f;
-    public LayerMask interactableLayer;      // Layer สำหรับสินค้า
-    public LayerMask dropPointLayer;         // Layer สำหรับจุดวางของ
-    public Transform holdPosition;
-
-    private GameObject heldObject;
-    private PlayerStats playerStats;
+    public LayerMask interactionLayer; // เลเยอร์สำหรับวัตถุที่กด Interact ได้ (กล่อง, ปุ่ม)
     private Camera playerCam;
-
-    private BaseDropPoint currentHoveredDropPoint;
 
     private void Start()
     {
-        playerStats = GetComponent<PlayerStats>();
         playerCam = GetComponentInChildren<Camera>();
+
+        // ตรวจสอบให้แน่ใจว่า interactionLayer ครอบคลุมทั้ง Item (Layer 6) และ DropPoint (Layer 7)
+        int requiredMask = (1 << 6) | (1 << 7);
+        if (interactionLayer.value == 0 || (interactionLayer.value & requiredMask) != requiredMask)
+        {
+            interactionLayer |= requiredMask;
+        }
     }
 
     private void Update()
     {
-        HandleDropPointHover();
-
+        // เมื่อกดปุ่ม E สำหรับการ Interact ทั่วไป (เช่น เปิด/ปิดกล่อง หรือหยิบของจากจุดวาง)
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (heldObject == null)
-            {
-                TryPickUp();
-            }
-            else
-            {
-                TryDropOrPlace();
-            }
+            TryInteract();
         }
     }
 
-    private void HandleDropPointHover()
+    private void TryInteract()
     {
         Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
-
-        // ยิงเช็คจุดวาง (DropPoint)
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, dropPointLayer))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactionLayer))
         {
-            BaseDropPoint detectedDropPoint = hit.collider.GetComponent<BaseDropPoint>();
-
-            if (heldObject != null && detectedDropPoint != null && detectedDropPoint.currentPlacedItem == null)
+            // 1. เช็ค IInteractable (ทั้งบน collider หรือ parent เช่น กล่อง, จุดวาง, ปุ่ม)
+            IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
+            if (interactable != null)
             {
-                if (currentHoveredDropPoint != detectedDropPoint)
-                {
-                    ClearHoveredDropPoint();
-                    currentHoveredDropPoint = detectedDropPoint;
-                    currentHoveredDropPoint.ShowHologram(heldObject);
-                }
+                interactable.Interact(this);
                 return;
             }
-        }
 
-        ClearHoveredDropPoint();
-    }
-
-    private void ClearHoveredDropPoint()
-    {
-        if (currentHoveredDropPoint != null)
-        {
-            currentHoveredDropPoint.HideHologram();
-            currentHoveredDropPoint = null;
-        }
-    }
-
-    private void TryPickUp()
-    {
-        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactableLayer))
-        {
-            ItemObject item = hit.collider.GetComponent<ItemObject>();
-            if (item != null)
+            // 2. ถ้าวัตถุที่เล็งไม่มี IInteractable แต่เป็นวัตถุที่วางอยู่บน DropPoint ให้หยิบกลับขึ้นมือ
+            BaseDropPoint dropPoint = BaseDropPoint.GetDropPointHolding(hit.collider.gameObject);
+            if (dropPoint != null)
             {
-                bool canAdd = playerStats.AddWeight(item.itemWeight);
-                if (canAdd)
+                PlayerPickupSystem pickupSystem = GetComponent<PlayerPickupSystem>();
+                if (pickupSystem != null)
                 {
-                    heldObject = hit.collider.gameObject;
-
-                    Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-                    if (rb != null) { rb.isKinematic = true; }
-
-                    Collider col = heldObject.GetComponent<Collider>();
-                    if (col != null) { col.enabled = true; }
-
-                    heldObject.transform.SetParent(holdPosition);
-                    heldObject.transform.localPosition = Vector3.zero;
-                    heldObject.transform.localRotation = Quaternion.identity;
+                    pickupSystem.PickUpItemFromDropPoint(dropPoint);
                 }
             }
-        }
-    }
-
-    private void TryDropOrPlace()
-    {
-        if (currentHoveredDropPoint != null && currentHoveredDropPoint.currentPlacedItem == null)
-        {
-            ItemObject item = heldObject.GetComponent<ItemObject>();
-            float weight = item != null ? item.itemWeight : 0f;
-
-            playerStats.RemoveWeight(weight);
-            currentHoveredDropPoint.PlaceItem(heldObject, weight);
-
-            heldObject = null;
-            ClearHoveredDropPoint();
-            return;
-        }
-
-        DropObjectToFloor();
-    }
-
-    private void DropObjectToFloor()
-    {
-        if (heldObject != null)
-        {
-            ItemObject item = heldObject.GetComponent<ItemObject>();
-            if (item != null)
-            {
-                playerStats.RemoveWeight(item.itemWeight);
-            }
-
-            Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-            if (rb != null) { rb.isKinematic = false; }
-
-            Collider col = heldObject.GetComponent<Collider>();
-            if (col != null) { col.enabled = true; }
-
-            heldObject.transform.SetParent(null);
-            heldObject = null;
         }
     }
 }
