@@ -1,0 +1,16 @@
+﻿ M .mcp.json
+ M Assets/PrefabPrtotype/Player.prefab
+ M Assets/Scenes/GamePlay.unity
+ M "Assets/Scripts/Player Scripts/PlayerController.cs"
+ M "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset"
+ M ProjectSettings/EditorBuildSettings.asset
+ M ProjectSettings/Packages/com.unity.probuilder/Settings.json
+?? .opencode/
+?? Assets/Scripts/Manager/DemoLoopBootstrap.cs
+?? Assets/Scripts/Manager/DemoLoopBootstrap.cs.meta
+?? Assets/Tests.meta
+?? Assets/Tests/
+?? Backup/
+?? CHANGELOG_DEMO.md
+?? DemoChanges/
+?? opencode.json

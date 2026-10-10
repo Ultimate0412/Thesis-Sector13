@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Camera Settings")]
     public Transform playerCamera;
+    public Transform cameraPivot;
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
     [HideInInspector] public float rotationX = 0f;
+    [HideInInspector] public float rotationY = 0f;
 
     // Movement vectors
     private Vector3 targetMoveDirection = Vector3.zero;
@@ -65,6 +67,11 @@ public class PlayerController : MonoBehaviour
         idleState = new IdleState(this);
         walkState = new WalkState(this);
         runState = new RunState(this);
+
+        if (cameraPivot == null && playerCamera != null)
+        {
+            cameraPivot = playerCamera.parent;
+        }
     }
 
     private void Start()
@@ -102,12 +109,19 @@ public class PlayerController : MonoBehaviour
 
     private void HandleCameraLook()
     {
-        if (playerCamera == null) return;
-
-        rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+        rotationY += Input.GetAxis("Mouse X") * lookSpeed;
+        rotationX -= Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-        playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
-        transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
+
+        if (cameraPivot != null)
+        {
+            cameraPivot.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+        }
+
+        if (playerCamera != null)
+        {
+            playerCamera.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
+        }
     }
 
     private void CheckGrounded()
@@ -136,8 +150,9 @@ public class PlayerController : MonoBehaviour
         float curSpeedX = Input.GetAxisRaw("Vertical");
         float curSpeedY = Input.GetAxisRaw("Horizontal");
 
-        Vector3 forward = transform.forward;
-        Vector3 right = transform.right;
+        Transform basis = cameraPivot != null ? cameraPivot : transform;
+        Vector3 forward = basis.forward;
+        Vector3 right = basis.right;
 
         Vector3 inputDir = (forward * curSpeedX) + (right * curSpeedY);
         if (inputDir.sqrMagnitude > 1f)
