@@ -2648,6 +2648,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
   totalScore: 1
   rejectedPackagesCount: 0
+  currentDayStats:
+    dayNumber: 1
+    dailyScoreEarned: 0
+    totalScoreSnapshot: 0
+    dailyRejectedCount: 0
+    dailyApprovedCount: 0
+    legalShippedCount: 0
+    illegalShippedCount: 0
+    alienShippedCount: 0
 --- !u!4 &1757444949
 Transform:
   m_ObjectHideFlags: 0
@@ -2694,7 +2703,7 @@ MonoBehaviour:
   - legalWeight: 40
     illegalWeight: 30
     alienWeight: 30
-  debugEndDayKey: 0
+  debugEndDayKey: 257
 --- !u!114 &1757444951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3133,6 +3142,14 @@ PrefabInstance:
     - target: {fileID: 445997557259778745, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4478825607433992389, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4282428927
+      objectReference: {fileID: 0}
+    - target: {fileID: 4478825607433992389, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 5070843383971357487, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target

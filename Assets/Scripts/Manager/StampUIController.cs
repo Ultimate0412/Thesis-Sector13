@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class StampUIController : MonoBehaviour
 {
@@ -17,14 +17,33 @@ public class StampUIController : MonoBehaviour
         if (stampMenuPanel != null) stampMenuPanel.SetActive(false);
     }
 
+    private int menuOpenedFrame = -1;
+
     public void OpenStampMenu(PackageBox package)
     {
         targetPackage = package;
+        menuOpenedFrame = Time.frameCount;
         if (stampMenuPanel != null)
         {
             stampMenuPanel.SetActive(true);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+        }
+    }
+
+    public bool IsMenuOpen => stampMenuPanel != null && stampMenuPanel.activeSelf;
+    public PackageBox CurrentTargetPackage => targetPackage;
+
+    private void Update()
+    {
+        // ต้องผ่านไปอย่างน้อย 1 เฟรมหลังจากเปิดเมนู จึงจะตรวจจับคีย์ยกเลิก/ปิดเมนู
+        // เพื่อป้องกัน Same-Frame Input Race Condition ที่เปิดแล้วปิดทับในเฟรมเดียวกัน
+        if (IsMenuOpen && Time.frameCount > menuOpenedFrame)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.R))
+            {
+                CloseStampMenu();
+            }
         }
     }
 

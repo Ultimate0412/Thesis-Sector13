@@ -11,7 +11,7 @@ public class CrosshairUI : MonoBehaviour
     public Image crosshairImage;
 
     [Tooltip("ขนาดของเป้าเล็ง (พิกเซล)")]
-    public Vector2 dotSize = new Vector2(8f, 8f);
+    public Vector2 dotSize = new Vector2(10f, 10f);
 
     [Tooltip("สีเป้าเล็งปกติ")]
     public Color normalColor = new Color(1f, 1f, 1f, 0.85f);
@@ -119,8 +119,14 @@ public class CrosshairUI : MonoBehaviour
 
     private void Update()
     {
-        // ซ่อนเป้าเล็งเมื่อเปิดเมนูที่แสดง Cursor (เช่น เมนูปั๊มตรา)
-        if (Cursor.visible)
+        // ซ่อนเป้าเล็งเมื่อเปิดเมนูปั๊มตรา (Stamp Menu) หรือหน้าต่างสรุปผลรายวัน (Daily Summary) ที่ต้องใช้เมาส์คลิก
+        bool isMenuOpen = (StampUIController.Instance != null && 
+                           StampUIController.Instance.stampMenuPanel != null && 
+                           StampUIController.Instance.stampMenuPanel.activeSelf) ||
+                          (DailySummaryUI.Instance != null && 
+                           DailySummaryUI.Instance.IsSummaryOpen);
+
+        if (isMenuOpen)
         {
             if (crosshairImage != null && crosshairImage.enabled) crosshairImage.enabled = false;
             if (promptText != null && promptText.gameObject.activeSelf) promptText.gameObject.SetActive(false);
@@ -143,6 +149,7 @@ public class CrosshairUI : MonoBehaviour
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
             rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.localPosition = Vector3.zero;
             rectTransform.sizeDelta = dotSize;
         }
 
@@ -181,7 +188,18 @@ public class CrosshairUI : MonoBehaviour
                 }
             }
 
-            // 2. เช็ค ItemObject (สินค้าที่หยิบได้)
+            // 2. เช็คอาวุธ (MeleeWeapon)
+            if (!foundInteractable)
+            {
+                MeleeWeapon weapon = hit.collider.GetComponentInParent<MeleeWeapon>();
+                if (weapon != null)
+                {
+                    foundInteractable = true;
+                    currentPrompt = $"[Q] Pick Up [{weapon.weaponName}]";
+                }
+            }
+
+            // 3. เช็ค ItemObject (สินค้าที่หยิบได้)
             if (!foundInteractable)
             {
                 ItemObject item = hit.collider.GetComponentInParent<ItemObject>();

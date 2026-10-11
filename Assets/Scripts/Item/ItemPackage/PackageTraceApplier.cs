@@ -26,8 +26,16 @@ public class PackageTraceApplier : MonoBehaviour
     [Tooltip("ช่วงขนาดสุ่มของร่องรอย (Width x Height)")]
     public Vector2 minTraceSize = new Vector2(0.38f, 0.38f);
     public Vector2 maxTraceSize = new Vector2(0.60f, 0.60f);
-    [Tooltip("ความลึกในการฉาย Decal เข้าไปในเนื้อกล่อง")]
-    public float projectionDepth = 0.90f;
+    [Tooltip("ความลึกในการฉาย Decal เข้าไปในเนื้อกล่อง (ปรับให้บางลงเพื่อไม่ให้ทะลุพื้น)")]
+    public float projectionDepth = 0.35f;
+
+    [Header("Floor Protection Settings (ป้องกันรอยล้นฉายลงพื้น)")]
+    [Tooltip("ระยะห่างปลอดภัยขั้นต่ำจากก้นกล่องขึ้นมา")]
+    public float floorMargin = 0.04f;
+    [Tooltip("มุมองศาที่เริ่มจางรอยหากกระทบระนาบเอียง/ตั้งฉาก (Angle Fade Start)")]
+    [Range(0f, 90f)] public float startAngleFade = 45f;
+    [Tooltip("มุมองศาที่ตัดการฉายรอยทิ้งโดยเด็ดขาด เช่น พื้นห้องที่ทำมุม 90 องศา (Angle Fade End)")]
+    [Range(0f, 90f)] public float endAngleFade = 65f;
 
     [Header("Runtime State")]
     public ItemCategory currentCategory = ItemCategory.Legal;
@@ -155,10 +163,14 @@ public class PackageTraceApplier : MonoBehaviour
 
             if (mat == null) continue;
 
-            // สุ่มตำแหน่งและทิศทางการฉาย Decal
+            float width = Random.Range(minTraceSize.x, maxTraceSize.x);
+            float height = Random.Range(minTraceSize.y, maxTraceSize.y);
+            float maxDim = Mathf.Max(width, height);
+
+            // สุ่มตำแหน่งและทิศทางการฉาย Decal โดยนำขนาดรอย (maxDim) ไปคำนวณไม่ให้ขอบล่างล้นลงพื้น
             Vector3 localPos;
             Quaternion localRot;
-            GetRandomTraceTransform(boxCenter, boxHalfSize, out localPos, out localRot);
+            GetRandomTraceTransform(boxCenter, boxHalfSize, maxDim, out localPos, out localRot);
 
             // สร้าง GameObject สำหรับ DecalProjector
             string traceName = isUV ? $"UV_Trace_{traceType}_{i + 1}" : $"Trace_{traceType}_{i + 1}";
@@ -169,10 +181,11 @@ public class PackageTraceApplier : MonoBehaviour
 
             DecalProjector projector = decalGo.AddComponent<DecalProjector>();
             projector.material = mat;
-
-            float width = Random.Range(minTraceSize.x, maxTraceSize.x);
-            float height = Random.Range(minTraceSize.y, maxTraceSize.y);
             projector.size = new Vector3(width, height, projectionDepth);
+
+            // ป้องกันรอยฉายเปื้อนลงบนพื้นผิวแนวระนาบ (Angle Fade ตัดพื้นผิวที่ทำมุมตั้งฉาก เช่น พื้นห้อง/โต๊ะ)
+            projector.startAngleFade = startAngleFade;
+            projector.endAngleFade = endAngleFade;
 
             if (isUV)
             {
@@ -303,16 +316,23 @@ public class PackageTraceApplier : MonoBehaviour
         }
     }
 
-    private void GetRandomTraceTransform(Vector3 center, Vector3 half, out Vector3 localPos, out Quaternion localRot)
+    private void GetRandomTraceTransform(Vector3 center, Vector3 half, float traceExtent, out Vector3 localPos, out Quaternion localRot)
     {
         // 70% ฉายบนหน้ากล่องทั้ง 5 ด้าน, 30% ฉายตรงสันขอบกล่อง (Edge wrap-around)
         bool pickEdge = Random.value < 0.35f;
 
         float margin = 0.80f;
         float rx = Random.Range(-half.x * margin, half.x * margin);
-        float ry = Random.Range(-half.y * margin, half.y * margin);
         float rz = Random.Range(-half.z * margin, half.z * margin);
         float spin = Random.Range(0f, 360f);
+
+        // คำนวณช่วงพิกัด Y ให้ขอบล่างของ Decal อยู่เหนือก้นกล่อง (-half.y) เสมอ
+        // เผื่อขนาดครึ่งหนึ่งของรอย + ระยะ floorMargin ป้องกันไม่ให้แตะโดนพื้น
+        float halfTrace = traceExtent * 0.55f;
+        float minY = (-half.y + halfTrace) + floorMargin;
+        float maxY = half.y * margin;
+        if (minY > maxY) minY = maxY - 0.05f; // ในกรณีที่รอยมีขนาดใหญ่เมื่อเทียบกับความสูงกล่อง
+        float ry = Random.Range(minY, maxY);
 
         Vector3 forwardDir;
 

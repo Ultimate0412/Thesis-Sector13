@@ -42,6 +42,11 @@ public class PlayerController : MonoBehaviour
         capsuleCollider = GetComponent<CapsuleCollider>();
         stats = GetComponent<PlayerStats>();
 
+        if (GetComponent<PlayerCombatSystem>() == null)
+        {
+            gameObject.AddComponent<PlayerCombatSystem>();
+        }
+
         // ตั้งค่า Rigidbody สำหรับ First-Person Controller
         rb.freezeRotation = true;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
@@ -76,6 +81,21 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // ล็อกเคอร์เซอร์กลับมาเมื่อคลิกในจอเล่นเกม (หากไม่ได้เปิดเมนูปั๊มตราหรือหน้าต่างสรุปผล)
+        if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)
+        {
+            bool isMenuOpen = (StampUIController.Instance != null && 
+                               StampUIController.Instance.stampMenuPanel != null && 
+                               StampUIController.Instance.stampMenuPanel.activeSelf) ||
+                              (DailySummaryUI.Instance != null && 
+                               DailySummaryUI.Instance.IsSummaryOpen);
+            if (!isMenuOpen)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
         HandleCameraLook();
         CheckGrounded();
 
@@ -103,6 +123,11 @@ public class PlayerController : MonoBehaviour
     private void HandleCameraLook()
     {
         if (playerCamera == null) return;
+        if (Time.timeScale <= 0f) return; // ไม่หมุนกล้องขณะเปิดหน้าต่างสรุปผล/หยุดเวลา
+
+        bool isMenuOpen = (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen) ||
+                          (DailySummaryUI.Instance != null && DailySummaryUI.Instance.IsSummaryOpen);
+        if (isMenuOpen) return;
 
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
