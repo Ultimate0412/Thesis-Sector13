@@ -18,7 +18,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Camera Settings")]
     public Transform playerCamera;
-    public Transform cameraPivot;
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
@@ -26,7 +25,6 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
     [HideInInspector] public float rotationX = 0f;
-    [HideInInspector] public float rotationY = 0f;
 
     // Movement vectors
     private Vector3 targetMoveDirection = Vector3.zero;
@@ -43,6 +41,11 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
         stats = GetComponent<PlayerStats>();
+
+        if (GetComponent<PlayerCombatSystem>() == null)
+        {
+            gameObject.AddComponent<PlayerCombatSystem>();
+        }
 
         // ตั้งค่า Rigidbody สำหรับ First-Person Controller
         rb.freezeRotation = true;
@@ -67,11 +70,6 @@ public class PlayerController : MonoBehaviour
         idleState = new IdleState(this);
         walkState = new WalkState(this);
         runState = new RunState(this);
-
-        if (cameraPivot == null && playerCamera != null)
-        {
-            cameraPivot = playerCamera.parent;
-        }
     }
 
     private void Start()
@@ -83,6 +81,21 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // ล็อกเคอร์เซอร์กลับมาเมื่อคลิกในจอเล่นเกม (หากไม่ได้เปิดเมนูปั๊มตราหรือหน้าต่างสรุปผล)
+        if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)
+        {
+            bool isMenuOpen = (StampUIController.Instance != null && 
+                               StampUIController.Instance.stampMenuPanel != null && 
+                               StampUIController.Instance.stampMenuPanel.activeSelf) ||
+                              (DailySummaryUI.Instance != null && 
+                               DailySummaryUI.Instance.IsSummaryOpen);
+            if (!isMenuOpen)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
         HandleCameraLook();
         CheckGrounded();
 
@@ -109,19 +122,17 @@ public class PlayerController : MonoBehaviour
 
     private void HandleCameraLook()
     {
-        rotationY += Input.GetAxis("Mouse X") * lookSpeed;
-        rotationX -= Input.GetAxis("Mouse Y") * lookSpeed;
+        if (playerCamera == null) return;
+        if (Time.timeScale <= 0f) return; // ไม่หมุนกล้องขณะเปิดหน้าต่างสรุปผล/หยุดเวลา
+
+        bool isMenuOpen = (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen) ||
+                          (DailySummaryUI.Instance != null && DailySummaryUI.Instance.IsSummaryOpen);
+        if (isMenuOpen) return;
+
+        rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-
-        if (cameraPivot != null)
-        {
-            cameraPivot.localRotation = Quaternion.Euler(0f, rotationY, 0f);
-        }
-
-        if (playerCamera != null)
-        {
-            playerCamera.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
-        }
+        playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
+        transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
     }
 
     private void CheckGrounded()
@@ -150,9 +161,8 @@ public class PlayerController : MonoBehaviour
         float curSpeedX = Input.GetAxisRaw("Vertical");
         float curSpeedY = Input.GetAxisRaw("Horizontal");
 
-        Transform basis = cameraPivot != null ? cameraPivot : transform;
-        Vector3 forward = basis.forward;
-        Vector3 right = basis.right;
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
 
         Vector3 inputDir = (forward * curSpeedX) + (right * curSpeedY);
         if (inputDir.sqrMagnitude > 1f)

@@ -1,11 +1,15 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 
-public class PlayerStats : MonoBehaviour
+public class PlayerStats : LivingEntity
 {
-    [Header("HP Settings")]
-    public float maxHP = 100f;
-    private float currentHP;
+    [Header("HP Legacy Aliases")]
+    public float maxHP
+    {
+        get => maxHealth;
+        set => maxHealth = value;
+    }
+    public float currentHP => currentHealth;
 
     [Header("Stamina Settings")]
     public float maxStamina = 100f;
@@ -24,10 +28,15 @@ public class PlayerStats : MonoBehaviour
 
     public bool IsExhausted { get; private set; } = false;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        currentStamina = maxStamina;
+    }
+
     private void Start()
     {
-        currentHP = maxHP;
-        currentStamina = maxStamina;
+        // ค่า HP และ Stamina ได้รับการตั้งต้นเรียบร้อยแล้ว
     }
 
     private void Update()
@@ -37,9 +46,26 @@ public class PlayerStats : MonoBehaviour
 
     public void ModifyHP(float amount)
     {
-        currentHP = Mathf.Clamp(currentHP + amount, 0, maxHP);
-        OnHPChanged?.Invoke(currentHP, maxHP);
-        if (currentHP <= 0) { Die(); }
+        if (amount < 0f)
+        {
+            TakeDamage(-amount, transform.position, Vector3.zero);
+        }
+        else
+        {
+            Heal(amount);
+        }
+    }
+
+    public override void TakeDamage(float amount, Vector3 hitPoint, Vector3 hitDirection)
+    {
+        base.TakeDamage(amount, hitPoint, hitDirection);
+        OnHPChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+    public override void Heal(float amount)
+    {
+        base.Heal(amount);
+        OnHPChanged?.Invoke(currentHealth, maxHealth);
     }
 
     public void ModifyStamina(float amount)
@@ -69,8 +95,9 @@ public class PlayerStats : MonoBehaviour
         OnWeightChanged?.Invoke(currentWeight, maxWeightCapacity);
     }
 
-    private void Die()
+    protected override void Die()
     {
+        base.Die();
         Debug.Log("Player Died");
         // จัดการเมื่อผู้เล่นตาย
     }

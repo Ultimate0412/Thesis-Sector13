@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerInteractor : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    public float interactDistance = 3f;
+    public float interactDistance = 3.5f;
     public LayerMask interactionLayer; // เลเยอร์สำหรับวัตถุที่กด Interact ได้ (กล่อง, ปุ่ม)
     private Camera playerCam;
 
@@ -25,6 +25,54 @@ public class PlayerInteractor : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             TryInteract();
+        }
+
+        // กด R สำหรับเปิด/ปิดเมนูปั๊มตรา (Stamp) บนกล่องพัสดุที่กำลังถือหรือเล็งอยู่
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            TryStampPackage();
+        }
+    }
+
+    private void TryStampPackage()
+    {
+        // หากเมนูปั๊มตราเปิดอยู่แล้ว ให้ปิด
+        if (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen)
+        {
+            StampUIController.Instance.CloseStampMenu();
+            return;
+        }
+
+        // 1. ตรวจสอบว่าผู้เล่นกำลังถือกล่องพัสดุอยู่ในมือหรือไม่
+        PlayerPickupSystem pickupSystem = GetComponent<PlayerPickupSystem>();
+        if (pickupSystem != null && pickupSystem.heldObject != null)
+        {
+            PackageBox heldBox = pickupSystem.heldObject.GetComponentInParent<PackageBox>();
+            if (heldBox == null) heldBox = pickupSystem.heldObject.GetComponentInChildren<PackageBox>();
+            if (heldBox != null)
+            {
+                heldBox.OpenStampMenu();
+                return;
+            }
+        }
+
+        // 2. ถ้าไม่ได้ถือกล่อง ให้เรย์คาสต์ไปยังกล่องที่ผู้เล่นกำลังเล็งอยู่ (ระยะ 3.5m ตรงกับ CrosshairUI)
+        if (playerCam == null) playerCam = GetComponentInChildren<Camera>();
+        if (playerCam != null)
+        {
+            Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+            float checkDist = Mathf.Max(interactDistance, 3.5f);
+
+            // ตรวจสอบคอลไลเดอร์ที่เล็งอยู่ (รวมถึงคอลไลเดอร์ย่อยของฝากล่อง) แล้วดึง PackageBox ในระดับ Parent
+            if (Physics.Raycast(ray, out RaycastHit hit, checkDist))
+            {
+                PackageBox targetedBox = hit.collider.GetComponentInParent<PackageBox>();
+                if (targetedBox != null)
+                {
+                    targetedBox.OpenStampMenu();
+                    return;
+                }
+            }
         }
     }
 

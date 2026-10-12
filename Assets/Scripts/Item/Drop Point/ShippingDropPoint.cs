@@ -70,12 +70,6 @@ public class ShippingDropPoint : BaseDropPoint
         // 4. คำนวณคะแนนตามสถานะตราประทับ
         if (packageBox.currentStamp == InspectionStatus.Rejected)
         {
-            // บันทึกสถิติตีกลับลง ScoreManager
-            if (ScoreManager.Instance != null)
-            {
-                ScoreManager.Instance.AddRejectedCount();
-            }
-
             // ตีกลับสินค้าถูกกฎหมาย โดนหักคะแนน
             if (itemData.category == ItemCategory.Legal)
             {
@@ -93,11 +87,11 @@ public class ShippingDropPoint : BaseDropPoint
             scoreChange = CalculateScore(itemData);
         }
 
-        // 5. ส่งคะแนนไปที่ ScoreManager ตัวกลาง
+        // 5. บันทึกสถิติและคะแนนไปที่ ScoreManager ตัวกลาง
         if (ScoreManager.Instance != null)
         {
-            ScoreManager.Instance.AddScore(scoreChange);
-            Debug.Log($"[Shipping Point] สำเร็จ! สินค้า: {itemData.itemName} | ประเภท: {itemData.category} | คะแนนที่เปลี่ยน: {scoreChange}");
+            ScoreManager.Instance.RecordShippedPackage(itemData.category, packageBox.currentStamp, scoreChange);
+            Debug.Log($"[Shipping Point] สำเร็จ! สินค้า: {itemData.itemName} | ประเภท: {itemData.category} | ตรา: {packageBox.currentStamp} | คะแนนที่เปลี่ยน: {scoreChange}");
         }
         else
         {

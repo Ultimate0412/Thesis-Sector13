@@ -32,6 +32,10 @@ public class PackageLabelView : MonoBehaviour
     [Header("Fallback Single Text (ถ้าต้องการแสดงแบบก้อนเดียว)")]
     public TextMeshProUGUI labelText;
 
+    [Header("Stamp Visual Badge")]
+    public GameObject stampBadgeRoot;
+    public TextMeshProUGUI stampBadgeText;
+
     private PackageManifestData currentData;
 
     private void Awake()
@@ -226,6 +230,78 @@ public class PackageLabelView : MonoBehaviour
                 $"──────────────────────────\n" +
                 $"<align=center><size=130%>||| | || ||||| | |||| ||| ||</size>\n" +
                 $"<size=75%>TRK#{barcodeNumber}</size></align>";
+        }
+    }
+
+    public void UpdateStampVisual(InspectionStatus status)
+    {
+        EnsureLabelSetup();
+        if (labelCanvas == null) return;
+
+        if (stampBadgeRoot == null)
+        {
+            Transform existing = labelCanvas.transform.Find("StampBadge");
+            if (existing != null)
+            {
+                stampBadgeRoot = existing.gameObject;
+                stampBadgeText = existing.GetComponentInChildren<TextMeshProUGUI>();
+            }
+        }
+
+        if (status == InspectionStatus.None)
+        {
+            if (stampBadgeRoot != null) stampBadgeRoot.SetActive(false);
+            return;
+        }
+
+        if (stampBadgeRoot == null)
+        {
+            GameObject badgeGo = new GameObject("StampBadge");
+            badgeGo.transform.SetParent(labelCanvas.transform, false);
+            badgeGo.layer = gameObject.layer;
+
+            RectTransform badgeRt = badgeGo.AddComponent<RectTransform>();
+            badgeRt.anchorMin = new Vector2(0.5f, 0.5f);
+            badgeRt.anchorMax = new Vector2(0.5f, 0.5f);
+            badgeRt.pivot = new Vector2(0.5f, 0.5f);
+            badgeRt.anchoredPosition = new Vector2(0f, 0f);
+            badgeRt.sizeDelta = new Vector2(340f, 75f);
+            badgeRt.localRotation = Quaternion.Euler(0f, 0f, 10f); // เอียงเล็กน้อยสไตล์ตราประทับ
+
+            Image badgeBg = badgeGo.AddComponent<Image>();
+            badgeBg.color = new Color(0f, 0f, 0f, 0.15f);
+            badgeBg.raycastTarget = false;
+
+            GameObject textGo = new GameObject("BadgeText");
+            textGo.transform.SetParent(badgeGo.transform, false);
+            textGo.layer = gameObject.layer;
+            RectTransform textRt = textGo.AddComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+
+            stampBadgeText = textGo.AddComponent<TextMeshProUGUI>();
+            stampBadgeText.alignment = TextAlignmentOptions.Center;
+            stampBadgeText.fontSize = 24f;
+            stampBadgeText.fontStyle = FontStyles.Bold;
+            stampBadgeText.raycastTarget = false;
+
+            stampBadgeRoot = badgeGo;
+        }
+
+        stampBadgeRoot.SetActive(true);
+        if (status == InspectionStatus.Approved)
+        {
+            stampBadgeText.text = "<b><color=#1E824C>[ ✔ APPROVED / ผ่าน ]</color></b>";
+            Image bg = stampBadgeRoot.GetComponent<Image>();
+            if (bg != null) bg.color = new Color(0.12f, 0.51f, 0.3f, 0.25f);
+        }
+        else if (status == InspectionStatus.Rejected)
+        {
+            stampBadgeText.text = "<b><color=#C0392B>[ ✖ REJECTED / ตีกลับ ]</color></b>";
+            Image bg = stampBadgeRoot.GetComponent<Image>();
+            if (bg != null) bg.color = new Color(0.75f, 0.22f, 0.17f, 0.3f);
         }
     }
 }

@@ -35,10 +35,24 @@ public class PackageBox : MonoBehaviour, IInteractable
     public DiscrepancyType discrepancyType = DiscrepancyType.None;
     [Tooltip("โอกาสเกิดข้อผิดพลาดบนใบปะหน้า สำหรับสินค้า Illegal และ Alien (%)")]
     [Range(0f, 100f)] public float discrepancyChance = 75f;
+    [Header("Box Animation Settings")]
+    [Tooltip("Animator สำหรับเล่นแอนิเมชันเปิด-ปิดกล่อง (ถ้าไม่ระบุ จะดึงจาก GameObject หรือวัตถุลูกให้อัตโนมัติ)")]
+    public Animator boxAnimator;
+    [Tooltip("ชื่อ Parameter ชนิด Bool ใน Animator สำหรับควบคุมสถานะเปิด-ปิด")]
+    public string openParameterName = "IsOpen";
+    [Tooltip("หากมี Animator จะซ่อน Hath หรือไม่ (ปิดไว้หากในแอนิเมชันเปิดฝามีโมเดลฝาอยู่แล้ว)")]
+    public bool hideHathWhenAnimated = false;
+
     private PackageLabelView labelView;
 
     private void Awake()
     {
+        if (boxAnimator == null)
+        {
+            boxAnimator = GetComponent<Animator>();
+            if (boxAnimator == null) boxAnimator = GetComponentInChildren<Animator>();
+        }
+
         InitializeInnerItem();
         InitializeManifest();
     }
@@ -157,18 +171,6 @@ public class PackageBox : MonoBehaviour, IInteractable
     }
     // ------------------------------------
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(stampMenuKey))
-        {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null && Vector3.Distance(transform.position, player.transform.position) <= 3.5f)
-            {
-                OpenStampMenu();
-            }
-        }
-    }
-
     public void OpenStampMenu()
     {
         if (StampUIController.Instance != null)
@@ -185,6 +187,12 @@ public class PackageBox : MonoBehaviour, IInteractable
     {
         currentStamp = status;
         Debug.Log($"ประทับตรากล่องเรียบร้อย: {currentStamp}");
+
+        PackageLabelView labelView = GetComponent<PackageLabelView>();
+        if (labelView != null)
+        {
+            labelView.UpdateStampVisual(status);
+        }
     }
 
     public void ToggleOpenBox()
@@ -204,10 +212,27 @@ public class PackageBox : MonoBehaviour, IInteractable
         }
     }
 
+    /// <summary>
+    /// ส่งค่า Boolean ไปยัง Animator เพื่อสั่งเล่นแอนิเมชันเปิดหรือปิดกล่อง
+    /// </summary>
+    /// <param name="open">true = เล่นท่าเปิดกล่อง, false = เล่นท่าปิดกล่อง</param>
+    public void SetOpenAnimation(bool open)
+    {
+        if (boxAnimator != null && !string.IsNullOrEmpty(openParameterName))
+        {
+            boxAnimator.SetBool(openParameterName, open);
+        }
+    }
+
     private void OpenBox()
     {
         isOpen = true;
-        if (Hath != null) Hath.SetActive(false);
+        SetOpenAnimation(true);
+
+        if (Hath != null && (boxAnimator == null || hideHathWhenAnimated))
+        {
+            Hath.SetActive(false);
+        }
 
         if (GameDayManager.Instance != null)
         {
@@ -247,11 +272,16 @@ public class PackageBox : MonoBehaviour, IInteractable
     private void CloseBox()
     {
         isOpen = false;
+        SetOpenAnimation(false);
+
         if (spawnedInnerItem != null && !isItemExtracted)
         {
             spawnedInnerItem.SetActive(false);
         }
-        if (Hath != null) Hath.SetActive(true);
+        if (Hath != null && (boxAnimator == null || hideHathWhenAnimated))
+        {
+            Hath.SetActive(true);
+        }
     }
 
     // --- ฟังก์ชันสำหรับการนำสินค้าออกจากกล่อง (Extract) ---
@@ -353,4 +383,10 @@ public class PackageBox : MonoBehaviour, IInteractable
         InitializeInnerItem();
         InitializeManifest();
     }
+
+    [ContextMenu("Test Animation: Open (Bool = true)")]
+    public void TestAnimationOpen() => SetOpenAnimation(true);
+
+    [ContextMenu("Test Animation: Close (Bool = false)")]
+    public void TestAnimationClose() => SetOpenAnimation(false);
 }

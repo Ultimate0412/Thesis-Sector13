@@ -16,6 +16,8 @@ public class ItemObject : MonoBehaviour
     [Header("Item Properties")]
     public string itemName = "Unknown Item";
     public float itemWeight = 5f;
+    [Tooltip("ระบุว่าเป็นอาวุธ/เครื่องมือป้องกันตัวหรือไม่ (หากเป็นอาวุธ จะไม่ถูกนับเป็นพัสดุสินค้าตกค้างตอนจบวัน)")]
+    public bool isWeapon = false;
     public ItemCategory category = ItemCategory.Legal;
     public ItemSubCategory subCategory = ItemSubCategory.Medical;
 

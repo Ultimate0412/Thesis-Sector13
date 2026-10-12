@@ -65,7 +65,7 @@ public class GameDayManager : MonoBehaviour
 
     [Header("Debug Key")]
     [Tooltip("ปุ่มสำหรับกดทดสอบจบวัน (ตั้งเป็น None ได้หากไม่ต้องการใช้งาน)")]
-    public KeyCode debugEndDayKey = KeyCode.None;
+    public KeyCode debugEndDayKey = KeyCode.Alpha2;
 
     // Events
     public event Action<int> OnQuotaChanged;            // remainingOpenQuota (รองรับโค้ดเดิม)
@@ -74,6 +74,7 @@ public class GameDayManager : MonoBehaviour
     public event Action<int> OnDayEnded;                // completedDay
     public event Action<int> OnDayStarted;              // newDay
     public event Action<string> OnDayEndFailed;         // failReason (ส่งแจ้งเตือนเมื่อจบวันไม่สำเร็จ)
+    public event Action<int, DailyStatisticsData> OnDaySummaryRequested; // day, stats (เปิดหน้าต่างสรุปผลประจำวัน)
 
     private void Awake()
     {
@@ -311,6 +312,12 @@ public class GameDayManager : MonoBehaviour
             if (item == null) continue;
             GameObject itemObj = item.gameObject;
 
+            // 1. ข้ามอาวุธ (เช่น ท่อนไม้ / MeleeWeapon) เพราะเป็นอุปกรณ์ป้องกันตัวของผู้เล่น ไม่ใช่พัสดุสินค้าที่ต้องนำส่งหรือเก็บเข้าคลังสินค้า
+            if (item.isWeapon || itemObj.GetComponent<MeleeWeapon>() != null || itemObj.GetComponentInParent<MeleeWeapon>() != null)
+            {
+                continue;
+            }
+
             // ข้ามถ้าเป็นส่วนประกอบของ PackageBox เอง หรือยังอยู่ใน PackageBox
             if (itemObj.GetComponent<PackageBox>() != null) continue;
             PackageBox parentBox = itemObj.GetComponentInParent<PackageBox>();
@@ -423,12 +430,38 @@ public class GameDayManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// ขอเปิดหน้าต่างสรุปผลรายวัน (ตรวจเงื่อนไขก่อน หากผ่านจะส่ง Event เปิด DailySummaryUI)
+    /// </summary>
+    public bool RequestEndDay()
+    {
+        if (!CanEndDay(out string failReason))
+        {
+            Debug.LogWarning($"[GameDayManager] {failReason}");
+            OnDayEndFailed?.Invoke(failReason);
+            return false;
+        }
+
+        DailyStatisticsData stats = ScoreManager.Instance != null ? ScoreManager.Instance.CurrentDayStats : null;
+        OnDaySummaryRequested?.Invoke(currentDay, stats);
+        return true;
+    }
+
+    /// <summary>
+    /// ยืนยันจบวันและเข้าสู่วันใหม่ (เรียกเมื่อผู้เล่นกดยืนยัน Next Day ในหน้าต่างสรุปผล)
+    /// </summary>
+    public void ConfirmEndDayAndProceed()
+    {
+        ExecuteEndDay();
+    }
+
     // ฟังก์ชันจบวัน (เรียกจากปุ่มจบวัน หรือระบบกะ)
     public void EndDay()
     {
-        if (!TryEndDay(out string failReason))
+        // หากมีระบบ UI สรุปผล ให้เรียกแบบขอเปิดหน้าต่างสรุปผลก่อน
+        if (!RequestEndDay())
         {
-            // ล็อกข้อความเตือนเมื่อเงื่อนไขไม่ผ่าน
+            // ล็อกข้อความเตือนเมื่อเงื่อนไขไม่ผ่าน (RequestEndDay จัดการ invoke OnDayEndFailed แล้ว)
             return;
         }
     }
@@ -455,6 +488,10 @@ public class GameDayManager : MonoBehaviour
         currentDay++;
         OnDayChanged?.Invoke(currentDay);
         ResetDailyQuota();
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.StartNewDayStats(currentDay);
+        }
         OnDayStarted?.Invoke(currentDay);
     }
 }

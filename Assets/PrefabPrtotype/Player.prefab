@@ -1479,6 +1479,7 @@ GameObject:
   - component: {fileID: 8676000309339607367}
   - component: {fileID: 384995915331344342}
   - component: {fileID: 516351515494862012}
+  - component: {fileID: 3247765406195922488}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1629,7 +1630,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0d6fcf597419c345941cecc0674113e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
-  maxHP: 100
+  maxHealth: 100
+  currentHealth: 0
   maxStamina: 100
   staminaDrainRate: 20
   staminaRegenRate: 15
@@ -1699,6 +1701,7 @@ MonoBehaviour:
   holdPosition: {fileID: 154740930196575415}
   heldObject: {fileID: 0}
   holdExtractDuration: 0.5
+  throwForce: 12
 --- !u!54 &384995915331344342
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1746,6 +1749,22 @@ MonoBehaviour:
   uvSpotAngle: 55
   detectionDistance: 5
   uvLightComponent: {fileID: 0}
+--- !u!114 &3247765406195922488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7298374657433779711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87addb134da351049a1d878838a83531, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatSystem
+  hitCheckRadius: 0.35
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &7375681977615966776
 GameObject:
   m_ObjectHideFlags: 0

@@ -377,7 +377,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4280557343
   m_fontColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -390,7 +390,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -514,7 +514,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4280557343
   m_fontColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -527,7 +527,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -651,7 +651,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4280557343
   m_fontColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -664,7 +664,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -852,9 +852,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2503274516493931973}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -0.505}
-  m_LocalScale: {x: 0.0013, y: 0.0013, z: 0.0013}
+  m_LocalScale: {x: 0.00227669, y: 0.00227669, z: 0.00227669}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9161500712377746891}
@@ -884,7 +884,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -1013,7 +1013,10 @@ MonoBehaviour:
     declaredWeight: 0
     actualWeight: 0
   discrepancyType: 0
-  discrepancyChance: 75
+  discrepancyChance: 100
+  boxAnimator: {fileID: 0}
+  openParameterName: IsOpen
+  hideHathWhenAnimated: 0
 --- !u!65 &4073182582452976734
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1049,6 +1052,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemObject
   itemName: Unknown Item
   itemWeight: 5
+  isWeapon: 0
   category: 2
   subCategory: 0
   allowedTraces: 000000000100000002000000030000000400000005000000
@@ -1105,6 +1109,8 @@ MonoBehaviour:
   serialText: {fileID: 6069601708472942634}
   barcodeText: {fileID: 2897111373783447320}
   labelText: {fileID: 0}
+  stampBadgeRoot: {fileID: 0}
+  stampBadgeText: {fileID: 0}
 --- !u!114 &4450362150452514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1140,7 +1146,10 @@ MonoBehaviour:
   chemicalResidueUVMat: {fileID: 2100000, guid: b29dea490383f0b47a666fe29cd72f64, type: 2}
   minTraceSize: {x: 0.38, y: 0.38}
   maxTraceSize: {x: 0.6, y: 0.6}
-  projectionDepth: 0.9
+  projectionDepth: 0.35
+  floorMargin: 0.04
+  startAngleFade: 45
+  endAngleFade: 65
   currentCategory: 0
   isUVIlluminated: 0
 --- !u!1 &4230963908019819427
@@ -1331,7 +1340,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4281214502
   m_fontColor: {r: 0.15, g: 0.15, b: 0.18, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1344,7 +1353,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1573,7 +1582,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: bbdd9da744a8e63498204d5e289ccd59, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1692,7 +1701,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4280557343
   m_fontColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1705,7 +1714,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -1941,7 +1950,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4280557343
   m_fontColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -1954,7 +1963,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
