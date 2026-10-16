@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1089598139456897582}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.000000029802322, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -66,9 +66,9 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
+  near clip plane: 0.1
+  far clip plane: 300
+  field of view: 90
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -1317,7 +1317,7 @@ Transform:
   m_GameObject: {fileID: 6916932217701526570}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.335, z: 1.011}
+  m_LocalPosition: {x: 0, y: 1.022, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1480,6 +1480,7 @@ GameObject:
   - component: {fileID: 384995915331344342}
   - component: {fileID: 516351515494862012}
   - component: {fileID: 3247765406195922488}
+  - component: {fileID: 3610905767595555286}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1496,7 +1497,7 @@ Transform:
   m_GameObject: {fileID: 7298374657433779711}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.14, y: 0.47, z: -0.36}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1511,7 +1512,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7298374657433779711}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 3252224991405807402, guid: f96b5117ea03efe42ba8860012d0dff6, type: 3}
 --- !u!23 &167849193103910581
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1614,10 +1615,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
+  m_Radius: 0.2
+  m_Height: 1.8
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.87, z: -0.03}
 --- !u!114 &8784618594318634333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1675,10 +1676,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6995bd6aa3143645b79a34978205594, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
-  interactDistance: 3
+  interactDistance: 3.5
   interactionLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 192
 --- !u!114 &8676000309339607367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1750,6 +1751,22 @@ MonoBehaviour:
   detectionDistance: 5
   uvLightComponent: {fileID: 0}
 --- !u!114 &3247765406195922488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7298374657433779711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87addb134da351049a1d878838a83531, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatSystem
+  hitCheckRadius: 0.35
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &3610905767595555286
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2139,7 +2156,7 @@ Transform:
   m_GameObject: {fileID: 9006846178501170759}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.472, z: 0}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
