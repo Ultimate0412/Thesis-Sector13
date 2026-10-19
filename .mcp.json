@@ -3,6 +3,10 @@
     "unity": {
       "type": "http",
       "url": "http://localhost:21642/mcp"
+    },
+    "ai-game-developer": {
+      "type": "http",
+      "url": "http://localhost:8080/p/4a3a6b02"
     }
   }
 }
