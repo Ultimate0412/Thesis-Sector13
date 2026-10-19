@@ -4,7 +4,13 @@
     "ai-game-developer": {
       "enabled": true,
       "type": "remote",
-      "url": "http://localhost:8080/p/4a3a6b02"
+      "url": "http://localhost:8080/p/4a3a6b02",
+      "timeout": 120000
+    },
+    "substance-painter": {
+      "enabled": true,
+      "type": "local",
+      "command": ["C:/Tools/sp-mcp/.venv/Scripts/python.exe", "C:/Tools/sp-mcp/sp-mcp.py"]
     }
   }
 }
