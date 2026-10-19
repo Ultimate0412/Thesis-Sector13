@@ -119,6 +119,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f0312c6d61290a74bbdee5d2b2477e25, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6708089727228216977}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f0312c6d61290a74bbdee5d2b2477e25, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7767487401407196907}
   m_SourcePrefab: {fileID: 100100000, guid: f0312c6d61290a74bbdee5d2b2477e25, type: 3}
 --- !u!1 &3243164209049455 stripped
 GameObject:
@@ -239,6 +242,8 @@ MonoBehaviour:
   serialText: {fileID: 1433169431333921420}
   barcodeText: {fileID: 6197747434688889297}
   labelText: {fileID: 0}
+  stampBadgeRoot: {fileID: 0}
+  stampBadgeText: {fileID: 0}
 --- !u!65 &3738892093767055626
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -301,10 +306,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemObject
   itemName: Unknown Item
   itemWeight: 5
+  isWeapon: 0
   category: 0
   subCategory: 0
   allowedTraces: 
   sizeInSlots: 1
+--- !u!95 &7767487401407196907
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3243164209049455}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 22ee0655093df1045afda6d5d7aa1235, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!4 &810741428326020565 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f0312c6d61290a74bbdee5d2b2477e25, type: 3}
