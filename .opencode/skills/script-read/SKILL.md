@@ -79,5 +79,19 @@ Read the /unity-initial-setup skill for detailed installation instructions.
 
 ## Output
 
-This tool does not return structured output.
+### Output JSON Schema
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "result": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "result"
+  ]
+}
+```
 

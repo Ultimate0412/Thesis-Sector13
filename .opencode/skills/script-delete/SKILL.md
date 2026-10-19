@@ -22,7 +22,7 @@ Validates the array (non-empty, every entry ends with `.cs`, every entry exists)
 
 ```bash
 unity-mcp-cli run-tool script-delete --input '{
-  "files": []
+  "files": "string_value"
 }'
 ```
 
@@ -48,7 +48,7 @@ Read the /unity-initial-setup skill for detailed installation instructions.
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `files` | `array` | Yes | File paths to the files. Sample: "Assets/Scripts/MyScript.cs". |
+| `files` | `any` | Yes | File paths to the files. Sample: "Assets/Scripts/MyScript.cs". |
 
 ### Input JSON Schema
 
@@ -57,6 +57,11 @@ Read the /unity-initial-setup skill for detailed installation instructions.
   "type": "object",
   "properties": {
     "files": {
+      "$ref": "#/$defs/System.String-1"
+    }
+  },
+  "$defs": {
+    "System.String-1": {
       "type": "array",
       "items": {
         "type": "string"

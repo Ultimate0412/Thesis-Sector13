@@ -23,7 +23,7 @@ Each entry is resolved against the tool manager's exact-name and case-insensitiv
 ```bash
 unity-mcp-cli run-tool tool-set-enabled-state --input '{
   "tools": "string_value",
-  "includeLogs": false
+  "includeLogs": "string_value"
 }'
 ```
 
@@ -49,8 +49,8 @@ Read the /unity-initial-setup skill for detailed installation instructions.
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `tools` | `string` | Yes | Array of tools with their desired enabled state. RQL: [ToolToggleInput] |
-| `includeLogs` | `boolean` | No | Include operation logs in the result. Default: false |
+| `tools` | `any` | Yes | Array of tools with their desired enabled state. |
+| `includeLogs` | `any` | No | Include operation logs in the result. Default: false |
 
 ### Input JSON Schema
 
@@ -59,9 +59,36 @@ Read the /unity-initial-setup skill for detailed installation instructions.
   "type": "object",
   "properties": {
     "tools": {
-      "type": "string"
+      "$ref": "#/$defs/AIGD.ToolToggleInput-1"
     },
     "includeLogs": {
+      "$ref": "#/$defs/System.Boolean"
+    }
+  },
+  "$defs": {
+    "AIGD.ToolToggleInput": {
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "description": "Name of the MCP tool to enable or disable."
+        },
+        "Enabled": {
+          "type": "boolean",
+          "description": "Whether the tool should be enabled (true) or disabled (false)."
+        }
+      },
+      "required": [
+        "Enabled"
+      ]
+    },
+    "AIGD.ToolToggleInput-1": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/AIGD.ToolToggleInput"
+      }
+    },
+    "System.Boolean": {
       "type": "boolean"
     }
   },
@@ -73,5 +100,73 @@ Read the /unity-initial-setup skill for detailed installation instructions.
 
 ## Output
 
-This tool does not return structured output.
+### Output JSON Schema
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "result": {
+      "$ref": "#/$defs/AIGD.ToolToggleResult"
+    }
+  },
+  "$defs": {
+    "com.IvanMurzak.ReflectorNet.Model.Logs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/com.IvanMurzak.ReflectorNet.Model.LogEntry"
+      }
+    },
+    "com.IvanMurzak.ReflectorNet.Model.LogEntry": {
+      "type": "object",
+      "properties": {
+        "Depth": {
+          "type": "integer"
+        },
+        "Message": {
+          "type": "string"
+        },
+        "Type": {
+          "type": "string",
+          "enum": [
+            "Trace",
+            "Debug",
+            "Info",
+            "Success",
+            "Warning",
+            "Error",
+            "Critical"
+          ]
+        }
+      },
+      "required": [
+        "Depth",
+        "Type"
+      ]
+    },
+    "System.Collections.Generic.Dictionary(System.String,System.Boolean)": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "AIGD.ToolToggleResult": {
+      "type": "object",
+      "properties": {
+        "Logs": {
+          "$ref": "#/$defs/com.IvanMurzak.ReflectorNet.Model.Logs",
+          "description": "Optional operation logs. Only included when 'includeLogs' is true."
+        },
+        "Success": {
+          "$ref": "#/$defs/System.Collections.Generic.Dictionary(System.String,System.Boolean)",
+          "description": "Result of each tool operation. Key: original input name as provided by the caller (case preserved as-is). Value: true if the enable/disable operation completed successfully, false if the name was unknown, ambiguous, or empty."
+        }
+      }
+    }
+  },
+  "required": [
+    "result"
+  ]
+}
+```
 
