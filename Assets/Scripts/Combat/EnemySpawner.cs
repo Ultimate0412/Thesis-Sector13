@@ -171,6 +171,42 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
+    /// สปอนศัตรู ณ ตำแหน่งและมุมหมุนที่กำหนด (เช่น สปอนที่ชั้นวางของใน Storage เมื่อเกิดปฏิกิริยา)
+    /// </summary>
+    public GameObject SpawnEnemyAtLocation(GameObject prefabOverride, Vector3 position, Quaternion rotation)
+    {
+        GameObject prefabToUse = prefabOverride != null ? prefabOverride : enemyPrefab;
+        if (prefabToUse == null)
+        {
+            Debug.LogError("[EnemySpawner] ไม่สามารถสปอนได้: ไม่มี Prefab ศัตรูที่กำหนด!");
+            return null;
+        }
+
+        CleanDeadEnemiesList();
+
+        if (maxAliveEnemies > 0 && activeEnemies.Count >= maxAliveEnemies)
+        {
+            Debug.LogWarning($"[EnemySpawner] จำนวนศัตรูเต็มโควต้าสูงสุดแล้ว ({activeEnemies.Count}/{maxAliveEnemies}) ไม่สามารถสปอนเพิ่มได้");
+            return null;
+        }
+
+        GameObject spawned = Instantiate(prefabToUse, position, rotation);
+        activeEnemies.Add(spawned);
+
+        if (spawnSound != null)
+        {
+            AudioSource.PlayClipAtPoint(spawnSound, position);
+        }
+        if (spawnVfxPrefab != null)
+        {
+            Instantiate(spawnVfxPrefab, position, rotation);
+        }
+
+        Debug.Log($"<color=#FF5AA5>[EnemySpawner]</color> สปอนศัตรูฉุกเฉิน <b>{spawned.name}</b> สำเร็จ! ณ ตำแหน่ง {position} (จำนวนศัตรูในฉาก: {activeEnemies.Count})");
+        return spawned;
+    }
+
+    /// <summary>
     /// ทำลายศัตรูทั้งหมดที่ถูกสปอนออกมา
     /// </summary>
     [ContextMenu("Clear All Enemies")]

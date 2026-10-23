@@ -26,6 +26,16 @@ public class DailyCategorySpawnRate
     }
 }
 
+[System.Serializable]
+public class DailyPackageList
+{
+    [Tooltip("ชื่อระบุวันสำหรับอ่านง่ายใน Inspector เช่น 'Day 1'")]
+    public string dayName = "Day 1";
+
+    [Tooltip("รายการ Prefab กล่องพัสดุเฉพาะของวันนี้ (หากกำหนด ระบบจะสุ่มเฉพาะพัสดุในชุดนี้)")]
+    public GameObject[] packagePrefabs;
+}
+
 public class GameDayManager : MonoBehaviour
 {
     public static GameDayManager Instance;
@@ -62,6 +72,10 @@ public class GameDayManager : MonoBehaviour
     [Header("Daily Rates Progression (สัดส่วนแยกตามวัน - ตัวเลือกเสริม)")]
     [Tooltip("สัดส่วนโอกาสเกิดของแต่ละหมวดหมู่แยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
     public DailyCategorySpawnRate[] categoryRatesPerDay;
+
+    [Header("Daily Package Prefabs (กำหนด Prefab พัสดุแยกตามวัน)")]
+    [Tooltip("รายการ Prefab พัสดุที่จะเกิดในแต่ละวัน (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้ค่าตั้งต้นจาก ItemSpawner")]
+    public DailyPackageList[] dailyPackagePrefabsPerDay;
 
     [Header("Debug Key")]
     [Tooltip("ปุ่มสำหรับกดทดสอบจบวัน (ตั้งเป็น None ได้หากไม่ต้องการใช้งาน)")]
@@ -212,6 +226,21 @@ public class GameDayManager : MonoBehaviour
         {
             return ItemCategory.Alien;
         }
+    }
+
+    // --- ค้นหารายการ Prefab พัสดุประจำวัน ---
+    public GameObject[] GetPackagePrefabsForDay(int day)
+    {
+        int dayIndex = day - 1;
+        if (dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length)
+        {
+            var dailyList = dailyPackagePrefabsPerDay[dayIndex];
+            if (dailyList != null && dailyList.packagePrefabs != null && dailyList.packagePrefabs.Length > 0)
+            {
+                return dailyList.packagePrefabs;
+            }
+        }
+        return null; // ไม่มีระบุเจาะจง ให้ใช้ค่าเริ่มต้น
     }
 
     // --- ตรวจสอบเงื่อนไขก่อนจบวัน: ห้ามมีสินค้าค้างตามพื้นหรือจุด Spawn ต้องเก็บใน Storage เท่านั้น ---
@@ -447,9 +476,7 @@ public class GameDayManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// ยืนยันจบวันและเข้าสู่วันใหม่ (เรียกเมื่อผู้เล่นกดยืนยัน Next Day ในหน้าต่างสรุปผล)
-    /// </summary>
+
     public void ConfirmEndDayAndProceed()
     {
         ExecuteEndDay();
@@ -458,10 +485,10 @@ public class GameDayManager : MonoBehaviour
     // ฟังก์ชันจบวัน (เรียกจากปุ่มจบวัน หรือระบบกะ)
     public void EndDay()
     {
-        // หากมีระบบ UI สรุปผล ให้เรียกแบบขอเปิดหน้าต่างสรุปผลก่อน
+        
         if (!RequestEndDay())
         {
-            // ล็อกข้อความเตือนเมื่อเงื่อนไขไม่ผ่าน (RequestEndDay จัดการ invoke OnDayEndFailed แล้ว)
+            
             return;
         }
     }

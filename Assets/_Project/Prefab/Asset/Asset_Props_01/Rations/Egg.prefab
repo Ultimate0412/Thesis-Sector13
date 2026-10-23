@@ -69,6 +69,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemObject
   itemName: Chicken Egg
   itemWeight: 5
+  isWeapon: 0
   category: 0
   subCategory: 2
   allowedTraces: 0200000003000000

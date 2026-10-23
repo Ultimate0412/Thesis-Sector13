@@ -141,9 +141,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageBox
   possibleInnerItemPrefabs:
-  - {fileID: 3818189603958988417, guid: 6fea48d0a255664459821651e6cf9c6e, type: 3}
-  - {fileID: 1644982942162988508, guid: 210953c804fd0554482763a488f21f1e, type: 3}
-  - {fileID: 8092772800044081048, guid: 52f25786863add44ebffc181eaa6341c, type: 3}
+  - {fileID: 6336276675665460937, guid: 85ac443e5a683fa40a49b1e577bde2bc, type: 3}
+  - {fileID: 769614672587333460, guid: 92af07ed6fd45734ba8bce2e73e500f4, type: 3}
+  - {fileID: 3499342784117873941, guid: 0c32728b50281ea41adbaabb2939f79e, type: 3}
   innerItemPrefab: {fileID: 0}
   openSlot: {fileID: 8647961664705482763}
   Hath: {fileID: 0}

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class StorageRoomManager : MonoBehaviour
@@ -11,6 +12,13 @@ public class StorageRoomManager : MonoBehaviour
     // อาเรย์เช็คสถานะแต่ละ Slot ว่าถูกจอง/วางของอยู่หรือยัง (false = ว่าง, true = ไม่ว่าง)
     private bool[] slotOccupied;
     private GameObject[] itemsInSlots;         // เก็บอ้างอิงวัตถุที่วางอยู่ในแต่ละ Slot
+
+    public GameObject[] ItemsInSlots => itemsInSlots;
+    public bool[] SlotOccupied => slotOccupied;
+
+    // เหตุการณ์เมื่อมีการวางหรือหยิบของใน Storage
+    public event Action<GameObject, int, int> OnItemPlacedInStorage; // (itemObj, startIndex, size)
+    public event Action<GameObject> OnItemRemovedFromStorage;         // (itemObj)
 
     private void Awake()
     {
@@ -26,6 +34,14 @@ public class StorageRoomManager : MonoBehaviour
 
         slotOccupied = new bool[totalSlots];
         itemsInSlots = new GameObject[totalSlots];
+    }
+
+    private void Start()
+    {
+        if (GetComponent<StorageHazardManager>() == null)
+        {
+            gameObject.AddComponent<StorageHazardManager>();
+        }
     }
 
     // ฟังก์ชันเช็คว่าวัตถุนี้ถูกจัดเก็บอยู่ใน Storage หรือไม่
@@ -68,6 +84,16 @@ public class StorageRoomManager : MonoBehaviour
         return count;
     }
 
+    public int GetSlotIndexOfItem(GameObject itemObj)
+    {
+        if (itemsInSlots == null || itemObj == null) return -1;
+        for (int i = 0; i < itemsInSlots.Length; i++)
+        {
+            if (itemsInSlots[i] == itemObj) return i;
+        }
+        return -1;
+    }
+
     // ฟังก์ชันเช็คว่าสามารถวางไอเท็มขนาด size ลงที่ startIndex ได้หรือไม่
     public bool CanPlaceItemAt(int startIndex, int itemSize)
     {
@@ -97,9 +123,15 @@ public class StorageRoomManager : MonoBehaviour
         }
 
         // ย้ายวัตถุไปวางที่ตำแหน่ง Slot เริ่มต้น
-        itemObj.transform.position = slotPositions[startIndex].position;
-        itemObj.transform.rotation = slotPositions[startIndex].rotation;
-        itemObj.transform.SetParent(slotPositions[startIndex]);
+        if (slotPositions != null && startIndex < slotPositions.Length && slotPositions[startIndex] != null)
+        {
+            itemObj.transform.position = slotPositions[startIndex].position;
+            itemObj.transform.rotation = slotPositions[startIndex].rotation;
+            itemObj.transform.SetParent(slotPositions[startIndex]);
+        }
+
+        // แจ้งเตือนเหตุการณ์ว่ามีการวางของ
+        OnItemPlacedInStorage?.Invoke(itemObj, startIndex, itemSize);
     }
 
     // ฟังก์ชันเคลียร์พื้นที่เมื่อหยิบของออก
@@ -121,6 +153,9 @@ public class StorageRoomManager : MonoBehaviour
                     }
                 }
                 itemsInSlots[i] = null;
+
+                // แจ้งเตือนเหตุการณ์ว่ามีการหยิบของออก
+                OnItemRemovedFromStorage?.Invoke(itemObj);
                 break;
             }
         }
