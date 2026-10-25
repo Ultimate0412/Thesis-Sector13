@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
     [HideInInspector] public float rotationX = 0f;
+    [HideInInspector] public float rotationY = 0f;
 
     // Movement vectors
     private Vector3 targetMoveDirection = Vector3.zero;
@@ -74,6 +75,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        rotationY = transform.eulerAngles.y;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         SwitchState(idleState);
@@ -113,6 +115,11 @@ public class PlayerController : MonoBehaviour
         ApplyPhysicsMovement();
     }
 
+    private void LateUpdate()
+    {
+        ApplyLookRotation();
+    }
+
     public void SwitchState(PlayerStateBase newState)
     {
         currentState?.Exit();
@@ -131,8 +138,17 @@ public class PlayerController : MonoBehaviour
 
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-        playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
-        transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
+
+        rotationY += Input.GetAxis("Mouse X") * lookSpeed;
+        rotationY = Mathf.Repeat(rotationY + 180f, 360f) - 180f;
+    }
+
+    private void ApplyLookRotation()
+    {
+        if (playerCamera == null) return;
+
+        transform.rotation = Quaternion.Euler(0f, rotationY, 0f);
+        playerCamera.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
     }
 
     private void CheckGrounded()
@@ -161,8 +177,9 @@ public class PlayerController : MonoBehaviour
         float curSpeedX = Input.GetAxisRaw("Vertical");
         float curSpeedY = Input.GetAxisRaw("Horizontal");
 
-        Vector3 forward = transform.forward;
-        Vector3 right = transform.right;
+        Quaternion yawRotation = Quaternion.Euler(0f, rotationY, 0f);
+        Vector3 forward = yawRotation * Vector3.forward;
+        Vector3 right = yawRotation * Vector3.right;
 
         Vector3 inputDir = (forward * curSpeedX) + (right * curSpeedY);
         if (inputDir.sqrMagnitude > 1f)

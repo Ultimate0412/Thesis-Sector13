@@ -1,12 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "ai-game-developer": {
-      "enabled": true,
-      "type": "remote",
-      "url": "http://localhost:8080/p/4a3a6b02",
-      "timeout": 120000
-    },
     "substance-painter": {
       "enabled": true,
       "type": "local",
