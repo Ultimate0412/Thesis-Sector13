@@ -8,7 +8,8 @@ public enum ItemSubCategory
     Industrial,     // ชิ้นส่วนอุตสาหกรรมและเครื่องยนต์ (Industrial Machinery & Parts)
     Rations,        // อาหารและเสบียง (Food Rations & Bio-Supplies)
     Scientific,     // ตัวอย่างวิจัยและสารเคมี (Scientific Samples & Chemicals)
-    Electronics     // อุปกรณ์เทคโนโลยีและชิป (Electronics & Hardware)
+    Electronics,    // อุปกรณ์เทคโนโลยีและชิป (Electronics & Hardware)
+    Biological      // วัตถุชีวภาพและสิ่งมีชีวิตตัวอย่าง (Biological Samples & Organisms)
 }
 
 public class ItemObject : MonoBehaviour
@@ -37,6 +38,7 @@ public class ItemObject : MonoBehaviour
             case ItemSubCategory.Rations: return "FOOD & BIO-RATIONS";
             case ItemSubCategory.Scientific: return "SCIENTIFIC SAMPLES";
             case ItemSubCategory.Electronics: return "ELECTRONICS / HARDWARE";
+            case ItemSubCategory.Biological: return "BIOLOGICAL SAMPLES";
             default: return sub.ToString().ToUpper();
         }
     }

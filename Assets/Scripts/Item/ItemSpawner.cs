@@ -27,15 +27,59 @@ public class ItemSpawner : MonoBehaviour, IInteractable
     [Tooltip("กำหนดเรทสุ่มหมวดหมู่แยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้เรทด้านบน")]
     public DailyCategorySpawnRate[] dailyRatesPerDay;
 
+    [Header("Daily Package Prefabs (กำหนด Prefab แยกตามวัน)")]
+    [Tooltip("หากเปิดใช้งาน จะดึงรายการ Prefab ประจำวันจาก GameDayManager")]
+    public bool useGameDayManagerPackages = true;
+
+    [Tooltip("กำหนดรายการ Prefab พัสดุแยกตามวันเฉพาะใน Spawner นี้ (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้จาก GameDayManager หรือ packagePrefabs ด้านบน")]
+    public DailyPackageList[] dailyPackagePrefabsPerDay;
+
     // เก็บอ้างอิงกล่องที่อยู่ในแต่ละ Slot
     private GameObject[] spawnedPackages;
 
     // แคชเก็บรายการ Prefab แยกตามประเภท (Legal, Illegal, Alien)
     private Dictionary<ItemCategory, List<GameObject>> categorizedPrefabs = new Dictionary<ItemCategory, List<GameObject>>();
+    private int lastCachedDay = -1;
+    private Dictionary<ItemCategory, List<GameObject>> activeCategorizedPrefabs = new Dictionary<ItemCategory, List<GameObject>>();
+    private List<GameObject> activeDayPrefabsList = new List<GameObject>();
+
+    private void OnEnable()
+    {
+        if (GameDayManager.Instance != null)
+        {
+            GameDayManager.Instance.OnDayStarted += HandleDayStarted;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (GameDayManager.Instance != null)
+        {
+            GameDayManager.Instance.OnDayStarted -= HandleDayStarted;
+        }
+    }
+
+    private void Start()
+    {
+        if (GameDayManager.Instance != null)
+        {
+            GameDayManager.Instance.OnDayStarted -= HandleDayStarted;
+            GameDayManager.Instance.OnDayStarted += HandleDayStarted;
+            RefreshPrefabsForDay(GameDayManager.Instance.currentDay, true);
+        }
+    }
+
+    private void HandleDayStarted(int newDay)
+    {
+        RefreshPrefabsForDay(newDay, true);
+    }
 
     private void Awake()
     {
         InitializeCategorizedPrefabs();
+
+        int currentDay = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
+        RefreshPrefabsForDay(currentDay, true);
 
         if (spawnSlots != null && spawnSlots.Length > 0)
         {
@@ -89,6 +133,76 @@ public class ItemSpawner : MonoBehaviour, IInteractable
         return ItemCategory.Legal; // ค่าเริ่มต้นหากไม่มี ItemObject
     }
 
+    // --- ค้นหาและรีเฟรช Prefab ประจำวัน ---
+    public GameObject[] GetActivePackagePrefabsForDay(int day)
+    {
+        int dayIndex = day - 1;
+
+        // 1. ถ้าปิด useGameDayManagerPackages แต่ใน Spawner นี้มีกำหนด dailyPackagePrefabsPerDay เฉพาะตัว
+        if (!useGameDayManagerPackages && dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length)
+        {
+            var localDaily = dailyPackagePrefabsPerDay[dayIndex];
+            if (localDaily != null && localDaily.packagePrefabs != null && localDaily.packagePrefabs.Length > 0)
+            {
+                return localDaily.packagePrefabs;
+            }
+        }
+
+        // 2. ดึงจาก GameDayManager หากเปิดใช้งาน
+        if (useGameDayManagerPackages && GameDayManager.Instance != null)
+        {
+            GameObject[] dayPrefabs = GameDayManager.Instance.GetPackagePrefabsForDay(day);
+            if (dayPrefabs != null && dayPrefabs.Length > 0)
+            {
+                return dayPrefabs;
+            }
+        }
+
+        // 3. Fallback: ถ้า GameDayManager ไม่มี แต่ใน Spawner นี้มีตั้งไว้
+        if (dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length)
+        {
+            var localDaily = dailyPackagePrefabsPerDay[dayIndex];
+            if (localDaily != null && localDaily.packagePrefabs != null && localDaily.packagePrefabs.Length > 0)
+            {
+                return localDaily.packagePrefabs;
+            }
+        }
+
+        // 4. Fallback สุดท้าย: ใช้ packagePrefabs ค่าเริ่มต้น
+        return packagePrefabs;
+    }
+
+    public void RefreshPrefabsForDay(int day, bool force = false)
+    {
+        if (day == lastCachedDay && !force) return;
+        lastCachedDay = day;
+
+        activeCategorizedPrefabs.Clear();
+        activeCategorizedPrefabs[ItemCategory.Legal] = new List<GameObject>();
+        activeCategorizedPrefabs[ItemCategory.Illegal] = new List<GameObject>();
+        activeCategorizedPrefabs[ItemCategory.Alien] = new List<GameObject>();
+        activeDayPrefabsList.Clear();
+
+        GameObject[] prefabsToUse = GetActivePackagePrefabsForDay(day);
+        if (prefabsToUse == null || prefabsToUse.Length == 0)
+        {
+            prefabsToUse = packagePrefabs;
+        }
+
+        if (prefabsToUse != null)
+        {
+            foreach (GameObject prefab in prefabsToUse)
+            {
+                if (prefab == null) continue;
+                activeDayPrefabsList.Add(prefab);
+                ItemCategory cat = DetectCategoryFromPrefab(prefab);
+                activeCategorizedPrefabs[cat].Add(prefab);
+            }
+        }
+
+        Debug.Log($"[ItemSpawner] อัปเดตพัสดุสำหรับ Day {day}: ทั้งหมด {activeDayPrefabsList.Count} แบบ (Legal={activeCategorizedPrefabs[ItemCategory.Legal].Count}, Illegal={activeCategorizedPrefabs[ItemCategory.Illegal].Count}, Alien={activeCategorizedPrefabs[ItemCategory.Alien].Count})");
+    }
+
     // --- Implement จาก IInteractable ---
     public string GetInteractPrompt()
     {
@@ -122,7 +236,12 @@ public class ItemSpawner : MonoBehaviour, IInteractable
     // ฟังก์ชันสั่งเติมสินค้าจนกว่าจะเต็มทุก Slot หรือโควต้าหมด
     public void SpawnPackagesUntilFull()
     {
-        if (spawnSlots == null || spawnSlots.Length == 0 || packagePrefabs == null || packagePrefabs.Length == 0)
+        int currentDay = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
+        RefreshPrefabsForDay(currentDay);
+
+        GameObject[] currentPrefabs = GetActivePackagePrefabsForDay(currentDay);
+        bool hasAnyPrefabs = (currentPrefabs != null && currentPrefabs.Length > 0) || (packagePrefabs != null && packagePrefabs.Length > 0);
+        if (spawnSlots == null || spawnSlots.Length == 0 || !hasAnyPrefabs)
         {
             Debug.LogWarning("[ItemSpawner] ยังไม่ได้กำหนด Slot หรือ Prefab พัสดุใน Inspector!");
             return;
@@ -191,29 +310,32 @@ public class ItemSpawner : MonoBehaviour, IInteractable
     // สุ่มเลือก Prefab ตามอัตราหมวดหมู่
     private GameObject GetPackagePrefabToSpawn()
     {
-        if (packagePrefabs == null || packagePrefabs.Length == 0) return null;
+        int currentDay = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
+        RefreshPrefabsForDay(currentDay);
+
+        // หากชุดประจำวันไม่มี Prefab ให้ Fallback ไปดูที่ packagePrefabs พื้นฐาน
+        if (activeDayPrefabsList.Count == 0)
+        {
+            if (packagePrefabs == null || packagePrefabs.Length == 0) return null;
+            List<GameObject> fallbackList = new List<GameObject>();
+            for (int i = 0; i < packagePrefabs.Length; i++)
+            {
+                if (packagePrefabs[i] != null) fallbackList.Add(packagePrefabs[i]);
+            }
+            return fallbackList.Count > 0 ? fallbackList[Random.Range(0, fallbackList.Count)] : null;
+        }
 
         ItemCategory targetCategory = GetTargetCategory();
 
-        // ค้นหา Prefab จากหมวดหมู่ที่สุ่มได้
-        if (categorizedPrefabs.TryGetValue(targetCategory, out List<GameObject> list) && list.Count > 0)
+        // 1. ค้นหา Prefab จากหมวดหมู่ที่สุ่มได้ในชุดของวันนี้
+        if (activeCategorizedPrefabs.TryGetValue(targetCategory, out List<GameObject> list) && list.Count > 0)
         {
             return list[Random.Range(0, list.Count)];
         }
 
-        // Fallback: หากหมวดหมู่นั้นไม่มี Prefab ให้สุ่มจาก Prefab ทั้งหมดที่มี
-        List<GameObject> validPrefabs = new List<GameObject>();
-        for (int i = 0; i < packagePrefabs.Length; i++)
-        {
-            if (packagePrefabs[i] != null) validPrefabs.Add(packagePrefabs[i]);
-        }
-
-        if (validPrefabs.Count > 0)
-        {
-            return validPrefabs[Random.Range(0, validPrefabs.Count)];
-        }
-
-        return null;
+        // 2. Fallback: หากหมวดหมู่นั้นไม่มี Prefab ในชุดวันนี้ (เช่น วันที่ 1 มีเฉพาะของ Legal แต่สุ่มได้ Illegal)
+        // ให้สุ่มจาก Prefab ทั้งหมดที่มีในชุดของวันนี้ เพื่อให้ยังคงเกิดเฉพาะของที่กำหนดไว้สำหรับวันนี้
+        return activeDayPrefabsList[Random.Range(0, activeDayPrefabsList.Count)];
     }
 
     private ItemCategory GetTargetCategory()

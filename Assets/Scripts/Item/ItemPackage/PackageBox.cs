@@ -22,6 +22,8 @@ public class PackageBox : MonoBehaviour, IInteractable
     [Header("Inspection Settings")]
     public int maxOpenPerDay = 3;
     public bool isOpen = false;
+    [Tooltip("ระบุว่ากล่องนี้เคยถูกเปิดตรวจแล้วหรือไม่ (หากเคยเปิดแล้ว การเปิดซ้ำจะไม่หักโควต้า)")]
+    public bool hasBeenOpened = false;
 
     public InspectionStatus currentStamp = InspectionStatus.None;
     public KeyCode stampMenuKey = KeyCode.R; // ปุ่มกดเปิดเมนูประทับตรา (เปลี่ยนปุ่มได้ตามต้องการ)
@@ -153,7 +155,12 @@ public class PackageBox : MonoBehaviour, IInteractable
         else
         {
             string emptyNotice = isItemExtracted ? " (Empty)" : "";
-            return $"[E] Open Box{emptyNotice} | [Q] Pick Up Box | [R] Stamp ({currentStamp})";
+            string openLabel = "[E] Open Box";
+            if (!hasBeenOpened && GameDayManager.Instance != null && !GameDayManager.Instance.CanOpenBoxToday())
+            {
+                openLabel = "[E] No Quota";
+            }
+            return $"{openLabel}{emptyNotice} | [Q] Pick Up Box | [R] Stamp ({currentStamp})";
         }
     }
 
@@ -199,9 +206,10 @@ public class PackageBox : MonoBehaviour, IInteractable
     {
         if (!isOpen)
         {
-            if (GameDayManager.Instance != null && !GameDayManager.Instance.CanOpenBoxToday())
+            // หากยังไม่เคยเปิดกล่องนี้มาก่อน ต้องมีโควต้าเปิดตรวจคงเหลืออยู่
+            if (!hasBeenOpened && GameDayManager.Instance != null && !GameDayManager.Instance.CanOpenBoxToday())
             {
-                Debug.Log("โควต้าการเปิดกล่องตรวจภายในของวันนี้หมดแล้ว!");
+                Debug.LogWarning("[PackageBox] โควต้าการเปิดกล่องตรวจภายในของวันนี้หมดแล้ว!");
                 return;
             }
             OpenBox();
@@ -234,9 +242,14 @@ public class PackageBox : MonoBehaviour, IInteractable
             Hath.SetActive(false);
         }
 
-        if (GameDayManager.Instance != null)
+        // หักโควต้าเปิดกล่องเฉพาะการเปิดครั้งแรกเท่านั้น
+        if (!hasBeenOpened)
         {
-            GameDayManager.Instance.ConsumeOpenQuota();
+            hasBeenOpened = true;
+            if (GameDayManager.Instance != null)
+            {
+                GameDayManager.Instance.ConsumeOpenQuota();
+            }
         }
 
         // หากยังไม่ได้นำสินค้าออก ให้สร้างหรือเปิดแสดงสินค้า
