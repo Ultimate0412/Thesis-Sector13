@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerPickupSystem : MonoBehaviour
 {
+    public static PlayerPickupSystem Instance { get; private set; }
+
     [Header("Pickup Settings")]
     public float pickupDistance = 3f;
     public LayerMask itemLayer;         // เลเยอร์สำหรับสินค้าที่หยิบได้
@@ -23,6 +25,11 @@ public class PlayerPickupSystem : MonoBehaviour
     [Header("Throw Settings")]
     [Tooltip("แรงขว้างวัตถุหรือศัตรูไปข้างหน้าเมื่อกดคลิกขวา (RMB)")]
     public float throwForce = 12f;
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
 
     private void Start()
     {
@@ -407,7 +414,11 @@ public class PlayerPickupSystem : MonoBehaviour
             }
 
             Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-            if (rb != null) { rb.isKinematic = false; }
+            if (rb != null) 
+            { 
+                rb.isKinematic = false; 
+                NoGravityEvent.ActiveInstance?.RegisterRigidbody(rb);
+            }
 
             Collider col = heldObject.GetComponent<Collider>();
             if (col != null) { col.enabled = true; }
@@ -462,6 +473,7 @@ public class PlayerPickupSystem : MonoBehaviour
         {
             rb.isKinematic = false;
             rb.linearVelocity = playerCam.transform.forward * throwForce + Vector3.up * 1.5f;
+            NoGravityEvent.ActiveInstance?.RegisterRigidbody(rb);
         }
 
         Collider col = objToThrow.GetComponent<Collider>();
@@ -491,7 +503,11 @@ public class PlayerPickupSystem : MonoBehaviour
         }
 
         Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-        if (rb != null) { rb.isKinematic = false; }
+        if (rb != null) 
+        { 
+            rb.isKinematic = false; 
+            NoGravityEvent.ActiveInstance?.RegisterRigidbody(rb);
+        }
 
         Collider col = heldObject.GetComponent<Collider>();
         if (col != null) { col.enabled = true; }

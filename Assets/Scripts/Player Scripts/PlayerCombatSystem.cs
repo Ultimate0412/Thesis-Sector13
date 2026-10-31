@@ -14,7 +14,12 @@ public class PlayerCombatSystem : MonoBehaviour
     [Tooltip("เลเยอร์ของศัตรู")]
     public LayerMask hitLayers = ~0;
 
+    [Header("Animation Settings")]
+    [Tooltip("ชื่อ Trigger สำหรับท่าโจมตี (Attack)")]
+    public string attackTriggerName = "Attack";
+
     private PlayerPickupSystem pickupSystem;
+    private PlayerStats playerStats;
     private Camera playerCam;
     private AudioSource audioSource;
     private float nextAttackTime = 0f;
@@ -23,6 +28,7 @@ public class PlayerCombatSystem : MonoBehaviour
     private void Awake()
     {
         pickupSystem = GetComponent<PlayerPickupSystem>();
+        playerStats = GetComponent<PlayerStats>();
         playerCam = GetComponentInChildren<Camera>();
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
@@ -34,6 +40,12 @@ public class PlayerCombatSystem : MonoBehaviour
 
     private void Update()
     {
+        // หากผู้เล่นตายแล้ว จะโจมตีไม่ได้
+        if (playerStats != null && playerStats.IsDead)
+        {
+            return;
+        }
+
         // หากผู้เล่นกำลังเปิดแท็บเล็ตอยู่ จะโจมตีไม่ได้
         if (InspectionTablet.Instance != null && InspectionTablet.Instance.IsTabletHeld)
         {
@@ -84,6 +96,12 @@ public class PlayerCombatSystem : MonoBehaviour
     {
         nextAttackTime = Time.time + weapon.attackCooldown;
 
+        // สั่งเล่นแอนิเมชันโจมตีหากมีการกำหนด Animator
+        if (playerStats != null && playerStats.playerAnimator != null && !string.IsNullOrEmpty(attackTriggerName))
+        {
+            playerStats.playerAnimator.SetTrigger(attackTriggerName);
+        }
+
         // เล่นเสียงเหวี่ยงอาวุธ
         if (weapon.swingSound != null && audioSource != null)
         {
@@ -114,6 +132,13 @@ public class PlayerCombatSystem : MonoBehaviour
             }
             else
             {
+                // ตรวจสอบว่าตีโดนกล่องที่เป็น Mimic ปลอมตัวอยู่หรือไม่
+                MimicPackage mimic = hit.collider.GetComponentInParent<MimicPackage>();
+                if (mimic != null && mimic.enabled)
+                {
+                    mimic.OnAttackedByWeapon(weapon);
+                }
+
                 // ตีโดนกำแพงหรือสิ่งของทั่วไป
                 if (weapon.hitWallSound != null && audioSource != null)
                 {

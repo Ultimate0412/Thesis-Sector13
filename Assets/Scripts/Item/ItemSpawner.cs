@@ -10,6 +10,12 @@ public class ItemSpawner : MonoBehaviour, IInteractable
     [Tooltip("รายการ Prefab กล่องพัสดุทั้งหมด (ระบบจะจัดกลุ่มหมวดหมู่ให้อัตโนมัติจาก ItemObject ภายในกล่อง)")]
     public GameObject[] packagePrefabs;
 
+    [Header("Mimic Infiltration Settings")]
+    [Tooltip("โอกาสที่กล่องหมวดหมู่ Alien จะกลายเป็น Mimic ปลอมตัวมา (0-100%)")]
+    [Range(0f, 100f)] public float alienMimicChance = 0f;
+    [Tooltip("Prefab เฉพาะของกล่อง Mimic (หากเว้นว่างไว้ ระบบจะแนบคอมโพเนนต์ MimicPackage ให้กับกล่อง Alien นั้นๆ อัตโนมัติ)")]
+    public GameObject mimicPackagePrefab;
+
     [Header("Category Spawn Rates (ปรับอัตราการเกิดใน Inspector)")]
     [Tooltip("น้ำหนักโอกาสเกิด: สินค้าถูกกฎหมาย (Legal)")]
     [Range(0f, 100f)] public float legalRate = 70f;
@@ -279,6 +285,28 @@ public class ItemSpawner : MonoBehaviour, IInteractable
                 // สร้างกล่องขึ้นมาที่ตำแหน่ง Slot นั้นๆ
                 GameObject newPackage = Instantiate(selectedPrefab, spawnSlots[i].position, spawnSlots[i].rotation);
                 newPackage.transform.SetParent(spawnSlots[i]);
+
+                // สุ่มตรวจว่ากล่องนี้จะแอบเป็น Mimic ปลอมตัวมาหรือไม่ (สำหรับหมวดหมู่ Alien)
+                if (alienMimicChance > 0f)
+                {
+                    PackageBox pb = newPackage.GetComponent<PackageBox>();
+                    if (pb != null && pb.innerItemPrefab != null)
+                    {
+                        ItemObject item = pb.innerItemPrefab.GetComponent<ItemObject>();
+                        if (item != null && item.category == ItemCategory.Alien)
+                        {
+                            if (Random.Range(0f, 100f) < alienMimicChance)
+                            {
+                                MimicPackage mimic = newPackage.AddComponent<MimicPackage>();
+                                if (EnemySpawner.Instance != null && EnemySpawner.Instance.enemyMimicPrefab != null)
+                                {
+                                    mimic.enemyMimicPrefab = EnemySpawner.Instance.enemyMimicPrefab;
+                                }
+                                Debug.LogWarning($"<color=#FF0044>[ItemSpawner] กล่องพัสดุใน Slot {i} สุ่มกลายเป็น Mimic ปลอมตัวมา!</color>");
+                            }
+                        }
+                    }
+                }
 
                 // บันทึกเก็บไว้ใน Array ประจำ Slot
                 spawnedPackages[i] = newPackage;

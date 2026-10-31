@@ -12,7 +12,7 @@ public class MeleeWeapon : MonoBehaviour
     [Tooltip("น้ำหนักของอาวุธเมื่อหยิบถือ (kg)")]
     public float weaponWeight = 2f;
 
-    [Tooltip("ปริมาณเกจสตั๊นที่เพิ่มให้กับศัตรูต่อการตี 1 ครั้ง (เช่น 35 = ตี 3 ครั้งสตั๊น)")]
+    [Tooltip("ปริมาณเกจสตั๊นที่เพิ่มให้กับศัตรูต่อการตี 1 ครั้ง ")]
     public float stunDamagePerHit = 35f;
 
     [Tooltip("ระยะการโจมตี (เมตร)")]

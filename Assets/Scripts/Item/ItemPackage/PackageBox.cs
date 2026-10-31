@@ -204,6 +204,14 @@ public class PackageBox : MonoBehaviour, IInteractable
 
     public void ToggleOpenBox()
     {
+        // หากกล่องนี้เป็น Mimic ปลอมตัวมา ให้สั่งแปลงร่างทันทีและยกเลิกการเปิดกล่องปกติ
+        MimicPackage mimic = GetComponent<MimicPackage>();
+        if (mimic != null && mimic.enabled)
+        {
+            mimic.OnAttemptOpen();
+            return;
+        }
+
         if (!isOpen)
         {
             // หากยังไม่เคยเปิดกล่องนี้มาก่อน ต้องมีโควต้าเปิดตรวจคงเหลืออยู่
