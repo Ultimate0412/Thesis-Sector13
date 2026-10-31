@@ -293,15 +293,15 @@ public class PackageLabelView : MonoBehaviour
         stampBadgeRoot.SetActive(true);
         if (status == InspectionStatus.Approved)
         {
-            stampBadgeText.text = "<b><color=#1E824C>[ ✔ APPROVED / ผ่าน ]</color></b>";
+            stampBadgeText.text = "<b><color=#1E824C>[ APPROVED / ผ่าน ]</color></b>";
             Image bg = stampBadgeRoot.GetComponent<Image>();
-            if (bg != null) bg.color = new Color(0.12f, 0.51f, 0.3f, 0.25f);
+            if (bg != null) bg.color = new Color(0.12f, 0.51f, 0.3f, 0.1f);
         }
         else if (status == InspectionStatus.Rejected)
         {
-            stampBadgeText.text = "<b><color=#C0392B>[ ✖ REJECTED / ตีกลับ ]</color></b>";
+            stampBadgeText.text = "<b><color=#C0392B>[ REJECTED / ตีกลับ ]</color></b>";
             Image bg = stampBadgeRoot.GetComponent<Image>();
-            if (bg != null) bg.color = new Color(0.75f, 0.22f, 0.17f, 0.3f);
+            if (bg != null) bg.color = new Color(0.75f, 0.22f, 0.17f, 0.12f);
         }
     }
 }
