@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerPickupSystem : MonoBehaviour
@@ -22,6 +23,12 @@ public class PlayerPickupSystem : MonoBehaviour
     private bool isHoldingQ = false;
     private PackageBox targetHoldBox = null;
 
+    [Header("Pickup Animation")]
+    [Tooltip("เวลารอก่อนของเข้ามือ (วินาที) ถ้าเป็น 0 จะใช้ความยาวของ clip Pick อัตโนมัติ")]
+    public float pickUpDelayOverride = 0f;
+    private PlayerAnimationController animController;
+    private bool isPickingUp = false;
+
     [Header("Throw Settings")]
     [Tooltip("แรงขว้างวัตถุหรือศัตรูไปข้างหน้าเมื่อกดคลิกขวา (RMB)")]
     public float throwForce = 12f;
@@ -35,6 +42,7 @@ public class PlayerPickupSystem : MonoBehaviour
     {
         playerStats = GetComponent<PlayerStats>();
         playerCam = GetComponentInChildren<Camera>();
+        animController = GetComponent<PlayerAnimationController>();
     }
 
     private void Update()
@@ -42,7 +50,7 @@ public class PlayerPickupSystem : MonoBehaviour
         HandleDropPointHover();
         HandleHoldQExtraction();
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q) && !isPickingUp)
         {
             if (heldObject == null)
             {
@@ -54,7 +62,7 @@ public class PlayerPickupSystem : MonoBehaviour
                 }
                 else
                 {
-                    TryPickUp();
+                    StartPickUp();
                 }
             }
             else
@@ -190,9 +198,50 @@ public class PlayerPickupSystem : MonoBehaviour
         }
     }
 
-    private void TryPickUp()
+    /// <summary>
+    /// เริ่มหยิบของ: เล่นอนิเมชัน Pick ก่อน แล้วรอจนจบจึงย้ายของเข้ามือ
+    /// ใช้ Ray ณ ตอนที่กดปุ่ม เพื่อให้หยิบของชิ้นที่เล็งอยู่ แม้ผู้เล่นเดินต่อระหว่างอนิเมชัน
+    /// </summary>
+    private void StartPickUp()
     {
         Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        if (!HasPickUpTarget(ray)) return; // ไม่มีอะไรให้หยิบ ไม่ต้องเล่นอนิเมชัน
+        StartCoroutine(PickUpRoutine(ray));
+    }
+
+    private IEnumerator PickUpRoutine(Ray ray)
+    {
+        isPickingUp = true;
+
+        float wait = pickUpDelayOverride;
+        if (animController != null)
+        {
+            float clipLength = animController.TriggerPick();
+            if (wait <= 0f) wait = clipLength;
+        }
+
+        if (wait > 0f) yield return new WaitForSeconds(wait);
+
+        if (heldObject == null) TryPickUp(ray);
+        isPickingUp = false;
+    }
+
+    private bool HasPickUpTarget(Ray ray)
+    {
+        LayerMask combinedMask = itemLayer | dropPointLayer;
+        if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, combinedMask)) return true;
+
+        if (Physics.Raycast(ray, out RaycastHit enemyHit, pickupDistance))
+        {
+            EnemyBase e = enemyHit.collider.GetComponentInParent<EnemyBase>();
+            if (e == null) e = enemyHit.collider.GetComponent<EnemyBase>();
+            return e != null && e.IsStunned;
+        }
+        return false;
+    }
+
+    private void TryPickUp(Ray ray)
+    {
         LayerMask combinedMask = itemLayer | dropPointLayer;
         bool hasHit = Physics.Raycast(ray, out RaycastHit hit, pickupDistance, combinedMask);
         if (!hasHit)
