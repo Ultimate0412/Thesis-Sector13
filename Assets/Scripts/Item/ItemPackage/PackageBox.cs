@@ -28,6 +28,15 @@ public class PackageBox : MonoBehaviour, IInteractable
     public InspectionStatus currentStamp = InspectionStatus.None;
     public KeyCode stampMenuKey = KeyCode.R; // ปุ่มกดเปิดเมนูประทับตรา (เปลี่ยนปุ่มได้ตามต้องการ)
 
+    [Header("Destruction & Penalty Settings")]
+    [Tooltip("คะแนนที่จะถูกหักเมื่อพัสดุชิ้นนี้ถูกทำลายหรือถูกขโมยไป")]
+    public int destructionPenaltyScore = 50;
+    private bool isDestroyedNotified = false;
+
+    // Events สำหรับระบบภายนอก (เช่น ThiefManager หรือ ScoreManager)
+    public static event System.Action<PackageBox, InspectionStatus> OnAnyPackageStamped;
+    public static event System.Action<PackageBox, int> OnAnyPackageDestroyed;
+
     [Header("Manifest & Label Settings")]
     [Tooltip("ข้อมูลในระบบฐานข้อมูลทางการของแท็บเล็ต")]
     public PackageManifestData officialDatabaseData;
@@ -192,6 +201,7 @@ public class PackageBox : MonoBehaviour, IInteractable
 
     public void SetStamp(InspectionStatus status)
     {
+        bool wasNotStamped = (currentStamp == InspectionStatus.None);
         currentStamp = status;
         Debug.Log($"ประทับตรากล่องเรียบร้อย: {currentStamp}");
 
@@ -200,6 +210,26 @@ public class PackageBox : MonoBehaviour, IInteractable
         {
             labelView.UpdateStampVisual(status);
         }
+
+        if (wasNotStamped)
+        {
+            OnAnyPackageStamped?.Invoke(this, status);
+        }
+    }
+
+    /// <summary>
+    /// เรียกใช้เมื่อพัสดุถูกทำลาย หรือถูกขโมยหนีไปได้สำเร็จ เพื่อหักคะแนนผู้เล่น
+    /// </summary>
+    public void NotifyPackageDestroyed(string reason = "Package Destroyed")
+    {
+        if (isDestroyedNotified) return;
+        isDestroyedNotified = true;
+
+        if (ScoreManager.Instance != null && destructionPenaltyScore > 0)
+        {
+            ScoreManager.Instance.DeductScore(destructionPenaltyScore, reason);
+        }
+        OnAnyPackageDestroyed?.Invoke(this, destructionPenaltyScore);
     }
 
     public void ToggleOpenBox()

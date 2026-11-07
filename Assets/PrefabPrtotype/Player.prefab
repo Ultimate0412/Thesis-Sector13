@@ -1456,7 +1456,6 @@ GameObject:
   - component: {fileID: 384995915331344342}
   - component: {fileID: 516351515494862012}
   - component: {fileID: 3247765406195922488}
-  - component: {fileID: 3610905767595555286}
   - component: {fileID: 5028286250582607369}
   m_Layer: 0
   m_Name: Player
@@ -1554,6 +1553,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxHealth: 100
   currentHealth: 0
+  damageCooldown: 0.8
+  playerAnimator: {fileID: 0}
+  hurtTriggerName: TakeDamage
+  dieTriggerName: Die
+  isDeadBoolName: IsDead
+  respawnTriggerName: Respawn
+  isLowHealthBoolName: IsInjured
+  hurtSound: {fileID: 0}
+  deathSound: {fileID: 0}
+  respawnSound: {fileID: 0}
   maxStamina: 100
   staminaDrainRate: 20
   staminaRegenRate: 15
@@ -1581,6 +1590,9 @@ MonoBehaviour:
   playerCamera: {fileID: 8550138162432030878}
   lookSpeed: 2
   lookXLimit: 90
+  speedParamName: Speed
+  isGroundedParamName: IsGrounded
+  jumpTriggerName: Jump
   rb: {fileID: 0}
   capsuleCollider: {fileID: 0}
   stats: {fileID: 0}
@@ -1688,22 +1700,7 @@ MonoBehaviour:
   hitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &3610905767595555286
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7298374657433779711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87addb134da351049a1d878838a83531, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatSystem
-  hitCheckRadius: 0.35
-  hitLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  attackTriggerName: Attack
 --- !u!114 &5028286250582607369
 MonoBehaviour:
   m_ObjectHideFlags: 0

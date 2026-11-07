@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// ข้อมูลสถานะฟิสิกส์เดิมของ Rigidbody ก่อนเข้าสู่สภาวะ Zero-G
@@ -227,6 +228,13 @@ public class NoGravityEvent : GameEventBase
             {
                 if (allEnemies[i] != null)
                 {
+                    // ปิด NavMeshAgent ชั่วคราวเพื่อให้ฟิสิกส์ลอยตัวทำงานได้สมบูรณ์
+                    NavMeshAgent agent = allEnemies[i].GetComponent<NavMeshAgent>();
+                    if (agent != null && agent.enabled)
+                    {
+                        agent.enabled = false;
+                    }
+
                     Rigidbody rb = allEnemies[i].GetComponent<Rigidbody>();
                     if (rb != null)
                     {
@@ -387,6 +395,17 @@ public class NoGravityEvent : GameEventBase
                 rb.drag = state.originalDrag;
                 rb.angularDrag = state.originalAngularDrag;
 #endif
+
+                // คืนการทำงานของ NavMeshAgent ให้ศัตรูที่ยังมีชีวิตและไม่ได้ถูกอุ้ม/สตั๊น
+                EnemyBase enemy = rb.GetComponent<EnemyBase>();
+                if (enemy != null && !enemy.IsDead && !enemy.IsStunned && !enemy.IsBeingCarried)
+                {
+                    NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+                    if (agent != null)
+                    {
+                        agent.enabled = true;
+                    }
+                }
             }
         }
 

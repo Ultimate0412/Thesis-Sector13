@@ -59,6 +59,13 @@ public class ScoreUI : MonoBehaviour
             eventManagerObj.AddComponent<GameEventManager>();
         }
 
+        // ตรวจสอบและเพิ่ม ThiefManager
+        if (FindFirstObjectByType<ThiefManager>() == null)
+        {
+            GameObject thiefManagerObj = new GameObject("ThiefManager");
+            thiefManagerObj.AddComponent<ThiefManager>();
+        }
+
         if (GameDayManager.Instance != null)
         {
             UpdateOpenQuotaText(GameDayManager.Instance.RemainingQuotaToday);

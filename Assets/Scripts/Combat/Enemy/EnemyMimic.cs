@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
+
 public class EnemyMimic : EnemyBase
 {
     public enum MimicState
@@ -89,6 +91,15 @@ public class EnemyMimic : EnemyBase
         if (indicatorRenderer != null)
         {
             indicatorMaterialInstance = indicatorRenderer.material;
+        }
+
+        if (navAgent != null)
+        {
+            navAgent.speed = chaseSpeed;
+            navAgent.angularSpeed = rotationSpeed * 50f;
+            navAgent.acceleration = 16f;
+            navAgent.stoppingDistance = attackRange * 0.75f;
+            navAgent.autoBraking = false;
         }
     }
 
@@ -181,7 +192,7 @@ public class EnemyMimic : EnemyBase
 
     private void HandleSpawning()
     {
-        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        StopMovement();
         stateTimer -= Time.deltaTime;
 
         // หันหน้าหาผู้เล่นตั้งแต่ตอนเกิด
@@ -203,6 +214,8 @@ public class EnemyMimic : EnemyBase
         // ตรวจสอบว่าเข้าถึงระยะกัดหรือยัง
         if (distance <= attackRange)
         {
+            StopMovement();
+
             // เริ่มต้นจังหวะง้างกัด
             currentState = MimicState.Windup;
             stateTimer = windupDuration;
@@ -215,20 +228,29 @@ public class EnemyMimic : EnemyBase
             return;
         }
 
-        // วิ่งเข้าหาผู้เล่น
-        Vector3 moveDir = (playerTarget.position - transform.position);
-        moveDir.y = 0f;
-        if (moveDir.sqrMagnitude > 0.001f)
+        // วิ่งเข้าหาผู้เล่น (NavMesh หรือ Rigidbody Fallback)
+        if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
-            moveDir.Normalize();
-            rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
+            navAgent.isStopped = false;
+            navAgent.speed = chaseSpeed;
+            navAgent.SetDestination(playerTarget.position);
+        }
+        else
+        {
+            Vector3 moveDir = (playerTarget.position - transform.position);
+            moveDir.y = 0f;
+            if (moveDir.sqrMagnitude > 0.001f)
+            {
+                moveDir.Normalize();
+                rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
+            }
         }
     }
 
     private void HandleWindup()
     {
         // หยุดเดินขณะง้างกัด
-        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        StopMovement();
         RotateTowardsPlayer();
 
         stateTimer -= Time.deltaTime;
@@ -248,7 +270,15 @@ public class EnemyMimic : EnemyBase
         if (attackDir.sqrMagnitude > 0.001f) attackDir.Normalize();
         else attackDir = transform.forward;
 
-        rb.linearVelocity = attackDir * lungeSpeed + Vector3.up * 1.5f;
+        if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+        {
+            navAgent.isStopped = true;
+            navAgent.velocity = attackDir * lungeSpeed;
+        }
+        else
+        {
+            rb.linearVelocity = attackDir * lungeSpeed + Vector3.up * 1.5f;
+        }
 
         // สั่งเล่นแอนิเมชันโจมตี
         if (mimicAnimator != null && !string.IsNullOrEmpty(attackTriggerName))
@@ -281,13 +311,26 @@ public class EnemyMimic : EnemyBase
 
     private void HandleCooldown()
     {
-        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        StopMovement();
         SetIndicatorColor(normalEyeColor);
 
         stateTimer -= Time.deltaTime;
         if (stateTimer <= 0f)
         {
             currentState = MimicState.Chasing;
+        }
+    }
+
+    private void StopMovement()
+    {
+        if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+        {
+            navAgent.isStopped = true;
+            navAgent.velocity = Vector3.zero;
+        }
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
     }
 
@@ -322,7 +365,15 @@ public class EnemyMimic : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
-            float horizSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+            float horizSpeed = 0f;
+            if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+            {
+                horizSpeed = navAgent.velocity.magnitude;
+            }
+            else if (rb != null)
+            {
+                horizSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+            }
             mimicAnimator.SetFloat(speedParamName, horizSpeed);
         }
 
