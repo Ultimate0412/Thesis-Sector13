@@ -9,6 +9,7 @@ metadata:
 # RQL / Mutate
 
 Change the live Unity Editor scene with an RQL query whose last stage is set or call. All-or-nothing: every target and value is checked before anything is written; a failure changes nothing. Undoable: one Undo step per call (Ctrl+Z; from an agent: script-execute UnityEditor.Undo.PerformUndo(), then editor | call SaveScenes() and editor | call SaveAssets()). Changed assets, scenes and the open prefab are saved to disk automatically; an untitled scene needs SaveAs(path). dry_run=true returns the receipt ($ref, member, old, new) without changing anything. Do exactly the change requested; a read-only member fails with readonly-member instead of being approximated.
+RQL reference: https://ai-game.dev/docs/rql
   set path = expr, ...   assign members (paths may go through structs: set transform.position.y = transform.position.y + 1)
                          values see each target: $ and $index (its position in the stream entering set / call)
   call Method(args)      invoke a method the tools expose
@@ -24,7 +25,7 @@ Examples:
   objects | where name starts-with "Enemy" and distance(transform.position, unity.find("Player").transform.position) < 10 | set active = false   (units: meters)
   objects | where name == "Drone" | set transform.position = transform.position + normalize(transform.forward) * 3   also length(v), dot(a, b), lerp(a, b, t)
   unity.asset("Assets/Mats/Red.mat") | get properties | where Key ends-with "Color" | set Value = "#ffffff"   map entries write through
-  unity.asset("Assets/Mats/Red.mat") | set properties["_Color"] = "(1, 0, 0, 1)"
+  unity.asset("Assets/Mats/Red.mat") | set color = "#ff0000", properties["_Metallic"] = 0   color = the main color in any pipeline
   unity.asset("Assets/Mats/Red.mat") | set parent = unity.asset("Assets/Mats/Base.mat")   make it a Material Variant of Base
   unity.asset("Assets/Data/Items.asset") | get rows | where Category == "Tool" | set Price = round(Price * 1.15)   data asset (ScriptableObject list rows)
   objects | where name starts-with "Pillar" | get components | where $ is MeshFilter | set sharedMesh = "Cylinder"   built-in mesh
