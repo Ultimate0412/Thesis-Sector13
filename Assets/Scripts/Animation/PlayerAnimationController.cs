@@ -235,10 +235,26 @@ public class PlayerAnimationController : MonoBehaviour
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFov, Time.deltaTime * fovLerpSpeed);
     }
 
-    /// <summary>เรียกจาก PlayerPickupSystem ตอนหยิบของ เพื่อเล่นท่า Pick</summary>
-    public void TriggerPick()
+    /// <summary>
+    /// เล่นท่า Pick แล้วคืนความยาวของท่า (วินาที) ให้ระบบหยิบของรอจนจบ
+    /// คืน 0 หากไม่มี Animator ซึ่งระบบหยิบจะหยิบทันที
+    /// </summary>
+    public float TriggerPick()
     {
-        if (animator != null) animator.SetTrigger(PickHash);
+        if (animator == null) return 0f;
+        animator.SetTrigger(PickHash);
+        return GetClipLength("Pick");
+    }
+
+    private float GetClipLength(string key)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null) return 0f;
+        foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+        {
+            if (clip.name == key || clip.name.EndsWith("|" + key))
+                return clip.length / Mathf.Max(0.01f, animator.speed);
+        }
+        return 0f;
     }
 
     private void UpdateAnimatorParameters()

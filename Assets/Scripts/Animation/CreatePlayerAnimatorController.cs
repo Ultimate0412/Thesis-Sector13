@@ -29,7 +29,15 @@ public static class CreatePlayerAnimatorController
         if (idle == null || walkF == null || walkB == null || run == null ||
             jump == null || landing == null || pick == null)
         {
-            Debug.LogError("[PlayerAnimator] หา clip ไม่ครบ (Idle, Walk_Forward, Walk_Backward, Run, Jump_Up, Landing, Pick) ตรวจชื่อ clip ใน rig.fbx");
+            var names = new System.Collections.Generic.List<string>();
+            foreach (string guid in AssetDatabase.FindAssets("t:AnimationClip"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets")) continue;
+                foreach (Object o in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (o is AnimationClip c && !c.name.StartsWith("__preview__")) names.Add(c.name);
+            }
+            Debug.LogError("[PlayerAnimator] หา clip ไม่ครบ (Idle, Walk_Forward, Walk_Backward, Run, Jump_Up, Landing, Pick) clip ที่พบในโปรเจกต์: " + string.Join(", ", names));
             return;
         }
 
@@ -103,19 +111,165 @@ public static class CreatePlayerAnimatorController
         Debug.Log("[PlayerAnimator] สร้าง Controller สำเร็จที่ " + OutputPath);
     }
 
+    /// <summary>
+    /// ย้าย Pick ไปไว้ใน Layer "RightArm" ที่มี Avatar Mask เฉพาะแขนขวา
+    /// ทำให้ท่า Pick เล่นแค่แขนขวา ส่วนขา/ลำตัว/แขนซ้ายยังเป็นท่าเดินจาก Base Layer
+    /// รันซ้ำได้ (จะสร้าง Layer ใหม่ทับของเดิม)
+    /// </summary>
+    [MenuItem("Tools/Player/Setup Right Arm Pick Layer")]
+    public static void SetupRightArmPickLayer()
+    {
+        string[] guids = AssetDatabase.FindAssets("PlayerAnimator t:AnimatorController");
+        if (guids.Length == 0)
+        {
+            Debug.LogError("[PlayerAnimator] ไม่พบ PlayerAnimator.controller");
+            return;
+        }
+
+        string controllerPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+
+        // 1) Avatar Mask แบบ Transform (rig เป็น Generic จึงใช้ Humanoid mask ไม่ได้)
+        string modelPath = FindModelPath();
+        if (modelPath == null)
+        {
+            Debug.LogError("[PlayerAnimator] ไม่พบโมเดล PlayerWithAnim2 (fbx) สำหรับสร้าง mask");
+            return;
+        }
+        Transform modelRoot = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath).transform;
+
+        string folder = System.IO.Path.GetDirectoryName(controllerPath).Replace('\\', '/');
+        string maskPath = folder + "/RightArmMask.mask";
+        var mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(maskPath);
+        bool newMask = mask == null;
+        if (newMask) mask = new AvatarMask();
+
+        mask.transformCount = 0;
+        mask.AddTransformPath(modelRoot, true);
+
+        int activeCount = 0;
+        var activeNames = new System.Collections.Generic.List<string>();
+        var allPaths = new System.Collections.Generic.List<string>();
+        for (int i = 0; i < mask.transformCount; i++)
+        {
+            string path = mask.GetTransformPath(i);
+            allPaths.Add(path);
+            bool on = IsRightArmPath(path);
+            mask.SetTransformActive(i, on);
+            if (on) { activeCount++; activeNames.Add(path); }
+        }
+
+        if (activeCount == 0)
+        {
+            Debug.LogError("[PlayerAnimator] ไม่พบกระดูกแขนขวาในโมเดล กระดูกที่พบ: " + string.Join(", ", allPaths));
+            return;
+        }
+
+        if (newMask) AssetDatabase.CreateAsset(mask, maskPath);
+        EditorUtility.SetDirty(mask);
+        Debug.Log("[PlayerAnimator] Mask เปิด " + activeCount + " กระดูก: " + string.Join(", ", activeNames));
+
+        // 2) พารามิเตอร์ Pick
+        bool hasPickParam = false;
+        foreach (var p in controller.parameters)
+            if (p.name == "Pick") hasPickParam = true;
+        if (!hasPickParam) controller.AddParameter("Pick", AnimatorControllerParameterType.Trigger);
+
+        // 3) เอา state Pick ออกจาก Base Layer (เก็บ clip ไว้ใช้ต่อ)
+        AnimationClip pickClip = null;
+        AnimatorStateMachine baseSm = controller.layers[0].stateMachine;
+        foreach (var cs in baseSm.states)
+        {
+            if (cs.state.name == "Pick")
+            {
+                pickClip = cs.state.motion as AnimationClip;
+                baseSm.RemoveState(cs.state); // transition ที่เกี่ยวข้องถูกลบไปด้วย
+                break;
+            }
+        }
+        if (pickClip == null) pickClip = FindClip("Pick");
+        if (pickClip == null) { Debug.LogError("[PlayerAnimator] ไม่พบ clip Pick"); return; }
+
+        // 4) ลบ Layer RightArm เดิม (ถ้ามี) แล้วสร้างใหม่
+        for (int i = controller.layers.Length - 1; i >= 1; i--)
+            if (controller.layers[i].name == "RightArm") controller.RemoveLayer(i);
+
+        controller.AddLayer("RightArm");
+        AnimatorControllerLayer[] layers = controller.layers;
+        AnimatorControllerLayer layer = layers[layers.Length - 1];
+        layer.avatarMask = mask;
+        layer.defaultWeight = 1f;
+        layer.blendingMode = AnimatorLayerBlendingMode.Override;
+        controller.layers = layers;
+
+        // 5) state ใน Layer: Empty (ไม่ทับท่าจาก Base Layer) <-> Pick
+        AnimatorStateMachine sm = layer.stateMachine;
+        AnimatorState empty = sm.AddState("Empty", new Vector3(300, 100));
+        sm.defaultState = empty;
+        AnimatorState pickState = sm.AddState("Pick", new Vector3(300, 200));
+        pickState.motion = pickClip;
+
+        var t = sm.AddAnyStateTransition(pickState);
+        t.hasExitTime = false;
+        t.hasFixedDuration = true;
+        t.duration = 0.1f;
+        t.canTransitionToSelf = false;
+        t.AddCondition(AnimatorConditionMode.If, 0, "Pick");
+
+        t = pickState.AddTransition(empty);
+        t.hasExitTime = true;
+        t.exitTime = 0.95f;
+        t.hasFixedDuration = true;
+        t.duration = 0.1f;
+
+        EditorUtility.SetDirty(controller);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[PlayerAnimator] สร้าง Layer RightArm + Avatar Mask สำเร็จ (" + maskPath + ")");
+    }
+
+    private static string FindModelPath()
+    {
+        foreach (string guid in AssetDatabase.FindAssets("PlayerWithAnim2 t:GameObject"))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (AssetImporter.GetAtPath(path) is ModelImporter) return path;
+        }
+        return null;
+    }
+
+    // กระดูกในสายแขนขวา: ชื่อมี ".R" และเป็นส่วนของ shoulder/arm/hand/นิ้ว (ไม่นับขา/ใบหน้า)
+    private static bool IsRightArmPath(string path)
+    {
+        string[] armKeys = { "shoulder", "clavicle", "arm", "hand", "palm", "thumb", "f_index", "f_middle", "f_ring", "f_pinky" };
+        foreach (string segment in path.Split('/'))
+        {
+            string n = segment.ToLowerInvariant();
+            if (!n.Contains(".r")) continue;
+            if (n.Contains("leg") || n.Contains("thigh") || n.Contains("shin") || n.Contains("foot")) continue;
+            foreach (string key in armKeys)
+                if (n.Contains(key)) return true;
+        }
+        return false;
+    }
+
     private static AnimationClip FindClip(string key)
     {
         AnimationClip fallback = null;
         foreach (string guid in AssetDatabase.FindAssets("t:AnimationClip"))
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (!path.StartsWith("Assets")) continue; // ข้ามคลิปจาก Packages
             foreach (Object o in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if (o is AnimationClip c && !c.name.StartsWith("__preview__") &&
-                    (c.name == key || c.name.EndsWith("|" + key)))
+                if (o is AnimationClip c && !c.name.StartsWith("__preview__"))
                 {
-                    if (path.StartsWith("Assets/_Project")) return c;
-                    if (fallback == null) fallback = c;
+                    // เทียบเฉพาะชื่อหลังเครื่องหมาย | และไม่สนตัวพิมพ์เล็กใหญ่ เช่น "rig|Idle" -> "idle"
+                    string shortName = c.name.Substring(c.name.LastIndexOf('|') + 1);
+                    if (string.Equals(shortName, key, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (path.StartsWith("Assets/_Project")) return c;
+                        if (fallback == null) fallback = c;
+                    }
                 }
             }
         }
