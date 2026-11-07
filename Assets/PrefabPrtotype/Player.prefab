@@ -1624,6 +1624,7 @@ MonoBehaviour:
   holdPosition: {fileID: 154740930196575415}
   heldObject: {fileID: 0}
   holdExtractDuration: 0.5
+  pickUpDelayOverride: 0
   throwForce: 12
 --- !u!54 &384995915331344342
 Rigidbody:
@@ -2170,6 +2171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Model
       objectReference: {fileID: 0}
+    - target: {fileID: 2729413168405115760, guid: 8598e2ad494d8a942b98aae06a74fa54, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 63719f7312fd44745a8778c4a6d87212, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
