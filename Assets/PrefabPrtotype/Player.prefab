@@ -1457,6 +1457,7 @@ GameObject:
   - component: {fileID: 516351515494862012}
   - component: {fileID: 3247765406195922488}
   - component: {fileID: 5028286250582607369}
+  - component: {fileID: 1938475610293847561}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1638,6 +1639,26 @@ MonoBehaviour:
   holdExtractDuration: 0.5
   pickUpDelayOverride: 0
   throwForce: 12
+--- !u!114 &1938475610293847561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7298374657433779711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef6ecdcb67a4bbeac2519d9712b0291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
+  toggleKey: 50
+  weaponPrefab: {fileID: 7725287196571318460, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
+  weaponSlot: {fileID: 154740930196575415}
+  drawnLocalPosition: {x: 0, y: 0, z: 0}
+  drawnLocalRotation: {x: 0, y: 0, z: 0}
+  holsteredLocalPosition: {x: 0, y: -0.6, z: 0.1}
+  holsteredLocalRotation: {x: -70, y: 0, z: 0}
+  transitionSpeed: 14
 --- !u!54 &384995915331344342
 Rigidbody:
   m_ObjectHideFlags: 0

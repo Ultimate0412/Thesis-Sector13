@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// ระบบการโจมตีระยะประชิดของผู้เล่น
-/// ผู้เล่นจะต้องถืออาวุธ (เช่น MeleeWeapon) อยู่ในมือจึงจะสามารถกดคลิกซ้ายโจมตีได้
+/// ผู้เล่นจะต้องชักอาวุธ (MeleeWeapon ที่ติดตัวผ่าน PlayerEquipment) อยู่จึงจะกดคลิกซ้ายโจมตีได้
 /// </summary>
 public class PlayerCombatSystem : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class PlayerCombatSystem : MonoBehaviour
     [Tooltip("ชื่อ Trigger สำหรับท่าโจมตี (Attack)")]
     public string attackTriggerName = "Attack";
 
-    private PlayerPickupSystem pickupSystem;
+    private PlayerEquipment equipment;
     private PlayerStats playerStats;
     private Camera playerCam;
     private AudioSource audioSource;
@@ -27,7 +27,7 @@ public class PlayerCombatSystem : MonoBehaviour
 
     private void Awake()
     {
-        pickupSystem = GetComponent<PlayerPickupSystem>();
+        equipment = GetComponent<PlayerEquipment>();
         playerStats = GetComponent<PlayerStats>();
         playerCam = GetComponentInChildren<Camera>();
         audioSource = GetComponent<AudioSource>();
@@ -74,22 +74,14 @@ public class PlayerCombatSystem : MonoBehaviour
     {
         if (Time.time < nextAttackTime || isSwinging) return;
 
-        // ตรวจสอบว่าในมือถืออาวุธ MeleeWeapon อยู่หรือไม่
-        if (pickupSystem == null || pickupSystem.heldObject == null)
+        // ต้องชักอาวุธที่ติดตัวอยู่ก่อนจึงจะโจมตีได้
+        if (equipment == null || !equipment.IsDrawn || equipment.EquippedWeapon == null)
         {
-            return; // มือเปล่า ไม่สามารถโจมตีได้
-        }
-
-        MeleeWeapon weapon = pickupSystem.heldObject.GetComponent<MeleeWeapon>();
-        if (weapon == null) weapon = pickupSystem.heldObject.GetComponentInParent<MeleeWeapon>();
-
-        if (weapon == null)
-        {
-            return; // สิ่งที่ถืออยู่ไม่ใช่อาวุธ (เช่น เป็นกล่องพัสดุทั่วไป)
+            return;
         }
 
         // ทำการโจมตี
-        ExecuteAttack(weapon);
+        ExecuteAttack(equipment.EquippedWeapon);
     }
 
     private void ExecuteAttack(MeleeWeapon weapon)
@@ -151,19 +143,30 @@ public class PlayerCombatSystem : MonoBehaviour
     private IEnumerator SwingWeaponRoutine(MeleeWeapon weapon)
     {
         isSwinging = true;
-        Transform weaponTransform = pickupSystem.heldObject.transform;
 
-        Vector3 startPos = Vector3.zero;
-        Quaternion startRot = Quaternion.identity;
+        Transform weaponTransform = equipment != null ? equipment.WeaponTransform : null;
+        if (weaponTransform == null)
+        {
+            isSwinging = false;
+            yield break;
+        }
 
-        Vector3 targetPos = weapon.swingPositionOffset;
-        Quaternion targetRot = Quaternion.Euler(weapon.swingRotationOffset);
+        // ระหว่างแกว่ง ให้ระบบ equipment หยุดจัดท่า ไม่งั้นจะถูกดึงกลับที่เดิมทุกเฟรม
+        if (equipment != null) equipment.PoseControlSuspended = true;
+
+        Vector3 startPos = equipment != null ? equipment.drawnLocalPosition : Vector3.zero;
+        Quaternion startRot = equipment != null
+            ? Quaternion.Euler(equipment.drawnLocalRotation)
+            : Quaternion.identity;
+
+        Vector3 targetPos = startPos + weapon.swingPositionOffset;
+        Quaternion targetRot = startRot * Quaternion.Euler(weapon.swingRotationOffset);
 
         float halfDuration = weapon.attackCooldown * 0.35f;
         float elapsed = 0f;
 
         // ฟาดออกไปข้างหน้า
-        while (elapsed < halfDuration && pickupSystem.heldObject != null)
+        while (elapsed < halfDuration && equipment != null && equipment.IsDrawn)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / halfDuration;
@@ -174,7 +177,7 @@ public class PlayerCombatSystem : MonoBehaviour
 
         elapsed = 0f;
         // ดึงกลับตำแหน่งเดิม
-        while (elapsed < halfDuration && pickupSystem.heldObject != null)
+        while (elapsed < halfDuration && equipment != null && equipment.IsDrawn)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / halfDuration;
@@ -183,11 +186,10 @@ public class PlayerCombatSystem : MonoBehaviour
             yield return null;
         }
 
-        if (pickupSystem.heldObject != null)
-        {
-            weaponTransform.localPosition = Vector3.zero;
-            weaponTransform.localRotation = Quaternion.identity;
-        }
+        weaponTransform.localPosition = startPos;
+        weaponTransform.localRotation = startRot;
+
+        if (equipment != null) equipment.PoseControlSuspended = false;
 
         isSwinging = false;
     }

@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class EnemyMimic : EnemyBase
 {
     public enum MimicState
@@ -228,22 +229,12 @@ public class EnemyMimic : EnemyBase
             return;
         }
 
-        // วิ่งเข้าหาผู้เล่น (NavMesh หรือ Rigidbody Fallback)
+        // วิ่งเข้าหาผู้เล่นด้วย NavMeshAgent
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
             navAgent.isStopped = false;
             navAgent.speed = chaseSpeed;
             navAgent.SetDestination(playerTarget.position);
-        }
-        else
-        {
-            Vector3 moveDir = (playerTarget.position - transform.position);
-            moveDir.y = 0f;
-            if (moveDir.sqrMagnitude > 0.001f)
-            {
-                moveDir.Normalize();
-                rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
-            }
         }
     }
 
@@ -328,10 +319,6 @@ public class EnemyMimic : EnemyBase
             navAgent.isStopped = true;
             navAgent.velocity = Vector3.zero;
         }
-        if (rb != null)
-        {
-            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-        }
     }
 
     private void RotateTowardsPlayer()
@@ -365,15 +352,9 @@ public class EnemyMimic : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
-            float horizSpeed = 0f;
-            if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
-            {
-                horizSpeed = navAgent.velocity.magnitude;
-            }
-            else if (rb != null)
-            {
-                horizSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
-            }
+            float horizSpeed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+                ? navAgent.velocity.magnitude
+                : 0f;
             mimicAnimator.SetFloat(speedParamName, horizSpeed);
         }
 

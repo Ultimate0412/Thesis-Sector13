@@ -132,11 +132,17 @@ public class InspectionTablet : MonoBehaviour
     {
         if (!isHeld)
         {
-            // ตรวจสอบว่ามือว่างหรือไม่
+            // ถือได้ทีละอย่าง: เก็บอาวุธก่อน (ถ้าชักอยู่)
+            if (PlayerEquipment.Instance != null) PlayerEquipment.Instance.ForceHolster();
+
+            // ถ้ามือถือของอยู่ ให้วางของลงพื้นก่อนแล้วหยิบแท็บเล็ตแทน
             if (pickupSystem != null && pickupSystem.heldObject != null)
             {
-                Debug.LogWarning("[InspectionTablet] มือไม่ว่าง! วางของก่อนหยิบแท็บเล็ต");
-                return;
+                if (!pickupSystem.PutAwayHeldObject())
+                {
+                    Debug.LogWarning("[InspectionTablet] วางของที่ถืออยู่ไม่สำเร็จ ไม่สามารถหยิบแท็บเล็ตได้");
+                    return;
+                }
             }
 
             DrawTablet();
