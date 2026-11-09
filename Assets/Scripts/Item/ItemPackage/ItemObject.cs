@@ -12,7 +12,7 @@ public enum ItemSubCategory
     Biological      // วัตถุชีวภาพและสิ่งมีชีวิตตัวอย่าง (Biological Samples & Organisms)
 }
 
-public class ItemObject : MonoBehaviour, ICarryable
+public class ItemObject : MonoBehaviour
 {
     [Header("Item Properties")]
     public string itemName = "Unknown Item";
@@ -28,9 +28,6 @@ public class ItemObject : MonoBehaviour, ICarryable
 
     [Header("Size & Grid Settings")]
     public int sizeInSlots = 1;
-
-    /// <summary>น้ำหนักทางกายภาพของไอเท็ม (kg)</summary>
-    public float Weight => Mathf.Max(0f, itemWeight);
 
     public static string GetSubCategoryDisplayName(ItemSubCategory sub)
     {

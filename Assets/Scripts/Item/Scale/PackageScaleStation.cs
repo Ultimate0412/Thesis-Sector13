@@ -133,10 +133,13 @@ public class PackageScaleStation : BaseDropPoint
     /// </summary>
     private float GetActualWeight(PackageBox box)
     {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         // Source of truth เดียวกับระบบถือของ: PackageBox.Weight
         return box != null ? box.Weight : 0f;
 =======
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
         if (box == null) return 0f;
 
         if (box.officialDatabaseData != null)
@@ -151,7 +154,10 @@ public class PackageScaleStation : BaseDropPoint
         }
 
         return 0f;
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
     }
 
     private PackageBox GetPackageBox(GameObject obj)

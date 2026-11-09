@@ -54,14 +54,6 @@ public class PlayerStats : LivingEntity
     public float maxWeightCapacity = 50f;
     private float currentWeight = 0f;
 
-    public float CurrentWeight     => currentWeight;
-    public float MaxWeightCapacity => maxWeightCapacity;
-    public float RemainingCapacity => Mathf.Max(0f, maxWeightCapacity - currentWeight);
-
-    /// <summary>เช็คว่ารับน้ำหนักเพิ่มได้หรือไม่ (ไม่เปลี่ยน state)</summary>
-    public bool CanCarry(float weight)
-        => currentWeight + Mathf.Max(0f, weight) <= maxWeightCapacity + 0.0001f;
-
     // Events สำหรับแจ้งเตือนเมื่อค่าต่างๆ เปลี่ยนแปลง
     public event Action<float, float> OnHPChanged;          // Current, Max
     public event Action<float> OnDamageTaken;                // Damage Amount
@@ -183,7 +175,7 @@ public class PlayerStats : LivingEntity
 
     public bool AddWeight(float weightToAdd)
     {
-        if (!CanCarry(weightToAdd))
+        if (currentWeight + weightToAdd > maxWeightCapacity)
         {
             Debug.LogWarning("Weight limit exceeded!");
             return false; // หยิบไม่/น้ำหนักเกิน

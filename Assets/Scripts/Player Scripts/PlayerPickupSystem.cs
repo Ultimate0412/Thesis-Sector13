@@ -12,7 +12,6 @@ public class PlayerPickupSystem : MonoBehaviour
     public Transform holdPosition;      // จุดยึดสินค้าหน้ากล้อง
 
     [HideInInspector] public GameObject heldObject;
-    private float heldWeight = 0f;      // น้ำหนักที่จองไว้กับ PlayerStats สำหรับ heldObject
     private PlayerStats playerStats;
     private Camera playerCam;
     private BaseDropPoint currentHoveredDropPoint;
@@ -161,58 +160,6 @@ public class PlayerPickupSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// จองน้ำหนักสำหรับ object ที่จะถือ — คืน false ถ้าเกินโควต้า
-    /// weight ถูก set เสมอ เพื่อให้ caller เอาไปใช้ย้อนของได้
-    /// </summary>
-    private bool TryTake(GameObject obj, out float weight)
-    {
-        weight = 0f;
-        if (obj == null)
-        {
-            Debug.LogWarning("[PlayerPickupSystem] TryTake: obj เป็น null — ข้ามการจองน้ำหนัก");
-            return false;
-        }
-
-        weight = Carryable.WeightOf(obj);
-
-        if (Carryable.Resolve(obj) == null)
-            Debug.LogWarning($"[PlayerPickupSystem] '{obj.name}' ไม่มี ICarryable — คิดน้ำหนัก 0 kg");
-
-        if (!playerStats.CanCarry(weight)) return false;
-
-        playerStats.AddWeight(weight);
-        heldWeight = weight;
-        return true;
-    }
-
-    /// <summary>คืนน้ำหนักที่จองไว้ — ต้องเรียกทุกครั้งที่ของออกจากมือ</summary>
-    private void ReleaseHeldWeight()
-    {
-        if (heldWeight > 0f) playerStats.RemoveWeight(heldWeight);
-        heldWeight = 0f;
-    }
-
-    /// <summary>เก็บเครื่องมือที่ถืออยู่ (แท็บเล็ต/อาวุธ) เมื่อมือต้องว่างสำหรับหยิบของ</summary>
-    private static void HolsterPlayerTools()
-    {
-        if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
-        if (PlayerEquipment.Instance != null) PlayerEquipment.Instance.ForceHolster();
-    }
-
-    /// <summary>
-    /// วางของที่ถืออยู่ลงพื้นทันที เพื่อสลับไปถือเครื่องมืออื่น (แท็บเล็ต/อาวุธ)
-    /// ใช้เมื่อผู้เล่นกดปุ่มเครื่องมือขณะมือไม่ว่าง — ถือได้ทีละอย่างเท่านั้น
-    /// คืน true เมื่อมือว่างแล้ว
-    /// </summary>
-    public bool PutAwayHeldObject()
-    {
-        if (heldObject == null) return true;
-
-        DropObjectToFloor();
-        return heldObject == null;
-    }
-
     private void ExtractItemFromBox(PackageBox box)
     {
         if (box == null || !box.isOpen || box.isItemExtracted) return;
@@ -220,11 +167,15 @@ public class PlayerPickupSystem : MonoBehaviour
         GameObject item = box.ExtractInnerItem();
         if (item != null)
         {
-            bool canAdd = TryTake(item, out _);
+            ItemObject itemComp = item.GetComponent<ItemObject>();
+            if (itemComp == null) itemComp = item.GetComponentInParent<ItemObject>();
+            float weight = itemComp != null ? itemComp.itemWeight : 5f;
+
+            bool canAdd = playerStats.AddWeight(weight);
             if (canAdd)
             {
                 heldObject = item;
-                HolsterPlayerTools();
+                if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                 Rigidbody rb = heldObject.GetComponent<Rigidbody>();
                 if (rb != null) { rb.isKinematic = true; }
@@ -345,11 +296,11 @@ public class PlayerPickupSystem : MonoBehaviour
 
             if (enemy != null && enemy.IsStunned)
             {
-                bool canAdd = TryTake(enemy.gameObject, out _);
+                bool canAdd = playerStats.AddWeight(enemy.enemyWeight);
                 if (canAdd)
                 {
                     heldObject = enemy.gameObject;
-                    HolsterPlayerTools();
+                    if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                     enemy.OnPickedUpByPlayer(this);
 
@@ -367,6 +318,42 @@ public class PlayerPickupSystem : MonoBehaviour
                 }
             }
 
+            // 3.5 ตรวจสอบอาวุธ (MeleeWeapon เช่น ท่อนไม้)
+            MeleeWeapon weapon = targetItem.GetComponentInParent<MeleeWeapon>();
+            if (weapon == null) weapon = targetItem.GetComponent<MeleeWeapon>();
+
+            if (weapon != null)
+            {
+                float weight = weapon.weaponWeight;
+                ItemObject itemComp = weapon.GetComponent<ItemObject>();
+                if (itemComp != null) weight = itemComp.itemWeight;
+
+                bool canAdd = playerStats.AddWeight(weight);
+                if (canAdd)
+                {
+                    heldObject = weapon.gameObject;
+                    if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
+
+                    Rigidbody rb = heldObject.GetComponent<Rigidbody>();
+                    if (rb != null) { rb.isKinematic = true; }
+
+                    Collider col = heldObject.GetComponent<Collider>();
+                    if (col != null) { col.enabled = true; }
+
+                    heldObject.transform.SetParent(holdPosition);
+                    heldObject.transform.localPosition = Vector3.zero;
+                    heldObject.transform.localRotation = Quaternion.identity;
+
+                    Debug.Log($"[PlayerPickupSystem] หยิบอาวุธ '{weapon.weaponName}' ขึ้นมาถือสำเร็จ!");
+                    return;
+                }
+                else
+                {
+                    Debug.LogWarning("[PlayerPickupSystem] แบกน้ำหนักไม่ไหว! ไม่สามารถหยิบอาวุธได้");
+                    return;
+                }
+            }
+
             // 4. หยิบสินค้าทั่วไป (เช่น บนพื้น หรือบนสปาวน์เนอร์)
             ItemObject itemComponent = targetItem.GetComponent<ItemObject>();
             if (itemComponent == null)
@@ -380,11 +367,11 @@ public class PlayerPickupSystem : MonoBehaviour
 
             if (itemComponent != null)
             {
-                bool canAdd = TryTake(targetItem, out _);
+                bool canAdd = playerStats.AddWeight(itemComponent.itemWeight);
                 if (canAdd)
                 {
                     heldObject = targetItem;
-                    HolsterPlayerTools();
+                    if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                     Rigidbody rb = heldObject.GetComponent<Rigidbody>();
                     if (rb != null) { rb.isKinematic = true; }
@@ -411,8 +398,10 @@ public class PlayerPickupSystem : MonoBehaviour
                 return;
             }
 
-            float weight = heldWeight;
-            ReleaseHeldWeight();
+            ItemObject item = heldObject.GetComponent<ItemObject>();
+            float weight = item != null ? item.itemWeight : 0f;
+
+            playerStats.RemoveWeight(weight);
             currentHoveredDropPoint.PlaceItem(heldObject, weight);
 
             heldObject = null;
@@ -427,7 +416,9 @@ public class PlayerPickupSystem : MonoBehaviour
             PackageBox targetBox = hit.collider.GetComponentInParent<PackageBox>();
             if (targetBox != null && targetBox.CanPutItemBack(heldObject))
             {
-                ReleaseHeldWeight();
+                ItemObject item = heldObject.GetComponent<ItemObject>();
+                float weight = item != null ? item.itemWeight : 0f;
+                playerStats.RemoveWeight(weight);
 
                 targetBox.PutItemBack(heldObject);
                 heldObject = null;
@@ -443,18 +434,32 @@ public class PlayerPickupSystem : MonoBehaviour
     {
         if (heldObject != null)
         {
-            ReleaseHeldWeight();
-
             EnemyBase enemy = heldObject.GetComponent<EnemyBase>();
             if (enemy == null) enemy = heldObject.GetComponentInParent<EnemyBase>();
 
             if (enemy != null)
             {
+                playerStats.RemoveWeight(enemy.enemyWeight);
                 GameObject enemyObj = heldObject;
                 heldObject = null;
                 enemyObj.transform.SetParent(null);
                 enemy.OnThrownByPlayer(Vector3.down * 1.5f);
                 return;
+            }
+
+            ItemObject item = heldObject.GetComponent<ItemObject>();
+            if (item != null)
+            {
+                playerStats.RemoveWeight(item.itemWeight);
+            }
+            else
+            {
+                MeleeWeapon weapon = heldObject.GetComponent<MeleeWeapon>();
+                if (weapon == null) weapon = heldObject.GetComponentInParent<MeleeWeapon>();
+                if (weapon != null)
+                {
+                    playerStats.RemoveWeight(weapon.weaponWeight);
+                }
             }
 
             Rigidbody rb = heldObject.GetComponent<Rigidbody>();
@@ -481,18 +486,33 @@ public class PlayerPickupSystem : MonoBehaviour
 
         GameObject objToThrow = heldObject;
         heldObject = null;
-        ReleaseHeldWeight();
 
         EnemyBase enemy = objToThrow.GetComponent<EnemyBase>();
         if (enemy == null) enemy = objToThrow.GetComponentInParent<EnemyBase>();
 
         if (enemy != null)
         {
+            playerStats.RemoveWeight(enemy.enemyWeight);
             objToThrow.transform.SetParent(null);
             Vector3 throwVelocity = playerCam.transform.forward * throwForce + Vector3.up * 1.8f;
             enemy.OnThrownByPlayer(throwVelocity);
             Debug.Log($"[PlayerPickupSystem] ขว้างศัตรู '{objToThrow.name}' ไปข้างหน้า!");
             return;
+        }
+
+        ItemObject item = objToThrow.GetComponent<ItemObject>();
+        if (item != null)
+        {
+            playerStats.RemoveWeight(item.itemWeight);
+        }
+        else
+        {
+            MeleeWeapon weapon = objToThrow.GetComponent<MeleeWeapon>();
+            if (weapon == null) weapon = objToThrow.GetComponentInParent<MeleeWeapon>();
+            if (weapon != null)
+            {
+                playerStats.RemoveWeight(weapon.weaponWeight);
+            }
         }
 
         objToThrow.transform.SetParent(null);
@@ -518,7 +538,18 @@ public class PlayerPickupSystem : MonoBehaviour
     {
         if (heldObject == null || heldObject != target) return;
 
-        ReleaseHeldWeight();
+        EnemyBase enemy = heldObject.GetComponent<EnemyBase>();
+        if (enemy == null) enemy = heldObject.GetComponentInParent<EnemyBase>();
+
+        if (enemy != null)
+        {
+            playerStats.RemoveWeight(enemy.enemyWeight);
+        }
+        else
+        {
+            ItemObject item = heldObject.GetComponent<ItemObject>();
+            if (item != null) playerStats.RemoveWeight(item.itemWeight);
+        }
 
         Rigidbody rb = heldObject.GetComponent<Rigidbody>();
         if (rb != null) 
@@ -585,12 +616,18 @@ public class PlayerPickupSystem : MonoBehaviour
         GameObject itemToTake = dropPoint.RemoveItem();
         if (itemToTake != null)
         {
+            // คำนวณน้ำหนัก (ถ้าเป็นกล่องพัสดุหรือไอเท็ม ให้ดึงน้ำหนักตามจริง)
+            // หมายเหตุ: ถ้ากล่องพัสดุไม่มีน้ำหนักเฉพาะ ให้กำหนดค่าคงที่หรือดึงจาก ItemObject ด้านใน
+            float weight = 5f;
+            ItemObject itemComp = itemToTake.GetComponent<ItemObject>();
+            if (itemComp != null) weight = itemComp.itemWeight;
+
             // เช็คโควต้าน้ำหนักผู้เล่น
-            bool canAdd = TryTake(itemToTake, out float weight);
+            bool canAdd = playerStats.AddWeight(weight);
             if (canAdd)
             {
                 heldObject = itemToTake;
-                HolsterPlayerTools();
+                if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
                 Rigidbody rb = heldObject.GetComponent<Rigidbody>();
                 if (rb != null) { rb.isKinematic = true; }

@@ -2,10 +2,13 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 [RequireComponent(typeof(NavMeshAgent))]
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
 public class EnemyMimic : EnemyBase
 {
     public enum MimicState
@@ -232,11 +235,15 @@ public class EnemyMimic : EnemyBase
             return;
         }
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         // วิ่งเข้าหาผู้เล่นด้วย NavMeshAgent
 =======
         // วิ่งเข้าหาผู้เล่น (NavMesh หรือ Rigidbody Fallback)
 >>>>>>> Stashed changes
+=======
+        // วิ่งเข้าหาผู้เล่น (NavMesh หรือ Rigidbody Fallback)
+>>>>>>> parent of b5cc040 (Week 12.1)
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
             navAgent.isStopped = false;
@@ -255,6 +262,16 @@ public class EnemyMimic : EnemyBase
                 rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
             }
 >>>>>>> Stashed changes
+        }
+        else
+        {
+            Vector3 moveDir = (playerTarget.position - transform.position);
+            moveDir.y = 0f;
+            if (moveDir.sqrMagnitude > 0.001f)
+            {
+                moveDir.Normalize();
+                rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
+            }
         }
     }
 
@@ -339,13 +356,19 @@ public class EnemyMimic : EnemyBase
             navAgent.isStopped = true;
             navAgent.velocity = Vector3.zero;
         }
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
         if (rb != null)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
     }
 
     private void RotateTowardsPlayer()
@@ -379,11 +402,14 @@ public class EnemyMimic : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
             float horizSpeed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 ? navAgent.velocity.magnitude
                 : 0f;
 =======
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
             float horizSpeed = 0f;
             if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
             {
@@ -393,7 +419,10 @@ public class EnemyMimic : EnemyBase
             {
                 horizSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
             }
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
             mimicAnimator.SetFloat(speedParamName, horizSpeed);
         }
 

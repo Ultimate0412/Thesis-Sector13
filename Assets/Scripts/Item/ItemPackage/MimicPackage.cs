@@ -16,7 +16,7 @@ public enum MimicTransformReason
 /// หากผู้เล่นกดเปิดกล่อง หรืออุ้มถือเกิน 5 วินาที กล่องจะระเบิด VFX ลบตัวเองทิ้ง และสปอน EnemyMimic ออกมาทันที
 /// </summary>
 [RequireComponent(typeof(PackageBox))]
-public class MimicPackage : MonoBehaviour, ICarryable
+public class MimicPackage : MonoBehaviour
 {
     [Header("Mimic Spawn Settings")]
     [Tooltip("Prefab ของตัวศัตรู Mimic ที่จะสปอนออกมา")]
@@ -30,13 +30,6 @@ public class MimicPackage : MonoBehaviour, ICarryable
 
     [Tooltip("ระยะยกตัวศัตรูขึ้นจากพื้นเล็กน้อยตอนสปอน")]
     public float spawnHeightOffset = 0.2f;
-
-    [Header("Carry Settings")]
-    [Tooltip("น้ำหนักที่ใช้เมื่อไม่มี PackageBox บน object เดียวกัน (ปกติมีอยู่แล้ว)")]
-    public float packageWeight = 5f;
-
-    /// <summary>น้ำหนักทางกายภาพ — ใช้ PackageBox ถ้ามี ไม่งั้นใช้ packageWeight</summary>
-    public float Weight => packageBox != null ? packageBox.Weight : Mathf.Max(0f, packageWeight);
 
     [Header("Trigger Conditions")]
     [Tooltip("แปลงร่างเมื่อผู้เล่นกดเปิดกล่องหรือไม่")]
@@ -68,7 +61,6 @@ public class MimicPackage : MonoBehaviour, ICarryable
     private float currentHeldTimer = 0f;
     private bool wasHeld = false;
     private Vector3 originalLocalPos = Vector3.zero;
-    private Transform heldParent = null;
     private PackageBox packageBox;
     private AudioSource audioSource;
     private float nextHeartbeatTime = 0f;
@@ -97,8 +89,6 @@ public class MimicPackage : MonoBehaviour, ICarryable
             {
                 wasHeld = true;
                 currentHeldTimer = 0f;
-                // จำ parent ไว้ด้วย เพราะ localPosition ที่เก็บมานั้นอ้างอิงกับ parent ตอนถือ (holdPosition)
-                heldParent = transform.parent;
                 originalLocalPos = transform.localPosition;
             }
 
@@ -132,14 +122,7 @@ public class MimicPackage : MonoBehaviour, ICarryable
             {
                 wasHeld = false;
                 currentHeldTimer = 0f;
-
-                // คืน localPosition เฉพาะเมื่อยังอยู่ใต้ parent เดิม (holdPosition)
-                // ถ้าถูกปล่อยลงพื้น/วางบน DropPoint แล้ว parent เปลี่ยนไป ห้ามเขียน localPosition
-                // เพราะตอนนั้น localPosition = พิกัดโลก จะทำให้กล่องวาปไปตำแหน่งอื่น (เช่นจุด EnemySpawner ที่ (0,0,0))
-                if (transform.parent == heldParent)
-                {
-                    transform.localPosition = originalLocalPos;
-                }
+                transform.localPosition = originalLocalPos;
             }
         }
     }

@@ -419,6 +419,12 @@ public class GameDayManager : MonoBehaviour
             if (item == null) continue;
             GameObject itemObj = item.gameObject;
 
+            // 1. ข้ามอาวุธ (เช่น ท่อนไม้ / MeleeWeapon) เพราะเป็นอุปกรณ์ป้องกันตัวของผู้เล่น ไม่ใช่พัสดุสินค้าที่ต้องนำส่งหรือเก็บเข้าคลังสินค้า
+            if (item.isWeapon || itemObj.GetComponent<MeleeWeapon>() != null || itemObj.GetComponentInParent<MeleeWeapon>() != null)
+            {
+                continue;
+            }
+
             // ข้ามถ้าเป็นส่วนประกอบของ PackageBox เอง หรือยังอยู่ใน PackageBox
             if (itemObj.GetComponent<PackageBox>() != null) continue;
             PackageBox parentBox = itemObj.GetComponentInParent<PackageBox>();

@@ -8,7 +8,7 @@ using UnityEngine.AI;
 /// เมื่อเกจเต็มจะติดสถานะสตั๊น 3 วินาที ซึ่งเปิดโอกาสให้ผู้เล่นยกไปทิ้งจุดทำลาย
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public abstract class EnemyBase : LivingEntity, ICarryable
+public abstract class EnemyBase : LivingEntity
 {
     [Header("Enemy Stun Settings")]
     [Tooltip("ค่าเกจสตั๊นสูงสุด (เมื่อเต็มจะติดสตั๊น)")]
@@ -27,9 +27,6 @@ public abstract class EnemyBase : LivingEntity, ICarryable
     [Header("Enemy Weight / Pickup Settings")]
     [Tooltip("น้ำหนักของศัตรูเมื่อผู้เล่นยกถือ")]
     public float enemyWeight = 15f;
-
-    /// <summary>น้ำหนักทางกายภาพของศัตรูเมื่อถูกแบก (kg)</summary>
-    public float Weight => Mathf.Max(0f, enemyWeight);
 
     [Header("Visual & Feedback")]
     [Tooltip("เอฟเฟกต์หรือมาร์กเกอร์แสดงสถานะสตั๊น (เช่น ดาวหมุนรอบหัว หรือไฟช็อต)")]

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public enum InspectionStatus { None, Approved, Rejected }
 
-public class PackageBox : MonoBehaviour, IInteractable, ICarryable
+public class PackageBox : MonoBehaviour, IInteractable
 {
     [Header("Inner Item Settings")]
     [Tooltip("รายการสินค้าที่สามารถสุ่มเกิดในกล่องนี้ได้ ")]
@@ -78,29 +78,6 @@ public class PackageBox : MonoBehaviour, IInteractable, ICarryable
             {
                 innerItemPrefab = possibleInnerItemPrefabs[randomIndex];
             }
-        }
-    }
-
-    /// <summary>
-    /// น้ำหนักทางกายภาพของกล่อง = actualWeight (ค่าเดียวกับที่ตาชั่งแสดง)
-    /// เป็น source of truth เดียวของน้ำหนักพัสดุ — ห้ามใช้ declaredWeight (ค่าบนฉลาก)
-    /// </summary>
-    public float Weight
-    {
-        get
-        {
-            if (officialDatabaseData != null)
-                return Mathf.Max(0f, officialDatabaseData.actualWeight);
-
-            if (innerItemPrefab != null &&
-                innerItemPrefab.TryGetComponent(out ItemObject inner))
-                return Mathf.Max(0f, inner.itemWeight);
-
-            // fallback สุดท้าย: ItemObject บนตัวกล่องเอง (กันกรณี manifest ยังไม่ถูกสร้าง)
-            if (TryGetComponent(out ItemObject self))
-                return Mathf.Max(0f, self.itemWeight);
-
-            return 0f;
         }
     }
 

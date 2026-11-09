@@ -14,10 +14,13 @@ using UnityEngine.AI;
 /// 6. เมื่อถูกตีจะปล่อยพัสดุตกพื้น และแตกตื่นวิ่งมั่วๆ 3 วินาทีก่อนกลับมาขโมยต่อ
 /// 7. หากผู้เล่นตีจนตาย จะดรอปพัสดุคืนลงบนพื้นให้เก็บกลับมาได้
 /// </summary>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 [RequireComponent(typeof(NavMeshAgent))]
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
 public class EnemyThief : EnemyBase
 {
     public enum ThiefState
@@ -430,11 +433,15 @@ public class EnemyThief : EnemyBase
     }
 
     /// <summary>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     /// การเคลื่อนที่ด้วย NavMeshAgent 100%
 =======
     /// การเคลื่อนที่แบบ NavMeshAgent หรือ Fallback เป็น Rigidbody พร้อมการหลบสิ่งกีดขวาง (Obstacle Avoidance)
 >>>>>>> Stashed changes
+=======
+    /// การเคลื่อนที่แบบ NavMeshAgent หรือ Fallback เป็น Rigidbody พร้อมการหลบสิ่งกีดขวาง (Obstacle Avoidance)
+>>>>>>> parent of b5cc040 (Week 12.1)
     /// </summary>
     private void MoveTowards(Vector3 destination, float speed)
     {
@@ -443,11 +450,16 @@ public class EnemyThief : EnemyBase
             navAgent.isStopped = false;
             navAgent.speed = speed;
             navAgent.SetDestination(destination);
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         }
 =======
             return;
         }
+=======
+            return;
+        }
+>>>>>>> parent of b5cc040 (Week 12.1)
 
         Vector3 desiredDir = (destination - transform.position);
         desiredDir.y = 0f;
@@ -463,7 +475,10 @@ public class EnemyThief : EnemyBase
 
         // ใส่ความเร็วแนวราบ
         rb.linearVelocity = moveDir * speed + new Vector3(0f, rb.linearVelocity.y, 0f);
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
     }
 
     private void StopMovement()
@@ -473,8 +488,11 @@ public class EnemyThief : EnemyBase
             navAgent.isStopped = true;
             navAgent.velocity = Vector3.zero;
         }
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
         if (rb != null)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
@@ -500,7 +518,10 @@ public class EnemyThief : EnemyBase
         }
 
         return forward;
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of b5cc040 (Week 12.1)
     }
 
     private void ChooseEscapePoint()
@@ -735,6 +756,7 @@ public class EnemyThief : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
             float speed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 ? navAgent.velocity.magnitude
@@ -742,6 +764,9 @@ public class EnemyThief : EnemyBase
 =======
             float speed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
 >>>>>>> Stashed changes
+=======
+            float speed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+>>>>>>> parent of b5cc040 (Week 12.1)
             thiefAnimator.SetFloat(speedParamName, speed);
         }
     }
