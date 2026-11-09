@@ -43,7 +43,17 @@ public class GameDayManager : MonoBehaviour
     [Header("Day Settings")]
     public int currentDay = 1;
 
-    [Header("Inspection / Open Box Quota")]
+    [Header("ScriptableObject Day Configurations")]
+    [Tooltip("รายการไฟล์ตั้งค่าของแต่ละวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
+    public List<DayConfigurationSO> dayConfigurations = new List<DayConfigurationSO>();
+
+    [Tooltip("ไฟล์ตั้งค่าเริ่มต้นสำหรับวันที่เกินจากลิสต์")]
+    public DayConfigurationSO defaultDayConfig;
+
+    public DayConfigurationSO CurrentDayConfig { get; private set; }
+    public event Action<DayConfigurationSO> OnDayConfigApplied;
+
+    [Header("Inspection / Open Box Quota (Legacy/Fallback)")]
     [Tooltip("โควต้าการเปิดกล่องพื้นฐานต่อวัน")]
     public int defaultDailyOpenQuota = 15;
     [Tooltip("โควต้าการเปิดกล่องตรวจแยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
@@ -52,7 +62,7 @@ public class GameDayManager : MonoBehaviour
     private int remainingQuotaToday;
     public int RemainingQuotaToday => remainingQuotaToday;
 
-    [Header("Item Spawning Quota")]
+    [Header("Item Spawning Quota (Legacy/Fallback)")]
     [Tooltip("โควต้าการสร้างกล่องสินค้าพื้นฐานต่อวัน")]
     public int defaultDailySpawnQuota = 10;
     [Tooltip("โควต้าการสร้างกล่องสินค้าแยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
@@ -61,7 +71,7 @@ public class GameDayManager : MonoBehaviour
     public int RemainingSpawnQuotaToday => remainingSpawnQuotaToday;
     public int TotalSpawnQuotaToday { get; private set; }
 
-    [Header("Category Spawn Rates (ปรับอัตราการเกิดใน Inspector)")]
+    [Header("Category Spawn Rates (Legacy/Fallback)")]
     [Tooltip("น้ำหนักโอกาสเกิด: สินค้าถูกกฎหมาย (Legal)")]
     [Range(0f, 100f)] public float defaultLegalRate = 70f;
     [Tooltip("น้ำหนักโอกาสเกิด: สินค้าผิดกฎหมาย (Illegal)")]
@@ -69,11 +79,11 @@ public class GameDayManager : MonoBehaviour
     [Tooltip("น้ำหนักโอกาสเกิด: วัตถุเอเลี่ยน (Alien)")]
     [Range(0f, 100f)] public float defaultAlienRate = 10f;
 
-    [Header("Daily Rates Progression (สัดส่วนแยกตามวัน - ตัวเลือกเสริม)")]
+    [Header("Daily Rates Progression (Legacy/Fallback)")]
     [Tooltip("สัดส่วนโอกาสเกิดของแต่ละหมวดหมู่แยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
     public DailyCategorySpawnRate[] categoryRatesPerDay;
 
-    [Header("Daily Package Prefabs (กำหนด Prefab พัสดุแยกตามวัน)")]
+    [Header("Daily Package Prefabs (Legacy/Fallback)")]
     [Tooltip("รายการ Prefab พัสดุที่จะเกิดในแต่ละวัน (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้ค่าตั้งต้นจาก ItemSpawner")]
     public DailyPackageList[] dailyPackagePrefabsPerDay;
 
@@ -116,37 +126,86 @@ public class GameDayManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ค้นหาและกำหนด DayConfigurationSO สำหรับวันปัจจุบัน
+    /// </summary>
+    public DayConfigurationSO ResolveCurrentDayConfig()
+    {
+        int dayIndex = currentDay - 1;
+        DayConfigurationSO selectedConfig = null;
+
+        if (dayConfigurations != null && dayIndex >= 0 && dayIndex < dayConfigurations.Count && dayConfigurations[dayIndex] != null)
+        {
+            selectedConfig = dayConfigurations[dayIndex];
+        }
+        else if (defaultDayConfig != null)
+        {
+            selectedConfig = defaultDayConfig;
+        }
+
+        // หากยังไม่มีการกำหนด ScriptableObject ให้สร้าง Fallback อัตโนมัติจากค่าใน Inspector
+        if (selectedConfig == null)
+        {
+            selectedConfig = ScriptableObject.CreateInstance<DayConfigurationSO>();
+            selectedConfig.dayNumber = currentDay;
+            selectedConfig.dayTitle = $"Day {currentDay}";
+            selectedConfig.openQuota = (dailyOpenQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailyOpenQuotasPerDay.Length && dailyOpenQuotasPerDay[dayIndex] > 0)
+                ? dailyOpenQuotasPerDay[dayIndex]
+                : defaultDailyOpenQuota;
+            selectedConfig.spawnQuota = (dailySpawnQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailySpawnQuotasPerDay.Length && dailySpawnQuotasPerDay[dayIndex] > 0)
+                ? dailySpawnQuotasPerDay[dayIndex]
+                : defaultDailySpawnQuota;
+
+            if (categoryRatesPerDay != null && dayIndex >= 0 && dayIndex < categoryRatesPerDay.Length && categoryRatesPerDay[dayIndex] != null)
+            {
+                selectedConfig.categoryRates = categoryRatesPerDay[dayIndex];
+            }
+            else
+            {
+                selectedConfig.categoryRates = new DailyCategorySpawnRate
+                {
+                    legalWeight = defaultLegalRate,
+                    illegalWeight = defaultIllegalRate,
+                    alienWeight = defaultAlienRate
+                };
+            }
+
+            if (dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length && dailyPackagePrefabsPerDay[dayIndex] != null)
+            {
+                selectedConfig.packagePrefabs = dailyPackagePrefabsPerDay[dayIndex].packagePrefabs;
+            }
+        }
+
+        CurrentDayConfig = selectedConfig;
+        return CurrentDayConfig;
+    }
+
     // รีเซ็ตโควต้าทั้งหมดเมื่อขึ้นวันใหม่
     public void ResetDailyQuota()
     {
-        int dayIndex = currentDay - 1;
+        ResolveCurrentDayConfig();
 
-        // 1. คำนวณโควต้าการเปิดตรวจกล่อง (Open Quota)
-        if (dailyOpenQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailyOpenQuotasPerDay.Length && dailyOpenQuotasPerDay[dayIndex] > 0)
+        if (CurrentDayConfig != null)
         {
-            dailyOpenQuota = dailyOpenQuotasPerDay[dayIndex];
-        }
-        else if (defaultDailyOpenQuota > 0)
-        {
-            dailyOpenQuota = defaultDailyOpenQuota;
-        }
-        remainingQuotaToday = dailyOpenQuota;
-        OnQuotaChanged?.Invoke(remainingQuotaToday);
-
-        // 2. คำนวณโควต้าการสปอนสินค้า (Spawn Quota)
-        if (dailySpawnQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailySpawnQuotasPerDay.Length && dailySpawnQuotasPerDay[dayIndex] > 0)
-        {
-            TotalSpawnQuotaToday = dailySpawnQuotasPerDay[dayIndex];
+            dailyOpenQuota = CurrentDayConfig.openQuota;
+            TotalSpawnQuotaToday = CurrentDayConfig.spawnQuota;
         }
         else
         {
+            dailyOpenQuota = defaultDailyOpenQuota;
             TotalSpawnQuotaToday = defaultDailySpawnQuota;
         }
+
+        remainingQuotaToday = dailyOpenQuota;
+        OnQuotaChanged?.Invoke(remainingQuotaToday);
+
         remainingSpawnQuotaToday = TotalSpawnQuotaToday;
         OnSpawnQuotaChanged?.Invoke(remainingSpawnQuotaToday, TotalSpawnQuotaToday);
 
         DailyCategorySpawnRate currentRate = GetCurrentCategoryRate();
-        Debug.Log($"--- เริ่มวันใหม่ (Day {currentDay}) | โควต้าเปิดตรวจ: {remainingQuotaToday} ครั้ง | โควต้าสินค้า: {remainingSpawnQuotaToday} กล่อง | สัดส่วนสินค้า (Legal:{currentRate.legalWeight}, Illegal:{currentRate.illegalWeight}, Alien:{currentRate.alienWeight}) ---");
+        Debug.Log($"--- เริ่มวันใหม่ ({CurrentDayConfig?.dayTitle ?? $"Day {currentDay}"}) | โควต้าเปิดตรวจ: {remainingQuotaToday} ครั้ง | โควต้าสินค้า: {remainingSpawnQuotaToday} กล่อง | สัดส่วนสินค้า (Legal:{currentRate.legalWeight}, Illegal:{currentRate.illegalWeight}, Alien:{currentRate.alienWeight}) ---");
+
+        OnDayConfigApplied?.Invoke(CurrentDayConfig);
     }
 
     // --- ตรวจสอบและหักโควต้าเปิดตรวจกล่อง ---
@@ -186,6 +245,11 @@ public class GameDayManager : MonoBehaviour
     // --- ระบบสุ่มหมวดหมู่ประจำวัน (Category Spawn Rate) ---
     public DailyCategorySpawnRate GetCurrentCategoryRate()
     {
+        if (CurrentDayConfig != null && CurrentDayConfig.categoryRates != null)
+        {
+            return CurrentDayConfig.categoryRates;
+        }
+
         int dayIndex = currentDay - 1;
         if (categoryRatesPerDay != null && dayIndex >= 0 && dayIndex < categoryRatesPerDay.Length && categoryRatesPerDay[dayIndex] != null)
         {
@@ -232,6 +296,20 @@ public class GameDayManager : MonoBehaviour
     public GameObject[] GetPackagePrefabsForDay(int day)
     {
         int dayIndex = day - 1;
+
+        if (day == currentDay && CurrentDayConfig != null && CurrentDayConfig.packagePrefabs != null && CurrentDayConfig.packagePrefabs.Length > 0)
+        {
+            return CurrentDayConfig.packagePrefabs;
+        }
+
+        if (dayConfigurations != null && dayIndex >= 0 && dayIndex < dayConfigurations.Count && dayConfigurations[dayIndex] != null)
+        {
+            if (dayConfigurations[dayIndex].packagePrefabs != null && dayConfigurations[dayIndex].packagePrefabs.Length > 0)
+            {
+                return dayConfigurations[dayIndex].packagePrefabs;
+            }
+        }
+
         if (dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length)
         {
             var dailyList = dailyPackagePrefabsPerDay[dayIndex];

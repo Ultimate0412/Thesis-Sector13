@@ -38,6 +38,12 @@ public class GameEventManager : MonoBehaviour
 
     private float nextRandomEventTime = 0f;
 
+    // การจัดการอีเวนต์ตามกำหนดการของ DayConfigurationSO
+    private List<Coroutine> scheduledEventCoroutines = new List<Coroutine>();
+    private List<ScheduledDailyEvent> pendingStampEvents = new List<ScheduledDailyEvent>();
+    private HashSet<PackageBox> stampedBoxesToday = new HashSet<PackageBox>();
+    private int stampedCountToday = 0;
+
     private void Awake()
     {
         if (Instance == null)
@@ -56,11 +62,18 @@ public class GameEventManager : MonoBehaviour
 
     private void Start()
     {
+        PackageBox.OnAnyPackageStamped += HandlePackageStamped;
+
         // เชื่อมโยงกับ GameDayManager เพื่อล้างอีเวนต์เมื่อจบวัน
         if (GameDayManager.Instance != null)
         {
             GameDayManager.Instance.OnDayEnded += HandleDayEnded;
             GameDayManager.Instance.OnDayStarted += HandleDayStarted;
+
+            if (GameDayManager.Instance.CurrentDayConfig != null)
+            {
+                ScheduleDailyEventsFromConfig(GameDayManager.Instance.CurrentDayConfig);
+            }
         }
 
         ScheduleNextRandomEvent();
@@ -68,6 +81,8 @@ public class GameEventManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        PackageBox.OnAnyPackageStamped -= HandlePackageStamped;
+
         if (GameDayManager.Instance != null)
         {
             GameDayManager.Instance.OnDayEnded -= HandleDayEnded;
@@ -270,12 +285,108 @@ public class GameEventManager : MonoBehaviour
 
     private void HandleDayEnded(int day)
     {
+        CancelScheduledDailyEvents();
         StopAllEvents();
     }
 
     private void HandleDayStarted(int newDay)
     {
+        CancelScheduledDailyEvents();
         ScheduleNextRandomEvent();
+
+        if (GameDayManager.Instance != null && GameDayManager.Instance.CurrentDayConfig != null)
+        {
+            ScheduleDailyEventsFromConfig(GameDayManager.Instance.CurrentDayConfig);
+        }
+    }
+
+    /// <summary>
+    /// ลงทะเบียนและตั้งเวลาอีเวนต์ตามที่ระบุใน DayConfigurationSO ประจำวัน
+    /// </summary>
+    public void ScheduleDailyEventsFromConfig(DayConfigurationSO config)
+    {
+        if (config == null || config.scheduledEvents == null) return;
+
+        Debug.Log($"[GameEventManager] โหลดตารางอีเวนต์ประจำวันสำหรับ {config.dayTitle} (ทั้งหมด {config.scheduledEvents.Count} รายการ)");
+
+        foreach (var scheduledEv in config.scheduledEvents)
+        {
+            if (scheduledEv == null || string.IsNullOrEmpty(scheduledEv.eventId)) continue;
+            scheduledEv.hasTriggered = false;
+
+            switch (scheduledEv.timing)
+            {
+                case EventTriggerTiming.AtDayStart:
+                    if (UnityEngine.Random.value <= scheduledEv.triggerProbability)
+                    {
+                        TriggerEvent(scheduledEv.eventId);
+                        scheduledEv.hasTriggered = true;
+                    }
+                    break;
+
+                case EventTriggerTiming.AfterDelay:
+                    Coroutine c = StartCoroutine(ScheduledEventDelayRoutine(scheduledEv));
+                    scheduledEventCoroutines.Add(c);
+                    break;
+
+                case EventTriggerTiming.AfterBoxesStamped:
+                    pendingStampEvents.Add(scheduledEv);
+                    break;
+            }
+        }
+    }
+
+    private System.Collections.IEnumerator ScheduledEventDelayRoutine(ScheduledDailyEvent scheduledEv)
+    {
+        yield return new WaitForSeconds(scheduledEv.delaySeconds);
+
+        if (!scheduledEv.hasTriggered && (activeEvents.Count == 0 || enableRandomDailyEvents))
+        {
+            if (UnityEngine.Random.value <= scheduledEv.triggerProbability)
+            {
+                Debug.Log($"<color=#00E5FF>[GameEventManager]</color> เริ่มอีเวนต์ตามเวลา '{scheduledEv.eventId}' (หน่วงเวลา {scheduledEv.delaySeconds} วิ สำเร็จ)");
+                TriggerEvent(scheduledEv.eventId);
+                scheduledEv.hasTriggered = true;
+            }
+        }
+    }
+
+    private void HandlePackageStamped(PackageBox box, InspectionStatus status)
+    {
+        if (box == null || stampedBoxesToday.Contains(box)) return;
+        stampedBoxesToday.Add(box);
+        stampedCountToday++;
+
+        for (int i = pendingStampEvents.Count - 1; i >= 0; i--)
+        {
+            var scheduledEv = pendingStampEvents[i];
+            if (scheduledEv != null && !scheduledEv.hasTriggered && stampedCountToday >= scheduledEv.triggerAfterStampedBoxes)
+            {
+                if (UnityEngine.Random.value <= scheduledEv.triggerProbability)
+                {
+                    Debug.Log($"<color=#00E5FF>[GameEventManager]</color> เริ่มอีเวนต์ '{scheduledEv.eventId}' หลังประทับตราครบ {stampedCountToday} กล่อง!");
+                    TriggerEvent(scheduledEv.eventId);
+                    scheduledEv.hasTriggered = true;
+                }
+                pendingStampEvents.RemoveAt(i);
+            }
+        }
+    }
+
+    private void CancelScheduledDailyEvents()
+    {
+        stampedBoxesToday.Clear();
+        stampedCountToday = 0;
+        pendingStampEvents.Clear();
+
+        for (int i = 0; i < scheduledEventCoroutines.Count; i++)
+        {
+            if (scheduledEventCoroutines[i] != null)
+            {
+                StopCoroutine(scheduledEventCoroutines[i]);
+            }
+        }
+        scheduledEventCoroutines.Clear();
     }
 
     private void ScheduleNextRandomEvent()

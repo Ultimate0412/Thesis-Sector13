@@ -3404,6 +3404,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8949383288804798862, guid: fbb552878f0b741448831298503040cc, type: 3}
   m_PrefabInstance: {fileID: 69192819}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
 --- !u!1001 &70910178
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3461,6 +3462,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bb20e1fa05ae0a14e97b5fc14c54d7b9, type: 3}
+=======
+>>>>>>> Stashed changes
 --- !u!1 &72074648
 GameObject:
   m_ObjectHideFlags: 0
@@ -12525,11 +12528,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8949383288804798862, guid: fbb552878f0b741448831298503040cc, type: 3}
   m_PrefabInstance: {fileID: 281707463}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
 --- !u!4 &283046861 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2237740498015688546, guid: bb20e1fa05ae0a14e97b5fc14c54d7b9, type: 3}
   m_PrefabInstance: {fileID: 1132193069}
   m_PrefabAsset: {fileID: 0}
+=======
+>>>>>>> Stashed changes
 --- !u!1001 &285978314
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58580,6 +58586,24 @@ MeshFilter:
   m_GameObject: {fileID: 1294228052}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1294228055
+<<<<<<< Updated upstream
+=======
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294228052}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.02, y: 0.05, z: -25.12}
+  m_LocalScale: {x: 1, y: 0.1386, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1295457560 stripped
+>>>>>>> Stashed changes
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -90304,8 +90328,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1971048607}
   serializedVersion: 2
+<<<<<<< Updated upstream
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -3.62, y: 0, z: -15.57}
+=======
+  m_LocalRotation: {x: 0, y: -0.7754957, z: 0, w: 0.63135284}
+  m_LocalPosition: {x: -4.88, y: 0, z: -9.83}
+>>>>>>> Stashed changes
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -90316,7 +90345,11 @@ Transform:
   - {fileID: 1808436023}
   - {fileID: 1404613316}
   m_Father: {fileID: 0}
+<<<<<<< Updated upstream
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+=======
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+>>>>>>> Stashed changes
 --- !u!114 &1971048609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90348,7 +90381,10 @@ MonoBehaviour:
   weightUnit: kg
   screenResolution: {x: 720, y: 480}
   screenScale: 0.001
+<<<<<<< Updated upstream
   screenForwardOffset: 0.01
+=======
+>>>>>>> Stashed changes
   weighSound: {fileID: 0}
   weighSoundVolume: 0.8
 --- !u!1001 &1972377541

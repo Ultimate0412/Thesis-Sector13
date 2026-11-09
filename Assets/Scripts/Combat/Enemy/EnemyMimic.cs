@@ -2,7 +2,10 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
+<<<<<<< Updated upstream
 [RequireComponent(typeof(NavMeshAgent))]
+=======
+>>>>>>> Stashed changes
 public class EnemyMimic : EnemyBase
 {
     public enum MimicState
@@ -229,12 +232,29 @@ public class EnemyMimic : EnemyBase
             return;
         }
 
+<<<<<<< Updated upstream
         // วิ่งเข้าหาผู้เล่นด้วย NavMeshAgent
+=======
+        // วิ่งเข้าหาผู้เล่น (NavMesh หรือ Rigidbody Fallback)
+>>>>>>> Stashed changes
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
             navAgent.isStopped = false;
             navAgent.speed = chaseSpeed;
             navAgent.SetDestination(playerTarget.position);
+<<<<<<< Updated upstream
+=======
+        }
+        else
+        {
+            Vector3 moveDir = (playerTarget.position - transform.position);
+            moveDir.y = 0f;
+            if (moveDir.sqrMagnitude > 0.001f)
+            {
+                moveDir.Normalize();
+                rb.linearVelocity = moveDir * chaseSpeed + new Vector3(0f, rb.linearVelocity.y, 0f);
+            }
+>>>>>>> Stashed changes
         }
     }
 
@@ -319,6 +339,13 @@ public class EnemyMimic : EnemyBase
             navAgent.isStopped = true;
             navAgent.velocity = Vector3.zero;
         }
+<<<<<<< Updated upstream
+=======
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        }
+>>>>>>> Stashed changes
     }
 
     private void RotateTowardsPlayer()
@@ -352,9 +379,21 @@ public class EnemyMimic : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
+<<<<<<< Updated upstream
             float horizSpeed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 ? navAgent.velocity.magnitude
                 : 0f;
+=======
+            float horizSpeed = 0f;
+            if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+            {
+                horizSpeed = navAgent.velocity.magnitude;
+            }
+            else if (rb != null)
+            {
+                horizSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+            }
+>>>>>>> Stashed changes
             mimicAnimator.SetFloat(speedParamName, horizSpeed);
         }
 

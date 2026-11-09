@@ -120,7 +120,21 @@ public class ThiefManager : MonoBehaviour
         thievesSpawnedToday = 0;
         isWarningActive = false;
         stampedBoxesToday.Clear();
-        Debug.Log($"[ThiefManager] รีเซ็ตสถิติ Thief สำหรับ Day {newDay}");
+
+        // ซิงค์การตั้งค่า Thief จาก DayConfigurationSO ประจำวัน
+        if (GameDayManager.Instance != null && GameDayManager.Instance.CurrentDayConfig != null)
+        {
+            DayConfigurationSO config = GameDayManager.Instance.CurrentDayConfig;
+            maxThievesPerDay = config.enableThief ? config.maxThievesToday : 0;
+            minStampsThreshold = config.minStampsForThief;
+            guaranteedStampsThreshold = config.guaranteedStampsForThief;
+            spawnChancePerStamp = config.thiefSpawnChancePerStamp;
+            Debug.Log($"[ThiefManager] ซิงค์การตั้งค่า Thief สำหรับ {config.dayTitle} (เปิดใช้งาน: {config.enableThief}, โควต้า: {maxThievesPerDay})");
+        }
+        else
+        {
+            Debug.Log($"[ThiefManager] รีเซ็ตสถิติ Thief สำหรับ Day {newDay}");
+        }
     }
 
     private void HandlePackageStamped(PackageBox box, InspectionStatus status)

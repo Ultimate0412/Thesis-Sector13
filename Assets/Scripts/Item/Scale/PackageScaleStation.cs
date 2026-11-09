@@ -133,8 +133,25 @@ public class PackageScaleStation : BaseDropPoint
     /// </summary>
     private float GetActualWeight(PackageBox box)
     {
+<<<<<<< Updated upstream
         // Source of truth เดียวกับระบบถือของ: PackageBox.Weight
         return box != null ? box.Weight : 0f;
+=======
+        if (box == null) return 0f;
+
+        if (box.officialDatabaseData != null)
+        {
+            return Mathf.Max(0f, box.officialDatabaseData.actualWeight);
+        }
+
+        if (box.innerItemPrefab != null)
+        {
+            ItemObject item = box.innerItemPrefab.GetComponent<ItemObject>();
+            if (item != null) return Mathf.Max(0f, item.itemWeight);
+        }
+
+        return 0f;
+>>>>>>> Stashed changes
     }
 
     private PackageBox GetPackageBox(GameObject obj)

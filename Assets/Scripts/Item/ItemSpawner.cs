@@ -28,7 +28,7 @@ public class ItemSpawner : MonoBehaviour, IInteractable
 
     [Header("Advanced / Daily Options (ตัวเลือกเสริม)")]
     [Tooltip("หากเปิดใช้งาน จะดึงเรทจาก GameDayManager แทนเรทใน Inspector ด้านบน")]
-    public bool useGameDayManagerRates = false;
+    public bool useGameDayManagerRates = true;
 
     [Tooltip("กำหนดเรทสุ่มหมวดหมู่แยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้เรทด้านบน")]
     public DailyCategorySpawnRate[] dailyRatesPerDay;
@@ -77,6 +77,10 @@ public class ItemSpawner : MonoBehaviour, IInteractable
 
     private void HandleDayStarted(int newDay)
     {
+        if (GameDayManager.Instance != null && GameDayManager.Instance.CurrentDayConfig != null)
+        {
+            alienMimicChance = GameDayManager.Instance.CurrentDayConfig.alienMimicChance;
+        }
         RefreshPrefabsForDay(newDay, true);
     }
 

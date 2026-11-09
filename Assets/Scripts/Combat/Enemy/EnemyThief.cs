@@ -14,7 +14,10 @@ using UnityEngine.AI;
 /// 6. เมื่อถูกตีจะปล่อยพัสดุตกพื้น และแตกตื่นวิ่งมั่วๆ 3 วินาทีก่อนกลับมาขโมยต่อ
 /// 7. หากผู้เล่นตีจนตาย จะดรอปพัสดุคืนลงบนพื้นให้เก็บกลับมาได้
 /// </summary>
+<<<<<<< Updated upstream
 [RequireComponent(typeof(NavMeshAgent))]
+=======
+>>>>>>> Stashed changes
 public class EnemyThief : EnemyBase
 {
     public enum ThiefState
@@ -427,7 +430,11 @@ public class EnemyThief : EnemyBase
     }
 
     /// <summary>
+<<<<<<< Updated upstream
     /// การเคลื่อนที่ด้วย NavMeshAgent 100%
+=======
+    /// การเคลื่อนที่แบบ NavMeshAgent หรือ Fallback เป็น Rigidbody พร้อมการหลบสิ่งกีดขวาง (Obstacle Avoidance)
+>>>>>>> Stashed changes
     /// </summary>
     private void MoveTowards(Vector3 destination, float speed)
     {
@@ -436,7 +443,27 @@ public class EnemyThief : EnemyBase
             navAgent.isStopped = false;
             navAgent.speed = speed;
             navAgent.SetDestination(destination);
+<<<<<<< Updated upstream
         }
+=======
+            return;
+        }
+
+        Vector3 desiredDir = (destination - transform.position);
+        desiredDir.y = 0f;
+        if (desiredDir.sqrMagnitude < 0.01f) return;
+        desiredDir.Normalize();
+
+        // หลบสิ่งกีดขวางด้านหน้าด้วย Raycast ซ้าย-ขวา
+        Vector3 moveDir = AvoidObstacles(desiredDir);
+
+        // หมุนตัวเข้าหาทิศทางที่กำลังวิ่งไป
+        Quaternion targetRot = Quaternion.LookRotation(moveDir);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+
+        // ใส่ความเร็วแนวราบ
+        rb.linearVelocity = moveDir * speed + new Vector3(0f, rb.linearVelocity.y, 0f);
+>>>>>>> Stashed changes
     }
 
     private void StopMovement()
@@ -446,6 +473,34 @@ public class EnemyThief : EnemyBase
             navAgent.isStopped = true;
             navAgent.velocity = Vector3.zero;
         }
+<<<<<<< Updated upstream
+=======
+        if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        }
+    }
+
+    private Vector3 AvoidObstacles(Vector3 forward)
+    {
+        Ray rayCenter = new Ray(transform.position + Vector3.up * 0.4f, forward);
+        RaycastHit hit;
+
+        if (Physics.Raycast(rayCenter, out hit, 1.4f))
+        {
+            // ถ้ามีสิ่งกีดขวางด้านหน้า ให้ลองเช็คซ้ายและขวา 45 องศา
+            Vector3 leftDir = Quaternion.Euler(0f, -50f, 0f) * forward;
+            Vector3 rightDir = Quaternion.Euler(0f, 50f, 0f) * forward;
+
+            bool hitLeft = Physics.Raycast(transform.position + Vector3.up * 0.4f, leftDir, 1.4f);
+            bool hitRight = Physics.Raycast(transform.position + Vector3.up * 0.4f, rightDir, 1.4f);
+
+            if (!hitRight) return rightDir;
+            if (!hitLeft) return leftDir;
+        }
+
+        return forward;
+>>>>>>> Stashed changes
     }
 
     private void ChooseEscapePoint()
@@ -680,9 +735,13 @@ public class EnemyThief : EnemyBase
 
         if (!string.IsNullOrEmpty(speedParamName))
         {
+<<<<<<< Updated upstream
             float speed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 ? navAgent.velocity.magnitude
                 : 0f;
+=======
+            float speed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+>>>>>>> Stashed changes
             thiefAnimator.SetFloat(speedParamName, speed);
         }
     }

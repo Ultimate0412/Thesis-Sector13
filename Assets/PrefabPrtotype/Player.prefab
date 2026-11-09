@@ -1456,8 +1456,11 @@ GameObject:
   - component: {fileID: 384995915331344342}
   - component: {fileID: 516351515494862012}
   - component: {fileID: 3247765406195922488}
+<<<<<<< Updated upstream
   - component: {fileID: 5028286250582607369}
   - component: {fileID: 1938475610293847561}
+=======
+>>>>>>> Stashed changes
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1590,7 +1593,11 @@ MonoBehaviour:
   _isGrounded: 0
   playerCamera: {fileID: 8550138162432030878}
   lookSpeed: 2
+<<<<<<< Updated upstream
   lookXLimit: 90
+=======
+  lookXLimit: 45
+>>>>>>> Stashed changes
   speedParamName: Speed
   isGroundedParamName: IsGrounded
   jumpTriggerName: Jump
@@ -1723,6 +1730,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   attackTriggerName: Attack
+<<<<<<< Updated upstream
 --- !u!114 &5028286250582607369
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1756,6 +1764,8 @@ MonoBehaviour:
   positionSmoothing: 14
   moveThreshold: 0.1
   animator: {fileID: 4208137414203057357}
+=======
+>>>>>>> Stashed changes
 --- !u!1 &7375681977615966776
 GameObject:
   m_ObjectHideFlags: 0

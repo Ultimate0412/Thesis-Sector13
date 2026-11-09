@@ -101,7 +101,10 @@ public class DailySummaryUI : MonoBehaviour
 
         if (dayTitleText != null)
         {
-            dayTitleText.text = $"DAILY WORK SUMMARY - DAY {day}";
+            string title = (GameDayManager.Instance != null && GameDayManager.Instance.CurrentDayConfig != null && !string.IsNullOrEmpty(GameDayManager.Instance.CurrentDayConfig.dayTitle))
+                ? GameDayManager.Instance.CurrentDayConfig.dayTitle.ToUpper()
+                : $"DAY {day}";
+            dayTitleText.text = $"DAILY WORK SUMMARY - {title}";
         }
 
         if (stats != null)
