@@ -32,6 +32,13 @@ public class GameEventManager : MonoBehaviour
     private List<GameEventBase> activeEvents = new List<GameEventBase>();
     public IReadOnlyList<GameEventBase> ActiveEvents => activeEvents;
 
+    // pool ของอีเวนต์ที่อนุญาตให้เกิดในวันนี้ (จาก DayConfig)
+    private readonly List<GameEventBase> dailyEventPool = new List<GameEventBase>();
+    public IReadOnlyList<GameEventBase> DailyEventPool => dailyEventPool;
+
+    // true = มีการ apply DayConfig แล้ว (แม้ allowedEventIds จะว่าง ก็ถือว่า "ห้ามเกิด")
+    private bool hasDayEventConfig = false;
+
     // Callbacks แจ้งเตือนภายนอก
     public event Action<GameEventBase> OnEventTriggered;
     public event Action<GameEventBase> OnEventEnded;
@@ -61,6 +68,7 @@ public class GameEventManager : MonoBehaviour
         {
             GameDayManager.Instance.OnDayEnded += HandleDayEnded;
             GameDayManager.Instance.OnDayStarted += HandleDayStarted;
+            ApplyDayConfig(GameDayManager.Instance.CurrentDayConfig);
         }
 
         ScheduleNextRandomEvent();
@@ -84,7 +92,8 @@ public class GameEventManager : MonoBehaviour
         }
 
         // 2. ตรวจสอบการสุ่มเกิดอีเวนต์อัตโนมัติ
-        if (enableRandomDailyEvents && Time.time >= nextRandomEventTime && activeEvents.Count == 0)
+        int candidateCount = hasDayEventConfig ? dailyEventPool.Count : availableEvents.Count;
+        if (enableRandomDailyEvents && candidateCount > 0 && Time.time >= nextRandomEventTime && activeEvents.Count == 0)
         {
             TriggerRandomEvent();
             ScheduleNextRandomEvent();
@@ -237,7 +246,9 @@ public class GameEventManager : MonoBehaviour
     /// </summary>
     public void TriggerRandomEvent()
     {
-        List<GameEventBase> readyEvents = availableEvents.FindAll(e => e != null && e.CanTrigger());
+        // ถ้ามี DayConfig ให้สุ่มจาก pool ของวันนั้นเท่านั้น (pool ว่าง = ไม่เกิดอีเวนต์)
+        List<GameEventBase> source = hasDayEventConfig ? dailyEventPool : availableEvents;
+        List<GameEventBase> readyEvents = source.FindAll(e => e != null && e.CanTrigger());
         if (readyEvents.Count > 0)
         {
             int randIndex = UnityEngine.Random.Range(0, readyEvents.Count);
@@ -275,7 +286,54 @@ public class GameEventManager : MonoBehaviour
 
     private void HandleDayStarted(int newDay)
     {
+        if (GameDayManager.Instance != null)
+        {
+            ApplyDayConfig(GameDayManager.Instance.CurrentDayConfig);
+        }
         ScheduleNextRandomEvent();
+    }
+
+    /// <summary>
+    /// นำค่าการเกิดอีเวนต์ของวันนั้นจาก DayConfig มาใช้
+    /// เรียกซ้ำได้ทุกวัน (Start / OnDayStarted)
+    /// </summary>
+    public void ApplyDayConfig(DayConfig config)
+    {
+        // มีระบบวันแต่ไม่มี config ของวันนี้ → ปิดการเกิด
+        if (config == null || config.events == null)
+        {
+            hasDayEventConfig = true;
+            enableRandomDailyEvents = false;
+            dailyEventPool.Clear();
+            return;
+        }
+
+        hasDayEventConfig = true;
+
+        DayEventSettings settings = config.events;
+        enableRandomDailyEvents = settings.enableRandomEvents;
+        minEventInterval = Mathf.Max(0f, settings.minInterval);
+        maxEventInterval = Mathf.Max(minEventInterval, settings.maxInterval);
+
+        dailyEventPool.Clear();
+        if (settings.allowedEventIds != null)
+        {
+            foreach (string rawId in settings.allowedEventIds)
+            {
+                if (string.IsNullOrWhiteSpace(rawId)) continue;
+
+                string eventId = rawId.Trim();
+                GameEventBase ev = GetEvent(eventId);
+                if (ev != null)
+                {
+                    dailyEventPool.Add(ev);
+                }
+                else
+                {
+                    Debug.LogWarning($"[GameEventManager] DayConfig อ้าง eventId ที่ไม่มีใน Scene: '{eventId}'");
+                }
+            }
+        }
     }
 
     private void ScheduleNextRandomEvent()

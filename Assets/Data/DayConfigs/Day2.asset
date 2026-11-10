@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f319da07c24ab44aee34c017266096, type: 3}
+  m_Name: Day2
+  m_EditorClassIdentifier: Assembly-CSharp::DayConfig
+  dayName: Day 2
+  openQuota: 10
+  spawnQuota: 10
+  categoryRate:
+    legalWeight: 60
+    illegalWeight: 25
+    alienWeight: 15
+  packagePrefabs:
+  - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
+  - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+  events:
+    enableRandomEvents: 0
+    minInterval: 60
+    maxInterval: 120
+    allowedEventIds:
+    - NoGravity
+  thief:
+    enableThief: 1
+    minStampsThreshold: 3
+    guaranteedStampsThreshold: 5
+    spawnChancePerStamp: 0.45
+    maxThievesPerDay: 1
+    warningDelay: 4

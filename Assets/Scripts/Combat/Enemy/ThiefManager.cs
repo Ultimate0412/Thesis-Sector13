@@ -18,6 +18,10 @@ public class ThiefManager : MonoBehaviour
     [Tooltip("Prefab ของศัตรู Thief ที่จะสปอนออกมา")]
     public GameObject thiefPrefab;
 
+    [Header("Day Config Override")]
+    [Tooltip("เปิด/ปิดการเกิด Thief ในวันนี้ (กำหนดจาก DayConfig)")]
+    public bool enableThief = true;
+
     [Header("Stamp Trigger Settings")]
     [Tooltip("จำนวนกล่องประทับตราขั้นต่ำที่เริ่มสุ่มโอกาสเกิด")]
     public int minStampsThreshold = 3;
@@ -92,6 +96,7 @@ public class ThiefManager : MonoBehaviour
         if (GameDayManager.Instance != null)
         {
             GameDayManager.Instance.OnDayStarted += HandleDayStarted;
+            ApplyDayConfig(GameDayManager.Instance.CurrentDayConfig);
         }
     }
 
@@ -116,11 +121,46 @@ public class ThiefManager : MonoBehaviour
 
     private void HandleDayStarted(int newDay)
     {
+        if (GameDayManager.Instance != null)
+        {
+            ApplyDayConfig(GameDayManager.Instance.CurrentDayConfig);
+        }
+
         dailyStampedCount = 0;
         thievesSpawnedToday = 0;
         isWarningActive = false;
         stampedBoxesToday.Clear();
         Debug.Log($"[ThiefManager] รีเซ็ตสถิติ Thief สำหรับ Day {newDay}");
+    }
+
+    /// <summary>
+    /// นำค่าการเกิด Thief ของวันนั้นจาก DayConfig มาใช้
+    /// เรียกซ้ำได้ทุกวัน (Start / OnDayStarted)
+    /// </summary>
+    public void ApplyDayConfig(DayConfig config)
+    {
+        // มีระบบวันแต่ไม่มี config ของวันนี้ → ปิดการเกิด
+        if (config == null || config.thief == null)
+        {
+            enableThief = false;
+            StopAllCoroutines();
+            isWarningActive = false;
+            return;
+        }
+
+        DayThiefSettings settings = config.thief;
+        enableThief = settings.enableThief;
+        minStampsThreshold = Mathf.Max(0, settings.minStampsThreshold);
+        guaranteedStampsThreshold = Mathf.Max(minStampsThreshold, settings.guaranteedStampsThreshold);
+        spawnChancePerStamp = Mathf.Clamp01(settings.spawnChancePerStamp);
+        maxThievesPerDay = Mathf.Max(0, settings.maxThievesPerDay);
+        warningDelay = Mathf.Max(0f, settings.warningDelay);
+
+        if (!enableThief)
+        {
+            StopAllCoroutines();
+            isWarningActive = false;
+        }
     }
 
     private void HandlePackageStamped(PackageBox box, InspectionStatus status)
@@ -133,6 +173,9 @@ public class ThiefManager : MonoBehaviour
 
         dailyStampedCount++;
         Debug.Log($"<color=#FFCC00>[ThiefManager]</color> ประทับตรากล่องที่ <b>{dailyStampedCount}</b> ของวัน");
+
+        // DayConfig ของวันนี้อาจปิดการเกิด Thief
+        if (!enableThief) return;
 
         // หากโควต้าการเกิดวันนี้เต็มแล้ว หรือกำลังเตือนอยู่ ไม่ต้องตรวจเพิ่ม
         if (thievesSpawnedToday >= maxThievesPerDay || isWarningActive) return;
@@ -162,6 +205,12 @@ public class ThiefManager : MonoBehaviour
     [ContextMenu("Trigger Thief Spawn Now")]
     public void TriggerThiefSpawnManually()
     {
+        if (!enableThief)
+        {
+            Debug.LogWarning("[ThiefManager] DayConfig ของวันนี้ปิดการเกิด Thief");
+            return;
+        }
+
         if (isWarningActive)
         {
             Debug.LogWarning("[ThiefManager] ระบบกำลังอยู่ในช่วงนับถอยหลังแจ้งเตือนอยู่แล้ว");
@@ -200,6 +249,13 @@ public class ThiefManager : MonoBehaviour
 
         // 4. หน่วงเวลาตามที่กำหนด
         yield return new WaitForSeconds(warningDelay);
+
+        // อาจมีการปิดการเกิดระหว่างรอ (เช่นขึ้นวันใหม่)
+        if (!enableThief)
+        {
+            isWarningActive = false;
+            yield break;
+        }
 
         // 5. สปอนตัว Thief ออกมา
         SpawnThief(chosenSpawnPoint);

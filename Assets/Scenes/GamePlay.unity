@@ -3604,6 +3604,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThiefManager
   thiefPrefab: {fileID: 7980087161198620101, guid: 3bd780fab1de4304ac3be3886f91a743, type: 3}
+  enableThief: 1
   minStampsThreshold: 3
   guaranteedStampsThreshold: 5
   spawnChancePerStamp: 0.45
@@ -24294,34 +24295,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameDayManager
   currentDay: 1
   defaultDailyOpenQuota: 15
-  dailyOpenQuotasPerDay: 030000000a000000
   dailyOpenQuota: 15
   defaultDailySpawnQuota: 10
-  dailySpawnQuotasPerDay: 050000000a000000
   defaultLegalRate: 70
   defaultIllegalRate: 20
   defaultAlienRate: 10
-  categoryRatesPerDay:
-  - legalWeight: 70
-    illegalWeight: 20
-    alienWeight: 10
-  - legalWeight: 60
-    illegalWeight: 25
-    alienWeight: 15
-  dailyPackagePrefabsPerDay:
-  - dayName: 
-    packagePrefabs:
-    - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
-    - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
-    - {fileID: 6710169368151423947, guid: 7eccca39e9c08794f82283e35d5b121f, type: 3}
-  - dayName: 
-    packagePrefabs:
-    - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
-    - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
-  - dayName: 
-    packagePrefabs:
-    - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
-    - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+  dayConfigs:
+  - {fileID: 11400000, guid: ef3eb545f3687f247a2563b8ee384430, type: 2}
+  - {fileID: 11400000, guid: 834053f55001299468f4f99b0bac347c, type: 2}
+  - {fileID: 11400000, guid: 19b57b97f60d3e54589e0adc428726d0, type: 2}
   debugEndDayKey: 257
 --- !u!4 &552973994
 Transform:

@@ -44,24 +44,20 @@ public class GameDayManager : MonoBehaviour
     public int currentDay = 1;
 
     [Header("Inspection / Open Box Quota")]
-    [Tooltip("โควต้าการเปิดกล่องพื้นฐานต่อวัน")]
+    [Tooltip("โควต้าการเปิดกล่องพื้นฐานต่อวัน (ใช้เมื่อยังไม่มี Day Configs)")]
     public int defaultDailyOpenQuota = 15;
-    [Tooltip("โควต้าการเปิดกล่องตรวจแยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
-    public int[] dailyOpenQuotasPerDay;
-    public int dailyOpenQuota = 15; // เพื่อรองรับโค้ดเดิมที่อาจเรียกใช้โดยตรง
+    public int dailyOpenQuota = 15; // ค่า runtime ที่ถูกคำนวณจาก DayConfig
     private int remainingQuotaToday;
     public int RemainingQuotaToday => remainingQuotaToday;
 
     [Header("Item Spawning Quota")]
-    [Tooltip("โควต้าการสร้างกล่องสินค้าพื้นฐานต่อวัน")]
+    [Tooltip("โควต้าการสร้างกล่องสินค้าพื้นฐานต่อวัน (ใช้เมื่อยังไม่มี Day Configs)")]
     public int defaultDailySpawnQuota = 10;
-    [Tooltip("โควต้าการสร้างกล่องสินค้าแยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
-    public int[] dailySpawnQuotasPerDay;
     private int remainingSpawnQuotaToday;
     public int RemainingSpawnQuotaToday => remainingSpawnQuotaToday;
     public int TotalSpawnQuotaToday { get; private set; }
 
-    [Header("Category Spawn Rates (ปรับอัตราการเกิดใน Inspector)")]
+    [Header("Category Spawn Rates (ใช้เมื่อยังไม่มี Day Configs)")]
     [Tooltip("น้ำหนักโอกาสเกิด: สินค้าถูกกฎหมาย (Legal)")]
     [Range(0f, 100f)] public float defaultLegalRate = 70f;
     [Tooltip("น้ำหนักโอกาสเกิด: สินค้าผิดกฎหมาย (Illegal)")]
@@ -69,17 +65,16 @@ public class GameDayManager : MonoBehaviour
     [Tooltip("น้ำหนักโอกาสเกิด: วัตถุเอเลี่ยน (Alien)")]
     [Range(0f, 100f)] public float defaultAlienRate = 10f;
 
-    [Header("Daily Rates Progression (สัดส่วนแยกตามวัน - ตัวเลือกเสริม)")]
-    [Tooltip("สัดส่วนโอกาสเกิดของแต่ละหมวดหมู่แยกตามวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
-    public DailyCategorySpawnRate[] categoryRatesPerDay;
-
-    [Header("Daily Package Prefabs (กำหนด Prefab พัสดุแยกตามวัน)")]
-    [Tooltip("รายการ Prefab พัสดุที่จะเกิดในแต่ละวัน (Index 0 = Day 1, Index 1 = Day 2, ...) หากเว้นว่างไว้จะใช้ค่าตั้งต้นจาก ItemSpawner")]
-    public DailyPackageList[] dailyPackagePrefabsPerDay;
+    [Header("Day Configs (ScriptableObject)")]
+    [Tooltip("การตั้งค่าของแต่ละวัน (Index 0 = Day 1, Index 1 = Day 2, ...)")]
+    public DayConfig[] dayConfigs;
 
     [Header("Debug Key")]
     [Tooltip("ปุ่มสำหรับกดทดสอบจบวัน (ตั้งเป็น None ได้หากไม่ต้องการใช้งาน)")]
     public KeyCode debugEndDayKey = KeyCode.Alpha2;
+
+    // ใช้ซ้ำเพื่อลดการ allocate ตอนเรียก GetCurrentCategoryRate() บ่อยๆ
+    private readonly DailyCategorySpawnRate fallbackCategoryRate = new DailyCategorySpawnRate();
 
     // Events
     public event Action<int> OnQuotaChanged;            // remainingOpenQuota (รองรับโค้ดเดิม)
@@ -107,6 +102,61 @@ public class GameDayManager : MonoBehaviour
         ResetDailyQuota();
     }
 
+    // --- Day Config (ScriptableObject) ---
+
+    /// <summary>มีการกำหนด dayConfigs ไว้หรือไม่</summary>
+    public bool HasAnyDayConfig => dayConfigs != null && dayConfigs.Length > 0;
+
+    /// <summary>คืนค่า DayConfig ของวันที่ระบุ (index = day - 1) หรือ null หากไม่มี</summary>
+    public DayConfig GetDayConfig(int day)
+    {
+        int dayIndex = day - 1;
+        if (dayConfigs != null && dayIndex >= 0 && dayIndex < dayConfigs.Length)
+        {
+            return dayConfigs[dayIndex];
+        }
+        return null;
+    }
+
+    /// <summary>DayConfig ของวันปัจจุบัน</summary>
+    public DayConfig CurrentDayConfig => GetDayConfig(currentDay);
+
+    /// <summary>ตรวจว่ามีการตั้งค่าของวันนั้นหรือไม่</summary>
+    public bool HasDayConfig(int day)
+    {
+        return GetDayConfig(day) != null;
+    }
+
+    /// <summary>วันสูงสุดที่มีการตั้งค่าไว้ (0 = ยังไม่มี config เลย)</summary>
+    public int LastConfiguredDay
+    {
+        get
+        {
+            if (dayConfigs == null) return 0;
+            for (int i = dayConfigs.Length - 1; i >= 0; i--)
+            {
+                if (dayConfigs[i] != null) return i + 1;
+            }
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// ตรวจว่าวันถัดไปมี config หรือไม่
+    /// คืน true พร้อมเหตุผล เมื่อมีการตั้งค่า dayConfigs แล้วแต่ขาด config ของวันถัดไป
+    /// </summary>
+    private bool TryGetMissingNextDayConfigReason(out string failReason)
+    {
+        failReason = null;
+        if (!HasAnyDayConfig) return false;
+
+        int nextDay = currentDay + 1;
+        if (HasDayConfig(nextDay)) return false;
+
+        failReason = $"ไม่สามารถไปยัง Day {nextDay} ได้: ไม่มี DayConfig สำหรับวันดังกล่าว (มีสูงสุดถึง Day {LastConfiguredDay})";
+        return true;
+    }
+
     private void Update()
     {
         // รองรับการกดปุ่ม Debug เพื่อทดสอบจบวัน
@@ -120,11 +170,30 @@ public class GameDayManager : MonoBehaviour
     public void ResetDailyQuota()
     {
         int dayIndex = currentDay - 1;
+        DayConfig dayConfig = GetDayConfig(currentDay);
+
+        // มีการตั้งค่า dayConfigs ไว้แล้ว แต่ไม่มีของวันนี้ = หยุดและแจ้งเตือน
+        if (dayConfig == null && HasAnyDayConfig)
+        {
+            dailyOpenQuota = 0;
+            remainingQuotaToday = 0;
+            TotalSpawnQuotaToday = 0;
+            remainingSpawnQuotaToday = 0;
+            OnQuotaChanged?.Invoke(remainingQuotaToday);
+            OnSpawnQuotaChanged?.Invoke(remainingSpawnQuotaToday, TotalSpawnQuotaToday);
+            Debug.LogError($"[GameDayManager] ไม่พบ DayConfig สำหรับ Day {currentDay} (index {dayIndex}) — กรุณาเพิ่ม asset ในช่อง Day Configs");
+            return;
+        }
+
+        if (dayConfig == null)
+        {
+            Debug.LogWarning("[GameDayManager] ยังไม่ได้กำหนด Day Configs — ใช้ค่า default แทน");
+        }
 
         // 1. คำนวณโควต้าการเปิดตรวจกล่อง (Open Quota)
-        if (dailyOpenQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailyOpenQuotasPerDay.Length && dailyOpenQuotasPerDay[dayIndex] > 0)
+        if (dayConfig != null)
         {
-            dailyOpenQuota = dailyOpenQuotasPerDay[dayIndex];
+            dailyOpenQuota = Mathf.Max(0, dayConfig.openQuota);
         }
         else if (defaultDailyOpenQuota > 0)
         {
@@ -134,9 +203,9 @@ public class GameDayManager : MonoBehaviour
         OnQuotaChanged?.Invoke(remainingQuotaToday);
 
         // 2. คำนวณโควต้าการสปอนสินค้า (Spawn Quota)
-        if (dailySpawnQuotasPerDay != null && dayIndex >= 0 && dayIndex < dailySpawnQuotasPerDay.Length && dailySpawnQuotasPerDay[dayIndex] > 0)
+        if (dayConfig != null)
         {
-            TotalSpawnQuotaToday = dailySpawnQuotasPerDay[dayIndex];
+            TotalSpawnQuotaToday = Mathf.Max(0, dayConfig.spawnQuota);
         }
         else
         {
@@ -146,7 +215,10 @@ public class GameDayManager : MonoBehaviour
         OnSpawnQuotaChanged?.Invoke(remainingSpawnQuotaToday, TotalSpawnQuotaToday);
 
         DailyCategorySpawnRate currentRate = GetCurrentCategoryRate();
-        Debug.Log($"--- เริ่มวันใหม่ (Day {currentDay}) | โควต้าเปิดตรวจ: {remainingQuotaToday} ครั้ง | โควต้าสินค้า: {remainingSpawnQuotaToday} กล่อง | สัดส่วนสินค้า (Legal:{currentRate.legalWeight}, Illegal:{currentRate.illegalWeight}, Alien:{currentRate.alienWeight}) ---");
+        string dayLabel = dayConfig != null && !string.IsNullOrWhiteSpace(dayConfig.dayName)
+            ? dayConfig.dayName
+            : $"Day {currentDay}";
+        Debug.Log($"--- เริ่มวันใหม่ ({dayLabel}) | โควต้าเปิดตรวจ: {remainingQuotaToday} ครั้ง | โควต้าสินค้า: {remainingSpawnQuotaToday} กล่อง | สัดส่วนสินค้า (Legal:{currentRate.legalWeight}, Illegal:{currentRate.illegalWeight}, Alien:{currentRate.alienWeight}) ---");
     }
 
     // --- ตรวจสอบและหักโควต้าเปิดตรวจกล่อง ---
@@ -186,18 +258,18 @@ public class GameDayManager : MonoBehaviour
     // --- ระบบสุ่มหมวดหมู่ประจำวัน (Category Spawn Rate) ---
     public DailyCategorySpawnRate GetCurrentCategoryRate()
     {
-        int dayIndex = currentDay - 1;
-        if (categoryRatesPerDay != null && dayIndex >= 0 && dayIndex < categoryRatesPerDay.Length && categoryRatesPerDay[dayIndex] != null)
+        // 1. ใช้ค่าจาก DayConfig ก่อน
+        DayConfig dayConfig = GetDayConfig(currentDay);
+        if (dayConfig != null && dayConfig.categoryRate != null)
         {
-            return categoryRatesPerDay[dayIndex];
+            return dayConfig.categoryRate;
         }
 
-        return new DailyCategorySpawnRate
-        {
-            legalWeight = defaultLegalRate,
-            illegalWeight = defaultIllegalRate,
-            alienWeight = defaultAlienRate
-        };
+        // 2. Fallback: ค่า default (ใช้ instance เดิมเพื่อลด allocation)
+        fallbackCategoryRate.legalWeight = defaultLegalRate;
+        fallbackCategoryRate.illegalWeight = defaultIllegalRate;
+        fallbackCategoryRate.alienWeight = defaultAlienRate;
+        return fallbackCategoryRate;
     }
 
     public ItemCategory GetRandomCategoryForToday()
@@ -231,15 +303,13 @@ public class GameDayManager : MonoBehaviour
     // --- ค้นหารายการ Prefab พัสดุประจำวัน ---
     public GameObject[] GetPackagePrefabsForDay(int day)
     {
-        int dayIndex = day - 1;
-        if (dailyPackagePrefabsPerDay != null && dayIndex >= 0 && dayIndex < dailyPackagePrefabsPerDay.Length)
+        // ใช้ค่าจาก DayConfig ก่อน
+        DayConfig dayConfig = GetDayConfig(day);
+        if (dayConfig != null && dayConfig.HasPackagePrefabs)
         {
-            var dailyList = dailyPackagePrefabsPerDay[dayIndex];
-            if (dailyList != null && dailyList.packagePrefabs != null && dailyList.packagePrefabs.Length > 0)
-            {
-                return dailyList.packagePrefabs;
-            }
+            return dayConfig.packagePrefabs;
         }
+
         return null; // ไม่มีระบุเจาะจง ให้ใช้ค่าเริ่มต้น
     }
 
@@ -442,6 +512,13 @@ public class GameDayManager : MonoBehaviour
     // ฟังก์ชันสั่งจบวันแบบตรวจสอบเงื่อนไข
     public bool TryEndDay(out string failReason)
     {
+        if (TryGetMissingNextDayConfigReason(out failReason))
+        {
+            Debug.LogWarning($"[GameDayManager] {failReason}");
+            OnDayEndFailed?.Invoke(failReason);
+            return false;
+        }
+
         if (!CanEndDay(out failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
@@ -458,7 +535,14 @@ public class GameDayManager : MonoBehaviour
     /// </summary>
     public bool RequestEndDay()
     {
-        if (!CanEndDay(out string failReason))
+        if (TryGetMissingNextDayConfigReason(out string failReason))
+        {
+            Debug.LogWarning($"[GameDayManager] {failReason}");
+            OnDayEndFailed?.Invoke(failReason);
+            return false;
+        }
+
+        if (!CanEndDay(out failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
             OnDayEndFailed?.Invoke(failReason);
@@ -490,11 +574,19 @@ public class GameDayManager : MonoBehaviour
     // บังคับจบวันทันทีโดยไม่ตรวจเงื่อนไข (สำหรับโหมดทดสอบ / Debug)
     public void ForceEndDay()
     {
-        ExecuteEndDay();
+        ExecuteEndDay(true);
     }
 
-    private void ExecuteEndDay()
+    private void ExecuteEndDay(bool ignoreDayConfigCheck = false)
     {
+        // ห้ามไปต่อถ้าไม่มี DayConfig ของวันถัดไป (ยกเว้นโหมด Debug)
+        if (!ignoreDayConfigCheck && TryGetMissingNextDayConfigReason(out string configFailReason))
+        {
+            Debug.LogWarning($"[GameDayManager] {configFailReason}");
+            OnDayEndFailed?.Invoke(configFailReason);
+            return;
+        }
+
         // 1. ล้างขยะที่จุดทิ้งขยะ (TrashDropPoint) หากมี
         TrashDropPoint trash = FindFirstObjectByType<TrashDropPoint>();
         if (trash != null)
