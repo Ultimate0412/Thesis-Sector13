@@ -18,6 +18,31 @@ public class DayEventSettings
 }
 
 [Serializable]
+public class DayDialogueSettings
+{
+    [Tooltip("เปิดแสดงบทสนทนาตอนเริ่มวัน")]
+    public bool enableDialogue = true;
+
+    [Tooltip("หน่วงกี่วินาทีหลังเริ่มวันก่อนบับเบิ้ลจะขึ้น (0 = ขึ้นทันที)")]
+    [Min(0f)] public float startDelay = 1.5f;
+
+    [Tooltip("ชื่อผู้พูดหลัก (ใช้เมื่อบรรทัดนั้นไม่ได้ระบุชื่อ)")]
+    public string speakerName = "ผู้จัดการกะ";
+
+    [Tooltip("รูปผู้พูดหลัก (ใช้เมื่อบรรทัดนั้นไม่ได้ระบุรูป)")]
+    public Sprite portrait;
+
+    [Tooltip("ความเร็วพิมพ์เริ่มต้น (ตัวอักษร/วินาที)")]
+    [Min(1f)] public float charactersPerSecond = 35f;
+
+    [Tooltip("เวลารอหลังพิมพ์จบก่อนไปบรรทัดถัดไป (วินาที)")]
+    [Min(0f)] public float holdDuration = 2.5f;
+
+    [Tooltip("รายการบรรทัดบทสนทนา (ว่าง = ไม่แสดงบทสนทนา)")]
+    public DialogueLine[] lines;
+}
+
+[Serializable]
 public class DayThiefSettings
 {
     [Tooltip("เปิดให้ Thief เกิดในวันนี้")]
@@ -73,6 +98,10 @@ public class DayConfig : ScriptableObject
     [Tooltip("การเกิด Thief ของวันนี้")]
     public DayThiefSettings thief = new DayThiefSettings();
 
+    [Header("Day Start Dialogue (รายวัน)")]
+    [Tooltip("บทสนทนา HUD ที่แสดงตอนเริ่มวันนี้")]
+    public DayDialogueSettings dialogue = new DayDialogueSettings();
+
     /// <summary>มีรายการ Prefab เฉพาะวันนี้หรือไม่</summary>
     public bool HasPackagePrefabs => packagePrefabs != null && packagePrefabs.Length > 0;
 
@@ -94,6 +123,13 @@ public class DayConfig : ScriptableObject
             thief.spawnChancePerStamp = Mathf.Clamp01(thief.spawnChancePerStamp);
             thief.maxThievesPerDay = Mathf.Max(0, thief.maxThievesPerDay);
             thief.warningDelay = Mathf.Max(0f, thief.warningDelay);
+        }
+
+        if (dialogue != null)
+        {
+            dialogue.startDelay = Mathf.Max(0f, dialogue.startDelay);
+            dialogue.charactersPerSecond = Mathf.Max(1f, dialogue.charactersPerSecond);
+            dialogue.holdDuration = Mathf.Max(0f, dialogue.holdDuration);
         }
     }
 }

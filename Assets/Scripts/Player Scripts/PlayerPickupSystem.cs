@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerPickupSystem : MonoBehaviour
@@ -16,6 +17,10 @@ public class PlayerPickupSystem : MonoBehaviour
     private PlayerStats playerStats;
     private Camera playerCam;
     private BaseDropPoint currentHoveredDropPoint;
+
+    // collider ของ Player และของที่ถืออยู่ (ใช้ปิดการชนกันชั่วคราวตอนถือ)
+    private Collider[] playerColliders;
+    private readonly List<Collider> heldColliders = new List<Collider>();
 
     [Header("Extraction Hold Settings")]
     [Tooltip("ระยะเวลากดปุ่ม Q ค้างเพื่อหยิบสินค้าออกจากกล่อง (วินาที)")]
@@ -37,6 +42,7 @@ public class PlayerPickupSystem : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        playerColliders = GetComponentsInChildren<Collider>(true);
     }
 
     private void Start()
@@ -189,8 +195,97 @@ public class PlayerPickupSystem : MonoBehaviour
     /// <summary>คืนน้ำหนักที่จองไว้ — ต้องเรียกทุกครั้งที่ของออกจากมือ</summary>
     private void ReleaseHeldWeight()
     {
+        // ของออกจากมือแล้ว คืนการชนกับ Player กลับมาเป็นปกติ
+        RestoreHeldCollisions();
+
         if (heldWeight > 0f) playerStats.RemoveWeight(heldWeight);
         heldWeight = 0f;
+    }
+
+    /// <summary>
+    /// ปิดการชนระหว่าง Player กับของที่กำลังถือ
+    /// ป้องกัน collider ของของที่ถือ (เช่น capsule ของศัตรู) ดัน Player ถอยหลัง
+    /// </summary>
+    private void IgnoreHeldCollisions(GameObject held)
+    {
+        RestoreHeldCollisions();
+
+        if (held == null || playerColliders == null) return;
+
+        foreach (Collider heldCol in held.GetComponentsInChildren<Collider>(true))
+        {
+            if (heldCol == null) continue;
+
+            foreach (Collider playerCol in playerColliders)
+            {
+                if (playerCol != null) Physics.IgnoreCollision(playerCol, heldCol, true);
+            }
+
+            heldColliders.Add(heldCol);
+        }
+    }
+
+    /// <summary>
+    /// ยึดของเข้าจุดถือ พร้อมใช้ HeldAnchor ของวัตถุถ้ามี
+    /// (ของใหญ่ เช่น Enemy_Hammer จะได้วางเยื้องออกไปไม่บังสายตา)
+    /// </summary>
+    private void AttachHeldObjectToHand()
+    {
+        if (heldObject == null) return;
+
+        HeldAnchor anchor = heldObject.GetComponent<HeldAnchor>();
+        Transform anchorPoint = anchor != null ? anchor.anchorPoint : null;
+
+        if (anchorPoint != null && anchorPoint.IsChildOf(heldObject.transform))
+        {
+            // ใช้ EmptyObject บนตัววัตถุเป็นจุดจับ:
+            // คำนวณ offset ก่อน reparent แล้ววางวัตถุให้ Empty ทับจุดถือของผู้เล่นพอดี
+            Vector3 gripLocalPos = heldObject.transform.InverseTransformPoint(anchorPoint.position);
+            Quaternion gripLocalRot = Quaternion.Inverse(heldObject.transform.rotation) * anchorPoint.rotation;
+
+            heldObject.transform.SetParent(holdPosition, false);
+            heldObject.transform.localRotation = Quaternion.Inverse(gripLocalRot);
+            heldObject.transform.localPosition = -(heldObject.transform.localRotation * gripLocalPos);
+        }
+        else if (anchorPoint != null)
+        {
+            // อ้างอิง Transform ภายนอก (เช่น Empty ใต้ Player) → เกาะที่ Empty นั้นโดยตรง
+            heldObject.transform.SetParent(anchorPoint, false);
+            heldObject.transform.localPosition = Vector3.zero;
+            heldObject.transform.localRotation = Quaternion.identity;
+        }
+        else if (anchor != null)
+        {
+            heldObject.transform.SetParent(holdPosition, false);
+            heldObject.transform.localPosition = anchor.localPosition;
+            heldObject.transform.localRotation = Quaternion.Euler(anchor.localEulerAngles);
+        }
+        else
+        {
+            heldObject.transform.SetParent(holdPosition, false);
+            heldObject.transform.localPosition = Vector3.zero;
+            heldObject.transform.localRotation = Quaternion.identity;
+        }
+
+        IgnoreHeldCollisions(heldObject);
+    }
+
+    /// <summary>คืนการชนระหว่าง Player กับของที่เคยถือ (เรียกตอนของออกจากมือ)</summary>
+    private void RestoreHeldCollisions()
+    {
+        if (heldColliders.Count == 0 || playerColliders == null) return;
+
+        foreach (Collider heldCol in heldColliders)
+        {
+            if (heldCol == null) continue;
+
+            foreach (Collider playerCol in playerColliders)
+            {
+                if (playerCol != null) Physics.IgnoreCollision(playerCol, heldCol, false);
+            }
+        }
+
+        heldColliders.Clear();
     }
 
     /// <summary>เก็บเครื่องมือที่ถืออยู่ (แท็บเล็ต/อาวุธ) เมื่อมือต้องว่างสำหรับหยิบของ</summary>
@@ -232,9 +327,7 @@ public class PlayerPickupSystem : MonoBehaviour
                 Collider col = heldObject.GetComponent<Collider>();
                 if (col != null) { col.enabled = true; }
 
-                heldObject.transform.SetParent(holdPosition);
-                heldObject.transform.localPosition = Vector3.zero;
-                heldObject.transform.localRotation = Quaternion.identity;
+                AttachHeldObjectToHand();
 
                 Debug.Log($"[PlayerPickupSystem] หยิบสินค้า '{heldObject.name}' ออกจากกล่องสำเร็จ");
             }
@@ -353,9 +446,7 @@ public class PlayerPickupSystem : MonoBehaviour
 
                     enemy.OnPickedUpByPlayer(this);
 
-                    heldObject.transform.SetParent(holdPosition);
-                    heldObject.transform.localPosition = Vector3.zero;
-                    heldObject.transform.localRotation = Quaternion.identity;
+                    AttachHeldObjectToHand();
 
                     Debug.Log($"[PlayerPickupSystem] ยกศัตรู '{enemy.name}' ขึ้นมาถือสำเร็จ!");
                     return;
@@ -392,9 +483,7 @@ public class PlayerPickupSystem : MonoBehaviour
                     Collider col = heldObject.GetComponent<Collider>();
                     if (col != null) { col.enabled = true; }
 
-                    heldObject.transform.SetParent(holdPosition);
-                    heldObject.transform.localPosition = Vector3.zero;
-                    heldObject.transform.localRotation = Quaternion.identity;
+                    AttachHeldObjectToHand();
                 }
             }
         }
@@ -598,9 +687,7 @@ public class PlayerPickupSystem : MonoBehaviour
                 Collider col = heldObject.GetComponent<Collider>();
                 if (col != null) { col.enabled = true; } // เปิด Collider กลับมา
 
-                heldObject.transform.SetParent(holdPosition);
-                heldObject.transform.localPosition = Vector3.zero;
-                heldObject.transform.localRotation = Quaternion.identity;
+                AttachHeldObjectToHand();
 
                 Debug.Log("หยิบวัตถุออกจาก Drop Point กลับขึ้นมือสำเร็จ");
             }

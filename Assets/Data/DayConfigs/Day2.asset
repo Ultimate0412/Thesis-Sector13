@@ -35,3 +35,11 @@ MonoBehaviour:
     spawnChancePerStamp: 0.45
     maxThievesPerDay: 1
     warningDelay: 4
+  dialogue:
+    enableDialogue: 1
+    startDelay: 1.5
+    speakerName: "\u0E1C\u0E39\u0E49\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23\u0E01\u0E30"
+    portrait: {fileID: 0}
+    charactersPerSecond: 35
+    holdDuration: 2.5
+    lines: []
