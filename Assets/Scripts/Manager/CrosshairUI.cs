@@ -25,7 +25,7 @@ public class CrosshairUI : MonoBehaviour
     [Header("Hold Progress Settings")]
     [Tooltip("Image component สำหรับแสดงหลอดโหลดการกดค้าง (Radial Fill)")]
     public Image holdProgressImage;
-    public Color holdProgressColor = new Color(0.2f, 0.9f, 1f, 0.9f);
+    public Color holdProgressColor = new Color(1f, 0.87058824f, 0.34901962f, 0.9f); // #ffde59
     public Vector2 holdProgressSize = new Vector2(38f, 38f);
 
     [Header("Interaction Prompt Text (Optional)")]

@@ -229,7 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.9, b: 1, a: 0}
+  m_Color: {r: 1, g: 0.87058824, b: 0.34901962, a: 0}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -311,10 +311,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <b><color=#00e6ff>SECTOR 13</color> // MANIFEST DATABASE</b>
+  m_text: <b><color=#ffde59>SECTOR 13</color> // MANIFEST DATABASE</b>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -448,10 +448,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <b>CARGO TYPE  :</b> <color=#00e6ff>UNKNOWN</color>
+  m_text: <b>CARGO TYPE  :</b> <color=#ffde59>UNKNOWN</color>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -585,10 +585,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <b>WEIGHT     :</b> <color=#00e6ff>0.0 kg</color>
+  m_text: <b>WEIGHT     :</b> <color=#ffde59>0.0 kg</color>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -724,8 +724,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -978,7 +978,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.04, g: 0.06, b: 0.09, a: 0.98}
+  m_Color: {r: 0.11764706, g: 0.101960786, b: 0.043137256, a: 0.98}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1063,8 +1063,8 @@ MonoBehaviour:
   m_text: "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n<size=75%><color=#88aabb>CHECK
     FOR MISMATCHES ON PHYSICAL BOX LABEL\nPRESS <b>[R]</b> TO STAMP APPROVE OR REJECT</color></size>"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1200,8 +1200,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "<color=#ffaa00>\u25CF STANDBY</color> // READY TO SCAN"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1368,8 +1368,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: <b>DESTINATION :</b> <color=#ffffff>Unknown</color>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1823,8 +1823,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: <b>RECIPIENT :</b> <color=#ffffff>Unknown</color>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1960,8 +1960,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: <b>SERIAL NO  :</b> <color=#ffea00><b>UNKNOWN</b></color>
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
+  m_sharedMaterial: {fileID: 2078829825164823476, guid: 851ea7628f91ef0418f31c506e1851eb, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2088,7 +2088,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.7, b: 0.9, a: 0.25}
+  m_Color: {r: 1, g: 0.87058824, b: 0.34901962, a: 0.25}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

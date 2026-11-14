@@ -19,7 +19,7 @@ public abstract class GameEventBase : MonoBehaviour
     public string eventDescription = "An environmental anomaly has occurred in the sector.";
 
     [Tooltip("สีธีมประจำอีเวนต์สำหรับแสดงผลบนแถบ UI")]
-    public Color eventColor = new Color(0.2f, 0.7f, 1.0f); // Default: Sci-Fi Cyan
+    public Color eventColor = new Color(1f, 0.87058824f, 0.34901962f, 1.0f); // #ffde59 // Default: Sci-Fi Cyan
 
     [Header("Timing Settings")]
     [Tooltip("ระยะเวลาของอีเวนต์ (วินาที) - หากกำหนดเป็น 0 หรือน้อยกว่า จะเป็นอีเวนต์ถาวรจนกว่าจะสั่งหยุดเอง")]

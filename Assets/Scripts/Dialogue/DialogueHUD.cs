@@ -356,7 +356,7 @@ public class DialogueHUD : MonoBehaviour
         panelRect.anchoredPosition = new Vector2(0f, 48f);
 
         Image background = panelObj.GetComponent<Image>();
-        background.color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+        background.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 0.95f); // #1e1a0b
         background.raycastTarget = false;
 
         canvasGroup = panelObj.GetComponent<CanvasGroup>();
@@ -377,7 +377,7 @@ public class DialogueHUD : MonoBehaviour
         accentRect.sizeDelta = new Vector2(0f, 3f);
         accentRect.anchoredPosition = Vector2.zero;
         Image accentImage = accentObj.GetComponent<Image>();
-        accentImage.color = new Color(0.2f, 0.85f, 1f);
+        accentImage.color = new Color(1f, 0.87058824f, 0.34901962f, 1f); // #ffde59
         accentImage.raycastTarget = false;
 
         // --- ช่อง Portrait ---
@@ -390,7 +390,7 @@ public class DialogueHUD : MonoBehaviour
         portraitRect.sizeDelta = new Vector2(140f, 140f);
         portraitRect.anchoredPosition = new Vector2(18f, 0f);
         portraitFrame = portraitObj.GetComponent<Image>();
-        portraitFrame.color = new Color(0.08f, 0.16f, 0.24f, 1f);
+        portraitFrame.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 1f); // #1e1a0b
         portraitFrame.raycastTarget = false;
 
         GameObject portraitImageObj = new GameObject("PortraitImage", typeof(RectTransform), typeof(Image));
@@ -414,7 +414,7 @@ public class DialogueHUD : MonoBehaviour
         plateRect.sizeDelta = new Vector2(220f, 34f);
         plateRect.anchoredPosition = new Vector2(170f, 6f);
         Image plateImage = plateObj.GetComponent<Image>();
-        plateImage.color = new Color(0.1f, 0.35f, 0.5f, 1f);
+        plateImage.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 1f); // #1e1a0b
         plateImage.raycastTarget = false;
         speakerNamePlate = plateObj;
 
@@ -459,7 +459,7 @@ public class DialogueHUD : MonoBehaviour
         tailRect.anchoredPosition = new Vector2(60f, -8f);
         tailRect.localRotation = Quaternion.Euler(0f, 0f, 45f);
         Image tailImage = tailObj.GetComponent<Image>();
-        tailImage.color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+        tailImage.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 0.95f); // #1e1a0b
         tailImage.raycastTarget = false;
 
         EnsureVoiceSource();

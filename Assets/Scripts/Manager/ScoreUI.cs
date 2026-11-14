@@ -128,7 +128,7 @@ public class ScoreUI : MonoBehaviour
             openQuotaText = quotaObj.GetComponent<TextMeshProUGUI>();
             if (openQuotaText != null)
             {
-                openQuotaText.color = new Color(0.35f, 0.9f, 1f, 1f); // สีฟ้าอ่อนคมชัด
+                openQuotaText.color = new Color(1f, 0.87058824f, 0.34901962f, 1f); // #ffde59 // สีฟ้าอ่อนคมชัด
             }
         }
     }

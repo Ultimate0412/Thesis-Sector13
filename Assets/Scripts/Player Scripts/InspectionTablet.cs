@@ -287,7 +287,7 @@ public class InspectionTablet : MonoBehaviour
                 if (subCategoryText != null)
                 {
                     subCategoryText.gameObject.SetActive(true);
-                    subCategoryText.text = $"<b>CARGO TYPE  :</b> <color=#00e6ff>{subName}</color>";
+                    subCategoryText.text = $"<b>CARGO TYPE  :</b> <color=#ffde59>{subName}</color>";
                 }
 
                 serialText.gameObject.SetActive(true);
@@ -312,7 +312,7 @@ public class InspectionTablet : MonoBehaviour
                 manifestContentText.text =
                     $"<b>RECIPIENT  :</b> <color=#ffffff>{data.recipientName}</color>\n" +
                     $"<b>DESTINATION:</b> <color=#ffffff>{data.destinationAddress}</color>\n" +
-                    $"<b>CARGO TYPE :</b> <color=#00e6ff>{subName}</color>\n" +
+                    $"<b>CARGO TYPE :</b> <color=#ffde59>{subName}</color>\n" +
                     $"<b>SERIAL NO  :</b> <color=#ffea00><b>{data.serialNumber}</b></color>\n" +
                     $"<b>WEIGHT     :</b> <color=#ffffff>{data.declaredWeight:F1} kg</color>\n" +
                     $"──────────────────────────────\n" +
@@ -326,8 +326,8 @@ public class InspectionTablet : MonoBehaviour
     {
         if (screenGlowImage == null) yield break;
 
-        Color startColor = new Color(0f, 0.9f, 1f, 0.45f);
-        Color endColor = new Color(0f, 0.9f, 1f, 0f);
+        Color startColor = new Color(1f, 0.87058824f, 0.34901962f, 0.45f);
+        Color endColor = new Color(1f, 0.87058824f, 0.34901962f, 0f);
 
         float elapsed = 0f;
         float duration = 0.25f;
@@ -428,7 +428,7 @@ public class InspectionTablet : MonoBehaviour
 
         // หน้าจอด้านหลัง (Screen Background)
         Image bgImg = canvasObj.AddComponent<Image>();
-        bgImg.color = new Color(0.04f, 0.06f, 0.09f, 0.98f);
+        bgImg.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 0.98f); // #1e1a0b
         bgImg.raycastTarget = false;
 
         // ขอบแสงเรืองหน้าจอ (Screen Border Glow)
@@ -440,7 +440,7 @@ public class InspectionTablet : MonoBehaviour
         borderRt.offsetMin = new Vector2(4, 4);
         borderRt.offsetMax = new Vector2(-4, -4);
         Image borderImg = borderObj.AddComponent<Image>();
-        borderImg.color = new Color(0f, 0.7f, 0.9f, 0.25f);
+        borderImg.color = new Color(1f, 0.87058824f, 0.34901962f, 0.25f); // #ffde59
         borderImg.raycastTarget = false;
 
         // หัวกระดาษ Header Bar
@@ -454,7 +454,7 @@ public class InspectionTablet : MonoBehaviour
         headerRt.sizeDelta = new Vector2(-24f, 38f);
 
         headerText = headerObj.AddComponent<TextMeshProUGUI>();
-        headerText.text = "<b><color=#00e6ff>SECTOR 13</color> // MANIFEST DATABASE</b>";
+        headerText.text = "<b><color=#ffde59>SECTOR 13</color> // MANIFEST DATABASE</b>";
         headerText.fontSize = 20f;
         headerText.alignment = TextAlignmentOptions.Center;
         headerText.color = Color.white;
@@ -485,13 +485,13 @@ public class InspectionTablet : MonoBehaviour
             "<b>DESTINATION :</b> <color=#ffffff>Unknown</color>");
 
         subCategoryText = CreateScreenTextField(canvasObj.transform, "SubCategoryText", new Vector2(0f, -136f), new Vector2(-40f, 26f), 16f,
-            "<b>CARGO TYPE  :</b> <color=#00e6ff>UNKNOWN</color>");
+            "<b>CARGO TYPE  :</b> <color=#ffde59>UNKNOWN</color>");
 
         serialText = CreateScreenTextField(canvasObj.transform, "SerialText", new Vector2(0f, -164f), new Vector2(-40f, 26f), 16f,
             "<b>SERIAL NO  :</b> <color=#ffea00><b>UNKNOWN</b></color>");
 
         weightText = CreateScreenTextField(canvasObj.transform, "WeightText", new Vector2(0f, -192f), new Vector2(-40f, 26f), 16f,
-            "<b>WEIGHT     :</b> <color=#00e6ff>0.0 kg</color>");
+            "<b>WEIGHT     :</b> <color=#ffde59>0.0 kg</color>");
 
         hintText = CreateScreenTextField(canvasObj.transform, "HintText", new Vector2(0f, -236f), new Vector2(-40f, 50f), 12f,
             "──────────────────────────────\n<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\nPRESS <b>[R]</b> TO STAMP APPROVE OR REJECT</color></size>");
@@ -523,7 +523,7 @@ public class InspectionTablet : MonoBehaviour
         glowRt.offsetMin = Vector2.zero;
         glowRt.offsetMax = Vector2.zero;
         screenGlowImage = glowObj.AddComponent<Image>();
-        screenGlowImage.color = new Color(0f, 0.9f, 1f, 0f);
+        screenGlowImage.color = new Color(1f, 0.87058824f, 0.34901962f, 0f);
         screenGlowImage.raycastTarget = false;
     }
 
