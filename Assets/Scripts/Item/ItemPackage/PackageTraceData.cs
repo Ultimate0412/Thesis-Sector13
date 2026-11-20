@@ -8,7 +8,13 @@ public enum TraceType
     WaterStain,
     CardboardScuff,
     AlienSlime_UV,
-    ChemicalResidue_UV
+    ChemicalResidue_UV,
+
+    // เพิ่มตามแผน Decal Studio (D2) — ยังไม่ถูกสุ่มใน PackageTraceApplier จนกว่าจะอัปเดตกฎ
+    BloodStain,
+    AcidBurn,
+    Frost,
+    TapeResidue
 }
 
 public enum TraceVisibility

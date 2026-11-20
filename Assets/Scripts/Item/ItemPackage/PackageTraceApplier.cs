@@ -1,10 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using Sector13.Decals;
 
+/// <summary>
+/// สร้าง "ร่องรอยหลักฐาน" บนผิวกล่องด้วย DecalProjector
+///
+/// โหมดใหม่ (แนะนำ): ใช้ <see cref="TraceSpawnTable"/> + <see cref="TracePlacementProfile"/>
+///   - ตารางกำหนดว่า verdict ไหนมีรอยอะไรได้บ้าง (ส่งได้ / ส่งกลับ / ผิดกฎ / เอเลี่ยน)
+///   - profile กำหนดว่าวางได้หน้าไหน ชิดขอบแค่ไหน ไหลลงล่างไหม หมุนได้กี่องศา
+///   - seed สุ่มครั้งแรกต่อกล่อง → กล่องเดิมได้รอยเดิม (ไม่ reroll ตอน reload)
+///
+/// โหมดเดิม: ถ้าไม่ใส่ spawnTable จะใช้ settings/material 6 ชุดด้านล่างเหมือนก่อน
+/// </summary>
 public class PackageTraceApplier : MonoBehaviour
 {
-    [Header("Inspector-Configurable Spawn Settings")]
+    [Header("Spawn Table (โหมดใหม่ — ถ้าไม่ใส่จะใช้ค่า Legacy ด้านล่าง)")]
+    public TraceSpawnTable spawnTable;
+
+    [Tooltip("0 = สุ่ม seed ใหม่ตอนเริ่ม (แต่คงที่ต่อกล่อง), >0 = ใช้ค่านี้")]
+    public int traceSeed = 0;
+
+    [Header("Inspector-Configurable Spawn Settings (Legacy)")]
     [Tooltip("การตั้งค่าสุ่มร่องรอยสำหรับพัสดุถูกกฎหมาย (Legal)")]
     public CategoryTraceSettings legalSettings = new CategoryTraceSettings(85f, 1, 2, 0f);
 
@@ -13,6 +30,10 @@ public class PackageTraceApplier : MonoBehaviour
 
     [Tooltip("การตั้งค่าสุ่มร่องรอยสำหรับพัสดุเอเลี่ยน (Alien)")]
     public CategoryTraceSettings alienSettings = new CategoryTraceSettings(100f, 2, 4, 70f);
+
+    [Header("Decal Studio (optional — ใช้ atlas แทน material 6 ตัวด้านล่าง)")]
+    [Tooltip("ถ้าใส่ DecalLibrary ไว้ จะใช้ atlas + uvRect จาก Decal Studio แทน material ด้านล่าง (material เดิมยังใช้เป็น fallback)")]
+    public Sector13.Decals.DecalLibrary decalLibrary;
 
     [Header("Decal Materials (Auto-assigned or Custom)")]
     public Material clawMarksMat;
@@ -23,7 +44,7 @@ public class PackageTraceApplier : MonoBehaviour
     public Material chemicalResidueUVMat;
 
     [Header("Projection Dimensions")]
-    [Tooltip("ช่วงขนาดสุ่มของร่องรอย (Width x Height)")]
+    [Tooltip("ช่วงขนาดสุ่มของร่องรอย (Width x Height) — ใช้เมื่อไม่มี placement profile")]
     public Vector2 minTraceSize = new Vector2(0.38f, 0.38f);
     public Vector2 maxTraceSize = new Vector2(0.60f, 0.60f);
     [Tooltip("ความลึกในการฉาย Decal เข้าไปในเนื้อกล่อง (ปรับให้บางลงเพื่อไม่ให้ทะลุพื้น)")]
@@ -39,22 +60,29 @@ public class PackageTraceApplier : MonoBehaviour
 
     [Header("Runtime State")]
     public ItemCategory currentCategory = ItemCategory.Legal;
+    public VerdictType currentVerdict = VerdictType.Approve;
     public bool isUVIlluminated = false;
 
     private readonly List<DecalProjector> nakedEyeProjectors = new List<DecalProjector>();
     private readonly List<DecalProjector> uvProjectors = new List<DecalProjector>();
+    private readonly List<Vector4> placedDecals = new List<Vector4>();
     private Transform tracesRoot;
     private BoxCollider boxCollider;
+    private int resolvedSeed;
+    private bool seedInitialized;
 
     private void Awake()
     {
         if (boxCollider == null) boxCollider = GetComponent<BoxCollider>();
+
+        // ถ้าไม่ได้ผูกตารางไว้ใน prefab ให้ใช้ค่า default จาก Resources
+        if (spawnTable == null) spawnTable = Resources.Load<TraceSpawnTable>("TraceSpawnTable");
+
         EnsureMaterialsLoaded();
     }
 
     private void Start()
     {
-        // หากยังไม่มีร่องรอยสร้างไว้บนกล่อง ให้สร้างอัตโนมัติเมื่อเริ่มเกม
         if (tracesRoot == null || tracesRoot.childCount == 0)
         {
             PackageBox box = GetComponent<PackageBox>();
@@ -69,7 +97,6 @@ public class PackageTraceApplier : MonoBehaviour
 
     private void Update()
     {
-        // อัปเดตความโปร่งใสของรอย UV อย่างนุ่มนวลตามสถานะการส่องไฟ UV
         if (uvProjectors.Count > 0)
         {
             float targetFade = isUVIlluminated ? 1.0f : 0.0f;
@@ -87,19 +114,26 @@ public class PackageTraceApplier : MonoBehaviour
         }
     }
 
-    /// ตรวจสอบว่าร่องรอยใช้ไฟ UV ไหม
     public static bool IsUVTrace(TraceType type)
     {
         return type == TraceType.AlienSlime_UV || type == TraceType.ChemicalResidue_UV;
     }
 
     /// <summary>
-    /// สุ่มสร้างร่องรอยบนกล่องตามหมวดหมู่สินค้า หรือกำหนดเฉพาะเจาะจงตาม allowedTraces ของ itemObject
+    /// สร้างร่องรอยบนกล่องตาม verdict (มาจาก category ถ้าไม่ระบุ)
     /// </summary>
     public void ApplyTraces(ItemCategory category, ItemObject itemObject = null)
     {
+        ApplyTraces(TraceSpawnTable.FromCategory(category), category, itemObject);
+    }
+
+    public void ApplyTraces(VerdictType verdict, ItemCategory category, ItemObject itemObject = null)
+    {
         currentCategory = category;
+        currentVerdict = verdict;
+
         ClearTraces();
+        placedDecals.Clear();
         EnsureMaterialsLoaded();
 
         if (boxCollider == null)
@@ -108,71 +142,315 @@ public class PackageTraceApplier : MonoBehaviour
             if (boxCollider == null) boxCollider = GetComponentInChildren<BoxCollider>();
         }
 
-        CategoryTraceSettings settings = GetSettingsForCategory(category);
-        if (settings == null) return;
-
-        // ตรวจสอบโอกาสเกิดร่องรอย (Spawn Chance)
-        float roll = Random.Range(0f, 100f);
-        if (roll > settings.spawnChancePercent)
+        // seed ถูกเลือกครั้งเดียวต่อกล่อง → สุ่มเหมือนเดิมทุกครั้งที่เรียกซ้ำ
+        if (!seedInitialized)
         {
-            return; // กล่องใบนี้สะอาด ไม่มีร่องรอย
+            resolvedSeed = traceSeed != 0 ? traceSeed : Random.Range(1, int.MaxValue);
+            seedInitialized = true;
         }
+        var rng = new System.Random(resolvedSeed);
 
-        // สุ่มจำนวนร่องรอยตามช่วง Min - Max ใน Inspector
-        int min = Mathf.Min(settings.minTraces, settings.maxTraces);
-        int max = Mathf.Max(settings.minTraces, settings.maxTraces);
-        int traceCount = Random.Range(min, max + 1);
-
-        if (traceCount <= 0) return;
-
-        if (tracesRoot == null)
+        if (spawnTable != null && spawnTable.Get(verdict) != null)
         {
-            Transform existing = transform.Find("SurfaceTracesRoot");
-            if (existing != null)
+            SpawnFromTable(rng);
+        }
+        else
+        {
+            SpawnLegacy(rng, itemObject);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // โหมดใหม่: อ่านจาก TraceSpawnTable
+    // ------------------------------------------------------------------
+    private void SpawnFromTable(System.Random rng)
+    {
+        VerdictSpawnRule rule = spawnTable.Get(currentVerdict);
+        if (rule == null || !rule.IsUsable) return;
+
+        if (NextFloat(rng) * 100f > rule.spawnChancePercent) return;
+
+        int minTypes = Mathf.Max(0, rule.minTypes);
+        int maxTypes = Mathf.Max(minTypes, rule.maxTypes);
+        int typeCount = rng.Next(minTypes, maxTypes + 1);
+        if (typeCount <= 0) return;
+
+        var pool = new List<TraceSpawnRule>();
+        for (int i = 0; i < rule.rules.Count; i++)
+        {
+            var r = rule.rules[i];
+            if (r != null && r.enabled) pool.Add(r);
+        }
+        if (pool.Count == 0) return;
+
+        for (int i = 0; i < typeCount && pool.Count > 0; i++)
+        {
+            TraceSpawnRule pick = PickWeighted(pool, rng);
+            if (pick == null) break;
+            pool.Remove(pick);
+
+            int minCount = Mathf.Max(1, pick.minCount);
+            int maxCount = Mathf.Max(minCount, pick.maxCount);
+            int count = rng.Next(minCount, maxCount + 1);
+
+            for (int c = 0; c < count; c++)
             {
-                if (Application.isPlaying) Destroy(existing.gameObject);
-                else DestroyImmediate(existing.gameObject);
+                SpawnOne(pick, rng, c);
             }
-
-            GameObject rootGo = new GameObject("SurfaceTracesRoot");
-            rootGo.transform.SetParent(transform, false);
-            tracesRoot = rootGo.transform;
         }
+    }
+
+    private void SpawnOne(TraceSpawnRule rule, System.Random rng, int index)
+    {
+        // 1) เลือก decal: ระบุ id เจาะจง (variant) ก่อน ถ้าไม่มีค่อยใช้ traceType
+        DecalEntry specific = null;
+        bool useSpecific = !string.IsNullOrEmpty(rule.decalId)
+                           && decalLibrary != null
+                           && decalLibrary.TryGetEntryById(rule.decalId, out specific);
+
+        bool useLibrary = !useSpecific
+                          && decalLibrary != null
+                          && decalLibrary.TryGetEntry(rule.traceType, out _);
+
+        Material mat = (useSpecific || useLibrary) ? null : GetMaterialForTraceType(rule.traceType);
+        if (!useSpecific && !useLibrary && mat == null) return;
+
+        TracePlacementProfile profile = rule.placement;
+        Vector2 sizeRange = (rule.sizeOverride.x > 0f && rule.sizeOverride.y > 0f)
+            ? rule.sizeOverride
+            : (profile != null ? profile.sizeRange : BetterSizeRange());
+
+        float size = Mathf.Lerp(sizeRange.x, sizeRange.y, NextFloat(rng));
+        float depth = Mathf.Max(0.05f, projectionDepth);
+
+        EnsureTracesRoot();
 
         Vector3 boxCenter = boxCollider != null ? boxCollider.center : Vector3.zero;
-        Vector3 boxHalfSize = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
+        Vector3 boxHalf = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
+
+        // 2) หาตำแหน่ง — ถ้าเปิด preventOverlap จะลองสุ่มใหม่จนไม่ทับรอยเดิม
+        Vector3 localPos = Vector3.zero;
+        Quaternion localRot = Quaternion.identity;
+        bool placed = false;
+        int attempts = profile != null && profile.preventOverlap ? 8 : 1;
+
+        for (int attempt = 0; attempt < attempts; attempt++)
+        {
+            if (profile != null)
+                GetProfileTransform(profile, rng, size, boxCenter, boxHalf, out localPos, out localRot);
+            else
+                GetRandomTraceTransform(boxCenter, boxHalf, size, rng, out localPos, out localRot);
+
+            if (profile == null || !profile.preventOverlap ||
+                !OverlapsExisting(localPos, size * 0.5f, profile.minSpacing))
+            {
+                placed = true;
+                break;
+            }
+        }
+
+        if (!placed)
+        {
+            // หาที่ว่างไม่ได้ → ข้ามรอยนี้ ไม่ให้ทับกัน
+            return;
+        }
+
+        placedDecals.Add(new Vector4(localPos.x, localPos.y, localPos.z, size * 0.5f));
+
+        bool isUV = useSpecific
+            ? specific.requiresUV
+            : rule.visibility == TraceVisibility.RequiresUV;
+
+        string traceName = isUV
+            ? $"UV_Trace_{rule.traceType}_{index + 1}"
+            : $"Trace_{rule.traceType}_{index + 1}";
+
+        GameObject decalGo = new GameObject(traceName);
+        decalGo.transform.SetParent(tracesRoot, false);
+        decalGo.transform.localPosition = localPos;
+        decalGo.transform.localRotation = localRot;
+
+        DecalProjector projector = decalGo.AddComponent<DecalProjector>();
+        projector.size = new Vector3(size, size, depth);
+        projector.fadeFactor = 1f;
+
+        if (useSpecific)
+        {
+            projector.material = specific.material;
+            projector.uvScale = new Vector2(specific.uvRect.width, specific.uvRect.height);
+            projector.uvBias = new Vector2(specific.uvRect.x, specific.uvRect.y);
+        }
+        else if (useLibrary)
+        {
+            decalLibrary.Apply(rule.traceType, projector, size, size);
+        }
+        else
+        {
+            projector.material = mat;
+        }
+
+        projector.startAngleFade = startAngleFade;
+        projector.endAngleFade = endAngleFade;
+
+        if (isUV)
+        {
+            projector.fadeFactor = isUVIlluminated ? 1.0f : 0.0f;
+            uvProjectors.Add(projector);
+        }
+        else
+        {
+            projector.fadeFactor = 1.0f;
+            nakedEyeProjectors.Add(projector);
+        }
+    }
+
+    private bool OverlapsExisting(Vector3 pos, float radius, float minSpacing)
+    {
+        for (int i = 0; i < placedDecals.Count; i++)
+        {
+            Vector4 other = placedDecals[i];
+            Vector3 otherPos = new Vector3(other.x, other.y, other.z);
+            float minDistance = radius + other.w + Mathf.Max(0f, minSpacing);
+            if (Vector3.Distance(pos, otherPos) < minDistance) return true;
+        }
+        return false;
+    }
+
+    private Vector2 BetterSizeRange()
+    {
+        return new Vector2(
+            Mathf.Min(minTraceSize.x, maxTraceSize.x),
+            Mathf.Max(minTraceSize.y, maxTraceSize.y));
+    }
+
+    private static TraceSpawnRule PickWeighted(List<TraceSpawnRule> pool, System.Random rng)
+    {
+        float total = 0f;
+        for (int i = 0; i < pool.Count; i++) total += Mathf.Max(0f, pool[i].weight);
+
+        if (total <= 0f) return pool[rng.Next(0, pool.Count)];
+
+        float roll = NextFloat(rng) * total;
+        for (int i = 0; i < pool.Count; i++)
+        {
+            roll -= Mathf.Max(0f, pool[i].weight);
+            if (roll <= 0f) return pool[i];
+        }
+        return pool[pool.Count - 1];
+    }
+
+    /// <summary>วางรอยตาม profile (หน้า, ขอบ, แรงโน้มถ่วง, มุมหมุน)</summary>
+    private void GetProfileTransform(TracePlacementProfile profile, System.Random rng, float size,
+        Vector3 center, Vector3 half, out Vector3 localPos, out Quaternion localRot)
+    {
+        var faces = new List<DecalFaceMask>(6);
+        if (profile.Allows(DecalFaceMask.Top)) faces.Add(DecalFaceMask.Top);
+        if (profile.Allows(DecalFaceMask.Bottom)) faces.Add(DecalFaceMask.Bottom);
+        if (profile.Allows(DecalFaceMask.Front)) faces.Add(DecalFaceMask.Front);
+        if (profile.Allows(DecalFaceMask.Back) && !profile.avoidLabelFace) faces.Add(DecalFaceMask.Back);
+        if (profile.Allows(DecalFaceMask.Left)) faces.Add(DecalFaceMask.Left);
+        if (profile.Allows(DecalFaceMask.Right)) faces.Add(DecalFaceMask.Right);
+
+        if (faces.Count == 0) faces.Add(DecalFaceMask.Top);
+
+        DecalFaceMask face = faces[rng.Next(0, faces.Count)];
+        float m = Mathf.Clamp(profile.margin, 0.4f, 1f);
+
+        float rx = Mathf.Lerp(-half.x * m, half.x * m, NextFloat(rng));
+        float ry = Mathf.Lerp(-half.y * m, half.y * m, NextFloat(rng));
+        float rz = Mathf.Lerp(-half.z * m, half.z * m, NextFloat(rng));
+
+        bool edge = NextFloat(rng) < profile.edgeChance;
+        Vector3 forward;
+
+        switch (face)
+        {
+            case DecalFaceMask.Bottom:
+                localPos = center + new Vector3(rx, -half.y, rz);
+                forward = Vector3.up;
+                if (edge) localPos.z = (localPos.z >= center.z ? 1f : -1f) * half.z * 0.95f;
+                break;
+            case DecalFaceMask.Front:
+                localPos = center + new Vector3(rx, ry, half.z);
+                forward = Vector3.back;
+                if (edge) localPos.y = center.y + (localPos.y >= center.y ? 1f : -1f) * half.y * 0.85f;
+                break;
+            case DecalFaceMask.Back:
+                localPos = center + new Vector3(rx, ry, -half.z);
+                forward = Vector3.forward;
+                break;
+            case DecalFaceMask.Left:
+                localPos = center + new Vector3(-half.x, ry, rz);
+                forward = Vector3.right;
+                if (edge) localPos.y = center.y + (localPos.y >= center.y ? 1f : -1f) * half.y * 0.85f;
+                break;
+            case DecalFaceMask.Right:
+                localPos = center + new Vector3(half.x, ry, rz);
+                forward = Vector3.left;
+                if (edge) localPos.y = center.y + (localPos.y >= center.y ? 1f : -1f) * half.y * 0.85f;
+                break;
+            default: // Top
+                localPos = center + new Vector3(rx, half.y, rz);
+                forward = Vector3.down;
+                if (edge) localPos.x = (localPos.x >= center.x ? 1f : -1f) * half.x * 0.85f;
+                break;
+        }
+
+        // แรงโน้มถ่วง: ดึงลงด้านล่างของหน้า (คราบไหล/เลือด)
+        if (profile.gravityFlow > 0f && face != DecalFaceMask.Top && face != DecalFaceMask.Bottom)
+        {
+            float lowest = center.y - half.y + size * 0.5f + floorMargin;
+            float t = profile.gravityFlow * NextFloat(rng);
+            localPos.y = Mathf.Lerp(localPos.y, lowest, t);
+        }
+
+        float spin = Mathf.Lerp(profile.spinRange.x, profile.spinRange.y, NextFloat(rng));
+        Vector3 upVector = Mathf.Abs(Vector3.Dot(forward, Vector3.up)) > 0.85f ? Vector3.forward : Vector3.up;
+        localRot = Quaternion.AngleAxis(spin, forward) * Quaternion.LookRotation(forward, upVector);
+    }
+
+    // ------------------------------------------------------------------
+    // โหมดเดิม (Legacy)
+    // ------------------------------------------------------------------
+    private void SpawnLegacy(System.Random rng, ItemObject itemObject)
+    {
+        CategoryTraceSettings settings = GetSettingsForCategory(currentCategory);
+        if (settings == null) return;
+
+        if (NextFloat(rng) * 100f > settings.spawnChancePercent) return;
+
+        int min = Mathf.Min(settings.minTraces, settings.maxTraces);
+        int max = Mathf.Max(settings.minTraces, settings.maxTraces);
+        int traceCount = rng.Next(min, max + 1);
+        if (traceCount <= 0) return;
+
+        EnsureTracesRoot();
+
+        Vector3 boxCenter = boxCollider != null ? boxCollider.center : Vector3.zero;
+        Vector3 boxHalf = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
 
         bool hasItemCustomTraces = itemObject != null && itemObject.allowedTraces != null && itemObject.allowedTraces.Length > 0;
 
         for (int i = 0; i < traceCount; i++)
         {
-            bool preferUV = Random.Range(0f, 100f) < settings.uvTraceRatioPercent;
-            TraceType traceType;
-
-            if (hasItemCustomTraces)
-            {
-                traceType = PickTraceTypeFromItem(itemObject, preferUV);
-            }
-            else
-            {
-                traceType = PickTraceType(category, preferUV);
-            }
+            bool preferUV = NextFloat(rng) * 100f < settings.uvTraceRatioPercent;
+            TraceType traceType = hasItemCustomTraces
+                ? PickTraceTypeFromItem(itemObject, preferUV, rng)
+                : PickTraceType(currentCategory, preferUV, rng);
 
             bool isUV = IsUVTrace(traceType);
-            Material mat = GetMaterialForTraceType(traceType);
+            bool useLibrary = decalLibrary != null && decalLibrary.TryGetEntry(traceType, out _);
+            Material mat = useLibrary ? null : GetMaterialForTraceType(traceType);
+            if (!useLibrary && mat == null) continue;
 
-            if (mat == null) continue;
-
-            float width = Random.Range(minTraceSize.x, maxTraceSize.x);
-            float height = Random.Range(minTraceSize.y, maxTraceSize.y);
+            float width = Mathf.Lerp(minTraceSize.x, maxTraceSize.x, NextFloat(rng));
+            float height = Mathf.Lerp(minTraceSize.y, maxTraceSize.y, NextFloat(rng));
             float maxDim = Mathf.Max(width, height);
 
-            // สุ่มตำแหน่งและทิศทางการฉาย Decal โดยนำขนาดรอย (maxDim) ไปคำนวณไม่ให้ขอบล่างล้นลงพื้น
             Vector3 localPos;
             Quaternion localRot;
-            GetRandomTraceTransform(boxCenter, boxHalfSize, maxDim, out localPos, out localRot);
+            GetRandomTraceTransform(boxCenter, boxHalf, maxDim, rng, out localPos, out localRot);
 
-            // สร้าง GameObject สำหรับ DecalProjector
             string traceName = isUV ? $"UV_Trace_{traceType}_{i + 1}" : $"Trace_{traceType}_{i + 1}";
             GameObject decalGo = new GameObject(traceName);
             decalGo.transform.SetParent(tracesRoot, false);
@@ -180,51 +458,39 @@ public class PackageTraceApplier : MonoBehaviour
             decalGo.transform.localRotation = localRot;
 
             DecalProjector projector = decalGo.AddComponent<DecalProjector>();
-            projector.material = mat;
             projector.size = new Vector3(width, height, projectionDepth);
-
-            // ป้องกันรอยฉายเปื้อนลงบนพื้นผิวแนวระนาบ (Angle Fade ตัดพื้นผิวที่ทำมุมตั้งฉาก เช่น พื้นห้อง/โต๊ะ)
             projector.startAngleFade = startAngleFade;
             projector.endAngleFade = endAngleFade;
 
+            if (useLibrary) decalLibrary.Apply(traceType, projector, width, height);
+            else projector.material = mat;
+
             if (isUV)
             {
-                // รอย UV เริ่มต้นที่มองไม่เห็น (fadeFactor = 0)
                 projector.fadeFactor = isUVIlluminated ? 1.0f : 0.0f;
                 uvProjectors.Add(projector);
             }
             else
             {
-                // รอยตาเปล่า มองเห็นทันที
                 projector.fadeFactor = 1.0f;
                 nakedEyeProjectors.Add(projector);
             }
         }
     }
 
-    private TraceType PickTraceTypeFromItem(ItemObject itemObject, bool preferUV)
+    private TraceType PickTraceTypeFromItem(ItemObject itemObject, bool preferUV, System.Random rng)
     {
         List<TraceType> preferred = new List<TraceType>();
         for (int i = 0; i < itemObject.allowedTraces.Length; i++)
         {
             TraceType t = itemObject.allowedTraces[i];
-            if (IsUVTrace(t) == preferUV)
-            {
-                preferred.Add(t);
-            }
+            if (IsUVTrace(t) == preferUV) preferred.Add(t);
         }
 
-        if (preferred.Count > 0)
-        {
-            return preferred[Random.Range(0, preferred.Count)];
-        }
-
-        return itemObject.allowedTraces[Random.Range(0, itemObject.allowedTraces.Length)];
+        if (preferred.Count > 0) return preferred[rng.Next(0, preferred.Count)];
+        return itemObject.allowedTraces[rng.Next(0, itemObject.allowedTraces.Length)];
     }
 
-    /// <summary>
-    /// ล้างร่องรอยทั้งหมดบนกล่อง
-    /// </summary>
     public void ClearTraces()
     {
         nakedEyeProjectors.Clear();
@@ -232,24 +498,31 @@ public class PackageTraceApplier : MonoBehaviour
 
         if (tracesRoot != null)
         {
-            if (Application.isPlaying)
-            {
-                Destroy(tracesRoot.gameObject);
-            }
-            else
-            {
-                DestroyImmediate(tracesRoot.gameObject);
-            }
+            if (Application.isPlaying) Destroy(tracesRoot.gameObject);
+            else DestroyImmediate(tracesRoot.gameObject);
             tracesRoot = null;
         }
     }
 
-    /// <summary>
-    /// แจ้งเตือนเมื่อไฟฉาย UV ส่องโดนกล่องใบนี้
-    /// </summary>
     public void SetUVIlluminated(bool illuminated)
     {
         isUVIlluminated = illuminated;
+    }
+
+    private void EnsureTracesRoot()
+    {
+        if (tracesRoot != null) return;
+
+        Transform existing = transform.Find("SurfaceTracesRoot");
+        if (existing != null)
+        {
+            if (Application.isPlaying) Destroy(existing.gameObject);
+            else DestroyImmediate(existing.gameObject);
+        }
+
+        GameObject rootGo = new GameObject("SurfaceTracesRoot");
+        rootGo.transform.SetParent(transform, false);
+        tracesRoot = rootGo.transform;
     }
 
     private CategoryTraceSettings GetSettingsForCategory(ItemCategory category)
@@ -263,43 +536,30 @@ public class PackageTraceApplier : MonoBehaviour
         }
     }
 
-    private TraceType PickTraceType(ItemCategory category, bool isUV)
+    private TraceType PickTraceType(ItemCategory category, bool isUV, System.Random rng)
     {
         if (isUV)
         {
             if (category == ItemCategory.Alien)
-            {
-                // Alien ชอบทิ้งคราบเมือกเรืองแสง (80%) หรือสารเคมี (20%)
-                return Random.value < 0.8f ? TraceType.AlienSlime_UV : TraceType.ChemicalResidue_UV;
-            }
-            else
-            {
-                // Illegal มีคราบสารเคมีเรืองแสง
-                return TraceType.ChemicalResidue_UV;
-            }
+                return NextFloat(rng) < 0.8f ? TraceType.AlienSlime_UV : TraceType.ChemicalResidue_UV;
+            return TraceType.ChemicalResidue_UV;
         }
-        else
+
+        if (category == ItemCategory.Alien)
         {
-            if (category == ItemCategory.Alien)
-            {
-                // Alien รอยตาเปล่าเด่นสุดคือรอยกรงเล็บ (75%) หรือรอยถลอก/น้ำมัน (25%)
-                float r = Random.value;
-                if (r < 0.75f) return TraceType.ClawMarks;
-                return r < 0.9f ? TraceType.CardboardScuff : TraceType.OilStain;
-            }
-            else if (category == ItemCategory.Illegal)
-            {
-                // Illegal รอยตาเปล่าคือคราบน้ำมัน คราบสารเคมี รอยถลอก
-                float r = Random.value;
-                if (r < 0.55f) return TraceType.OilStain;
-                return r < 0.85f ? TraceType.CardboardScuff : TraceType.WaterStain;
-            }
-            else
-            {
-                // Legal รอยตาเปล่าคือคราบน้ำจางๆ หรือรอยถลอกขนส่งทั่วไป
-                return Random.value < 0.6f ? TraceType.WaterStain : TraceType.CardboardScuff;
-            }
+            float r = NextFloat(rng);
+            if (r < 0.75f) return TraceType.ClawMarks;
+            return r < 0.9f ? TraceType.CardboardScuff : TraceType.OilStain;
         }
+
+        if (category == ItemCategory.Illegal)
+        {
+            float r = NextFloat(rng);
+            if (r < 0.55f) return TraceType.OilStain;
+            return r < 0.85f ? TraceType.CardboardScuff : TraceType.WaterStain;
+        }
+
+        return NextFloat(rng) < 0.6f ? TraceType.WaterStain : TraceType.CardboardScuff;
     }
 
     private Material GetMaterialForTraceType(TraceType type)
@@ -316,34 +576,31 @@ public class PackageTraceApplier : MonoBehaviour
         }
     }
 
-    private void GetRandomTraceTransform(Vector3 center, Vector3 half, float traceExtent, out Vector3 localPos, out Quaternion localRot)
+    /// <summary>ตำแหน่งแบบเดิม (5 หน้า + สันขอบ) — ใช้เมื่อไม่มี placement profile</summary>
+    private void GetRandomTraceTransform(Vector3 center, Vector3 half, float traceExtent,
+        System.Random rng, out Vector3 localPos, out Quaternion localRot)
     {
-        // 70% ฉายบนหน้ากล่องทั้ง 5 ด้าน, 30% ฉายตรงสันขอบกล่อง (Edge wrap-around)
-        bool pickEdge = Random.value < 0.35f;
+        bool pickEdge = NextFloat(rng) < 0.35f;
 
         float margin = 0.80f;
-        float rx = Random.Range(-half.x * margin, half.x * margin);
-        float rz = Random.Range(-half.z * margin, half.z * margin);
-        float spin = Random.Range(0f, 360f);
+        float rx = Mathf.Lerp(-half.x * margin, half.x * margin, NextFloat(rng));
+        float rz = Mathf.Lerp(-half.z * margin, half.z * margin, NextFloat(rng));
+        float spin = Mathf.Lerp(0f, 360f, NextFloat(rng));
 
-        // คำนวณช่วงพิกัด Y ให้ขอบล่างของ Decal อยู่เหนือก้นกล่อง (-half.y) เสมอ
-        // เผื่อขนาดครึ่งหนึ่งของรอย + ระยะ floorMargin ป้องกันไม่ให้แตะโดนพื้น
         float halfTrace = traceExtent * 0.55f;
         float minY = (-half.y + halfTrace) + floorMargin;
         float maxY = half.y * margin;
-        if (minY > maxY) minY = maxY - 0.05f; // ในกรณีที่รอยมีขนาดใหญ่เมื่อเทียบกับความสูงกล่อง
-        float ry = Random.Range(minY, maxY);
+        if (minY > maxY) minY = maxY - 0.05f;
+        float ry = Mathf.Lerp(minY, maxY, NextFloat(rng));
 
         Vector3 forwardDir;
 
         if (!pickEdge)
         {
-            // สุ่ม 1 ใน 5 ด้านหลัก (Top, Front, Back, Left, Right)
-            int face = Random.Range(0, 5);
-
+            int face = rng.Next(0, 5);
             switch (face)
             {
-                case 0: // Top (+Y)
+                case 0: // Top
                     localPos = center + new Vector3(rx, half.y, rz);
                     forwardDir = Vector3.down;
                     break;
@@ -367,34 +624,33 @@ public class PackageTraceApplier : MonoBehaviour
         }
         else
         {
-            // ฉายบริเวณสันขอบ มุม 45 องศา
-            int edgeIndex = Random.Range(0, 4);
-
+            int edgeIndex = rng.Next(0, 4);
             switch (edgeIndex)
             {
-                case 0: // Top-Front edge
+                case 0:
                     localPos = center + new Vector3(rx, half.y, half.z);
                     forwardDir = (Vector3.down + Vector3.back).normalized;
                     break;
-                case 1: // Top-Right edge
+                case 1:
                     localPos = center + new Vector3(half.x, half.y, rz);
                     forwardDir = (Vector3.down + Vector3.left).normalized;
                     break;
-                case 2: // Top-Left edge
+                case 2:
                     localPos = center + new Vector3(-half.x, half.y, rz);
                     forwardDir = (Vector3.down + Vector3.right).normalized;
                     break;
-                default: // Front-Right edge
+                default:
                     localPos = center + new Vector3(half.x, ry, half.z);
                     forwardDir = (Vector3.left + Vector3.back).normalized;
                     break;
             }
         }
 
-        // คำนวณ Up vector ที่ไม่ขนานกับ forwardDir อย่างเด็ดขาด (ป้องกัน LookRotation collinear bug)
-        Vector3 upVector = (Mathf.Abs(Vector3.Dot(forwardDir, Vector3.up)) > 0.85f) ? Vector3.forward : Vector3.up;
+        Vector3 upVector = Mathf.Abs(Vector3.Dot(forwardDir, Vector3.up)) > 0.85f ? Vector3.forward : Vector3.up;
         localRot = Quaternion.AngleAxis(spin, forwardDir) * Quaternion.LookRotation(forwardDir, upVector);
     }
+
+    private static float NextFloat(System.Random rng) => (float)rng.NextDouble();
 
     public void EnsureMaterialsLoaded()
     {
@@ -425,6 +681,7 @@ public class PackageTraceApplier : MonoBehaviour
             itemObj = box.innerItemPrefab.GetComponent<ItemObject>();
             if (itemObj != null) cat = itemObj.category;
         }
+        seedInitialized = false;
         ApplyTraces(cat, itemObj);
     }
 
@@ -437,12 +694,15 @@ public class PackageTraceApplier : MonoBehaviour
     [ContextMenu("Clear Traces")]
     private void ContextClearTraces() => ClearTraces();
 
-    [ContextMenu("Test Apply Random Traces (Alien)")]
-    private void TestApplyAlien() => ApplyTraces(ItemCategory.Alien);
+    [ContextMenu("Test Spawn: ส่งได้ (Approve)")]
+    private void TestApprove() { seedInitialized = false; ApplyTraces(VerdictType.Approve, ItemCategory.Legal); }
 
-    [ContextMenu("Test Apply Random Traces (Illegal)")]
-    private void TestApplyIllegal() => ApplyTraces(ItemCategory.Illegal);
+    [ContextMenu("Test Spawn: ส่งกลับ (Return)")]
+    private void TestReturn() { seedInitialized = false; ApplyTraces(VerdictType.Return, ItemCategory.Legal); }
 
-    [ContextMenu("Test Apply Random Traces (Legal)")]
-    private void TestApplyLegal() => ApplyTraces(ItemCategory.Legal);
+    [ContextMenu("Test Spawn: ผิดกฎ (Illegal)")]
+    private void TestIllegal() { seedInitialized = false; ApplyTraces(VerdictType.Illegal, ItemCategory.Illegal); }
+
+    [ContextMenu("Test Spawn: เอเลี่ยน (Alien)")]
+    private void TestAlien() { seedInitialized = false; ApplyTraces(VerdictType.Alien, ItemCategory.Alien); }
 }

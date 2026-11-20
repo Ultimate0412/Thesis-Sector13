@@ -1,0 +1,18 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd34ef66bd5f5f7418abd72beeb2556c, type: 3}
+  m_Name: DecalLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalLibrary
+  atlases:
+  - {fileID: 11400000, guid: f1c0511b6f75c374b8fc996f71bc2737, type: 2}
+  - {fileID: 11400000, guid: 9d937298d3e73d54da12a9297aa845fd, type: 2}
+  fallbackMaterial: {fileID: 0}

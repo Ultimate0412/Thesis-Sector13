@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac006360b2cb2cc40a10855142e93b7b, type: 3}
+  m_Name: AtlasBuildSettings
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::Sector13.Decals.EditorTools.DecalAtlasBuildSettings
+  atlasId: Evidence
+  atlasSize: 2048
+  cellSize: 512
+  padding: 16
+  grayscaleAlbedo: 1
+  flipV: 0
+  outputFolder: Assets/_Project/DecalStudio/Art/Atlases
+  externalSourceRoot: D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/Decal
+  albedoPattern: '{0}_Albedo.png'
+  normalPattern: '{0}_Normal.png'
+  heightPattern: '{0}_Height.png'
+  maskPattern: '{0}_Mask.png'
+  sources:
+  - id: ClawMarks
+    traceType: 0
+    requiresUV: 0
+    albedo: {fileID: 2800000, guid: 22dc3bdd172178947a6a8f59eea267f0, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.33, g: 0.26, b: 0.19, a: 1}
+    heightStrength: 0.6
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: OilStain
+    traceType: 1
+    requiresUV: 0
+    albedo: {fileID: 2800000, guid: 3927cdadb4e87eb47826ad4d3fbc2e97, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.14, g: 0.11, b: 0.08, a: 1}
+    heightStrength: 0
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: WaterStain
+    traceType: 2
+    requiresUV: 0
+    albedo: {fileID: 2800000, guid: 4c279be87691d0f40ae1c2d553dfa196, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.46, g: 0.38, b: 0.27, a: 1}
+    heightStrength: 0
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: CardboardScuff
+    traceType: 3
+    requiresUV: 0
+    albedo: {fileID: 2800000, guid: e60005fc9cad8be4a95fc27ef864ebd6, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.55, g: 0.48, b: 0.38, a: 1}
+    heightStrength: 0.4
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: AlienSlime_UV
+    traceType: 4
+    requiresUV: 1
+    albedo: {fileID: 2800000, guid: efb4476359f363d4e82d4aca2e3fc1b8, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.35, g: 1, b: 0.5, a: 1}
+    heightStrength: 0
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: ChemicalResidue_UV
+    traceType: 5
+    requiresUV: 1
+    albedo: {fileID: 2800000, guid: 2f5a6aeae8e094446b07c7e84da6bcb5, type: 3}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: 
+    maskIsRoughness: 0
+    tint: {r: 0.3, g: 0.85, b: 1, a: 1}
+    heightStrength: 0
+    metallicScale: 1
+    smoothnessScale: 1
+  - id: Blood
+    traceType: 6
+    requiresUV: 0
+    albedo: {fileID: 0}
+    normal: {fileID: 0}
+    height: {fileID: 0}
+    mask: {fileID: 0}
+    externalFolder: D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/Decal\Blood\Textures
+    maskIsRoughness: 0
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    metallicScale: 1
+    smoothnessScale: 1
