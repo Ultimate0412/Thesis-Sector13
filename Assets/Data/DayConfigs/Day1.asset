@@ -15,6 +15,9 @@ MonoBehaviour:
   dayName: Day 1
   openQuota: 3
   spawnQuota: 5
+  minShippedPerDay: 3
+  shortfallPenaltyPerBox: 50
+  stationFee: 200
   categoryRate:
     legalWeight: 70
     illegalWeight: 20

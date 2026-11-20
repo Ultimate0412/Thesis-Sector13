@@ -13,8 +13,13 @@ public class DailyStatisticsData
     public int legalShippedCount = 0;
     public int illegalShippedCount = 0;
     public int alienShippedCount = 0;
+    public int dailyStationFee = 0;
+    public int dailyShortfallPenalty = 0;
 
     public int TotalShippedToday => legalShippedCount + illegalShippedCount + alienShippedCount;
+
+    /// <summary>คะแนนสุทธิของวันนี้ (หักค่าสถานีและโทษส่งไม่ถึงขั้นต่ำแล้ว)</summary>
+    public int NetDailyCredits => dailyScoreEarned - dailyStationFee - dailyShortfallPenalty;
 
     public void Reset(int day, int currentTotalScore)
     {
@@ -27,6 +32,8 @@ public class DailyStatisticsData
         legalShippedCount = 0;
         illegalShippedCount = 0;
         alienShippedCount = 0;
+        dailyStationFee = 0;
+        dailyShortfallPenalty = 0;
     }
 }
 
@@ -95,6 +102,53 @@ public class ScoreManager : MonoBehaviour
         Debug.LogWarning($"<color=#FF3333>[ScoreManager] หักคะแนน -{penalty}!</color> สาเหตุ: {reason} (คะแนนรวมคงเหลือ: {totalScore})");
     }
 
+    /// <summary>
+    /// หักคะแนนโทษกรณีส่งพัสดุไม่ถึงขั้นต่ำ (ไม่นับเป็นพัสดุถูกทำลาย)
+    /// </summary>
+    public void ApplyPenalty(int amount, string reason = "Below shipping quota")
+    {
+        int penalty = Mathf.Abs(amount);
+        if (penalty <= 0) return;
+
+        totalScore = Mathf.Max(0, totalScore - penalty);
+        if (currentDayStats != null)
+        {
+            currentDayStats.dailyScoreEarned -= penalty;
+            currentDayStats.dailyShortfallPenalty += penalty;
+            currentDayStats.totalScoreSnapshot = totalScore;
+        }
+
+        OnScoreChanged?.Invoke(totalScore);
+        OnDailyStatsChanged?.Invoke(currentDayStats);
+        Debug.LogWarning($"<color=#FF3333>[ScoreManager] หักโทษ -{penalty}!</color> สาเหตุ: {reason} (คะแนนรวมคงเหลือ: {totalScore})");
+    }
+
+    /// <summary>
+    /// หักค่าสถานีรายวันออกจากคะแนนรวม (บันทึกแยกไว้แสดงในสรุปผล)
+    /// </summary>
+    public void ApplyStationFee(int fee)
+    {
+        int cost = Mathf.Max(0, fee);
+
+        if (currentDayStats != null)
+        {
+            currentDayStats.dailyStationFee = cost;
+        }
+
+        if (cost > 0)
+        {
+            totalScore = Mathf.Max(0, totalScore - cost);
+            if (currentDayStats != null)
+            {
+                currentDayStats.totalScoreSnapshot = totalScore;
+            }
+            OnScoreChanged?.Invoke(totalScore);
+            Debug.Log($"[ScoreManager] หักค่าสถานี -{cost} (คะแนนรวมคงเหลือ: {totalScore})");
+        }
+
+        OnDailyStatsChanged?.Invoke(currentDayStats);
+    }
+
     public void AddRejectedCount()
     {
         rejectedPackagesCount++;
@@ -149,6 +203,28 @@ public class ScoreManager : MonoBehaviour
         OnScoreChanged?.Invoke(totalScore);
         OnDailyStatsChanged?.Invoke(currentDayStats);
         Debug.Log($"[ScoreManager] บันทึกสินค้า {category} (Stamp: {stamp}) | คะแนนวันนี้: {currentDayStats?.dailyScoreEarned} | คะแนนรวม: {totalScore}");
+    }
+
+    /// <summary>
+    /// คืนคะแนน/สถิติจากเซฟ (เรียกหลังโหลดฉาก)
+    /// สถิติรายวันของวันที่โหลดจะเริ่มที่ศูนย์ เพราะเซฟถูกเขียนตอนขึ้นวันใหม่
+    /// </summary>
+    public void RestoreState(int total, int rejected, int day)
+    {
+        totalScore = Mathf.Max(0, total);
+        rejectedPackagesCount = Mathf.Max(0, rejected);
+
+        if (currentDayStats == null)
+        {
+            currentDayStats = new DailyStatisticsData();
+        }
+        currentDayStats.Reset(day, totalScore);
+
+        OnScoreChanged?.Invoke(totalScore);
+        rejectedPackagesCountChanged?.Invoke(rejectedPackagesCount);
+        OnDailyStatsChanged?.Invoke(currentDayStats);
+
+        Debug.Log($"[ScoreManager] คืนสถานะคะแนนรวม {totalScore} | พัสดุตีกลับสะสม {rejectedPackagesCount} | Day {day}");
     }
 
     /// <summary>

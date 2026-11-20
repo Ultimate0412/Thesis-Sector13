@@ -21,6 +21,8 @@ public class PlayerInteractor : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale <= 0f) return;
+
         // เมื่อกดปุ่ม E สำหรับการ Interact ทั่วไป (เช่น เปิด/ปิดกล่อง หรือหยิบของจากจุดวาง)
         if (Input.GetKeyDown(KeyCode.E))
         {
