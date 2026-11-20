@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// คลาสพื้นฐานสำหรับศัตรูทุกประเภท
@@ -7,7 +8,7 @@ using UnityEngine;
 /// เมื่อเกจเต็มจะติดสถานะสตั๊น 3 วินาที ซึ่งเปิดโอกาสให้ผู้เล่นยกไปทิ้งจุดทำลาย
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public abstract class EnemyBase : LivingEntity
+public abstract class EnemyBase : LivingEntity, ICarryable
 {
     [Header("Enemy Stun Settings")]
     [Tooltip("ค่าเกจสตั๊นสูงสุด (เมื่อเต็มจะติดสตั๊น)")]
@@ -27,6 +28,9 @@ public abstract class EnemyBase : LivingEntity
     [Tooltip("น้ำหนักของศัตรูเมื่อผู้เล่นยกถือ")]
     public float enemyWeight = 15f;
 
+    /// <summary>น้ำหนักทางกายภาพของศัตรูเมื่อถูกแบก (kg)</summary>
+    public float Weight => Mathf.Max(0f, enemyWeight);
+
     [Header("Visual & Feedback")]
     [Tooltip("เอฟเฟกต์หรือมาร์กเกอร์แสดงสถานะสตั๊น (เช่น ดาวหมุนรอบหัว หรือไฟช็อต)")]
     public GameObject stunVfxObject;
@@ -45,6 +49,7 @@ public abstract class EnemyBase : LivingEntity
     protected PlayerPickupSystem currentCarrier;
     protected Rigidbody rb;
     protected Collider mainCollider;
+    protected NavMeshAgent navAgent;
 
     public event Action<float, float> OnStunGaugeChanged; // Current, Max
     public event Action OnStunEnter;
@@ -55,6 +60,7 @@ public abstract class EnemyBase : LivingEntity
         base.Awake();
         rb = GetComponent<Rigidbody>();
         mainCollider = GetComponent<Collider>();
+        navAgent = GetComponent<NavMeshAgent>();
     }
 
     protected virtual void Update()
@@ -109,6 +115,11 @@ public abstract class EnemyBase : LivingEntity
         currentStunTimer = stunDuration;
         currentStunGauge = maxStunGauge;
 
+        if (navAgent != null && navAgent.enabled)
+        {
+            navAgent.enabled = false;
+        }
+
         if (stunVfxObject != null) stunVfxObject.SetActive(true);
 
         OnStunEnter?.Invoke();
@@ -131,6 +142,10 @@ public abstract class EnemyBase : LivingEntity
         {
             BreakFreeFromPlayer();
         }
+        else if (navAgent != null && !isDead && !isBeingCarried)
+        {
+            navAgent.enabled = true;
+        }
 
         OnStunExit?.Invoke();
         Debug.Log($"[{gameObject.name}] หลุดจากสถานะสตั๊นแล้ว! กลับมาโจมตีต่อ");
@@ -143,6 +158,11 @@ public abstract class EnemyBase : LivingEntity
     {
         isBeingCarried = true;
         currentCarrier = carrier;
+
+        if (navAgent != null && navAgent.enabled)
+        {
+            navAgent.enabled = false;
+        }
 
         if (rb != null)
         {
@@ -163,6 +183,8 @@ public abstract class EnemyBase : LivingEntity
             rb.isKinematic = false;
             rb.AddForce(throwForce, ForceMode.Impulse);
         }
+
+        // คืนการทำงานของ NavMesh เมื่อหายสตั๊น (ExitStunState)
     }
 
     /// <summary>
@@ -196,6 +218,11 @@ public abstract class EnemyBase : LivingEntity
         if (isDead) return;
         isDead = true;
 
+        if (navAgent != null)
+        {
+            navAgent.enabled = false;
+        }
+
         if (isBeingCarried && currentCarrier != null)
         {
             currentCarrier.ForceDropObject(gameObject);
@@ -203,5 +230,14 @@ public abstract class EnemyBase : LivingEntity
 
         Debug.Log($"[{gameObject.name}] ถูกทำลายทิ้งใน Disposal Zone สำเร็จ!");
         Destroy(gameObject);
+    }
+
+    protected override void Die()
+    {
+        base.Die();
+        if (navAgent != null)
+        {
+            navAgent.enabled = false;
+        }
     }
 }

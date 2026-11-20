@@ -9,6 +9,7 @@ public class DailyStatisticsData
     public int totalScoreSnapshot = 0;
     public int dailyRejectedCount = 0;
     public int dailyApprovedCount = 0;
+    public int dailyDestroyedCount = 0;
     public int legalShippedCount = 0;
     public int illegalShippedCount = 0;
     public int alienShippedCount = 0;
@@ -22,6 +23,7 @@ public class DailyStatisticsData
         totalScoreSnapshot = currentTotalScore;
         dailyRejectedCount = 0;
         dailyApprovedCount = 0;
+        dailyDestroyedCount = 0;
         legalShippedCount = 0;
         illegalShippedCount = 0;
         alienShippedCount = 0;
@@ -73,6 +75,24 @@ public class ScoreManager : MonoBehaviour
         OnScoreChanged?.Invoke(totalScore);
         OnDailyStatsChanged?.Invoke(currentDayStats);
         Debug.Log($"Total Score: {totalScore} (Change: {amount})");
+    }
+
+    /// <summary>
+    /// หักคะแนนเมื่อพัสดุถูกทำลายหรือถูกขโมย
+    /// </summary>
+    public void DeductScore(int amount, string reason = "Parcel Destroyed")
+    {
+        int penalty = Mathf.Abs(amount);
+        totalScore = Mathf.Max(0, totalScore - penalty);
+        if (currentDayStats != null)
+        {
+            currentDayStats.dailyScoreEarned -= penalty;
+            currentDayStats.dailyDestroyedCount++;
+            currentDayStats.totalScoreSnapshot = totalScore;
+        }
+        OnScoreChanged?.Invoke(totalScore);
+        OnDailyStatsChanged?.Invoke(currentDayStats);
+        Debug.LogWarning($"<color=#FF3333>[ScoreManager] หักคะแนน -{penalty}!</color> สาเหตุ: {reason} (คะแนนรวมคงเหลือ: {totalScore})");
     }
 
     public void AddRejectedCount()

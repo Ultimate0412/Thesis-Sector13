@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &255164085234328955
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5394820373528500998}
+  m_Layer: 0
+  m_Name: HoldPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5394820373528500998
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 255164085234328955}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8294259306284074109}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &464651002865732546
 GameObject:
   m_ObjectHideFlags: 0
@@ -192,6 +223,7 @@ GameObject:
   - component: {fileID: 8294037067420452199}
   - component: {fileID: 5742869299683612948}
   - component: {fileID: 6246085050329388301}
+  - component: {fileID: 7016524161370858442}
   m_Layer: 0
   m_Name: Enemy_Hammer
   m_TagString: Untagged
@@ -215,6 +247,7 @@ Transform:
   - {fileID: 243272827464679557}
   - {fileID: 6414684106447581337}
   - {fileID: 5212395622108931316}
+  - {fileID: 5394820373528500998}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &8294037067420452199
@@ -283,7 +316,7 @@ MonoBehaviour:
   currentHealth: 0
   maxStunGauge: 100
   currentStunGauge: 0
-  stunDuration: 3
+  stunDuration: 5
   stunDecayRate: 8
   stunDecayDelay: 2.5
   enemyWeight: 15
@@ -308,6 +341,21 @@ MonoBehaviour:
   normalEyeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   chargingEyeColor: {r: 1, g: 0, b: 0, a: 1}
   currentState: 0
+--- !u!114 &7016524161370858442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7980087161198620101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c410270ff786e6448f9d22ac80de7d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldAnchor
+  anchorPoint: {fileID: 5394820373528500998}
+  localPosition: {x: 1.05, y: -0.15, z: 0.55}
+  localEulerAngles: {x: 0, y: 0, z: -90}
 --- !u!1 &8563196122118707948
 GameObject:
   m_ObjectHideFlags: 0

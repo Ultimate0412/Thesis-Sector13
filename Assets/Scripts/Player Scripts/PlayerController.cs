@@ -21,6 +21,14 @@ public class PlayerController : MonoBehaviour
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
+    [Header("Animation Settings (ช่องสำหรับใส่ชื่อพารามิเตอร์ท่าทาง)")]
+    [Tooltip("ชื่อ Parameter ชนิด Float สำหรับความเร็วในการเคลื่อนไหว (Speed)")]
+    public string speedParamName = "Speed";
+    [Tooltip("ชื่อ Parameter ชนิด Bool สถานะอยู่บนพื้น (IsGrounded)")]
+    public string isGroundedParamName = "IsGrounded";
+    [Tooltip("ชื่อ Trigger สำหรับท่ากระโดด (Jump)")]
+    public string jumpTriggerName = "Jump";
+
     [HideInInspector] public Rigidbody rb;
     [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
@@ -83,6 +91,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // หากผู้เล่นตายแล้ว ให้หยุดการประมวลผลอินพุตและการเคลื่อนไหว
+        if (stats != null && stats.IsDead) return;
+
         // ล็อกเคอร์เซอร์กลับมาเมื่อคลิกในจอเล่นเกม (หากไม่ได้เปิดเมนูปั๊มตราหรือหน้าต่างสรุปผล)
         if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)
         {
@@ -105,19 +116,40 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
         {
             jumpRequested = true;
+            if (stats != null && stats.playerAnimator != null && !string.IsNullOrEmpty(jumpTriggerName))
+            {
+                stats.playerAnimator.SetTrigger(jumpTriggerName);
+            }
         }
 
         currentState?.UpdateState();
+        UpdateMovementAnimations();
     }
 
     private void FixedUpdate()
     {
+        if (stats != null && stats.IsDead) return;
         ApplyPhysicsMovement();
     }
 
     private void LateUpdate()
     {
+        if (stats != null && stats.IsDead) return;
         ApplyLookRotation();
+    }
+
+    private void UpdateMovementAnimations()
+    {
+        if (stats == null || stats.playerAnimator == null) return;
+
+        if (!string.IsNullOrEmpty(speedParamName))
+        {
+            stats.playerAnimator.SetFloat(speedParamName, targetMoveDirection.magnitude);
+        }
+        if (!string.IsNullOrEmpty(isGroundedParamName))
+        {
+            stats.playerAnimator.SetBool(isGroundedParamName, _isGrounded);
+        }
     }
 
     public void SwitchState(PlayerStateBase newState)

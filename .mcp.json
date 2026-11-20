@@ -2,7 +2,7 @@
   "mcpServers": {
     "unity": {
       "type": "http",
-      "url": "http://localhost:8080/mcp"
+      "url": "http://localhost:21642"
     }
   }
 }

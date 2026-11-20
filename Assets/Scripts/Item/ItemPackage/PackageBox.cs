@@ -2,7 +2,7 @@ using UnityEngine;
 
 public enum InspectionStatus { None, Approved, Rejected }
 
-public class PackageBox : MonoBehaviour, IInteractable
+public class PackageBox : MonoBehaviour, IInteractable, ICarryable
 {
     [Header("Inner Item Settings")]
     [Tooltip("รายการสินค้าที่สามารถสุ่มเกิดในกล่องนี้ได้ ")]
@@ -27,6 +27,15 @@ public class PackageBox : MonoBehaviour, IInteractable
 
     public InspectionStatus currentStamp = InspectionStatus.None;
     public KeyCode stampMenuKey = KeyCode.R; // ปุ่มกดเปิดเมนูประทับตรา (เปลี่ยนปุ่มได้ตามต้องการ)
+
+    [Header("Destruction & Penalty Settings")]
+    [Tooltip("คะแนนที่จะถูกหักเมื่อพัสดุชิ้นนี้ถูกทำลายหรือถูกขโมยไป")]
+    public int destructionPenaltyScore = 50;
+    private bool isDestroyedNotified = false;
+
+    // Events สำหรับระบบภายนอก (เช่น ThiefManager หรือ ScoreManager)
+    public static event System.Action<PackageBox, InspectionStatus> OnAnyPackageStamped;
+    public static event System.Action<PackageBox, int> OnAnyPackageDestroyed;
 
     [Header("Manifest & Label Settings")]
     [Tooltip("ข้อมูลในระบบฐานข้อมูลทางการของแท็บเล็ต")]
@@ -69,6 +78,29 @@ public class PackageBox : MonoBehaviour, IInteractable
             {
                 innerItemPrefab = possibleInnerItemPrefabs[randomIndex];
             }
+        }
+    }
+
+    /// <summary>
+    /// น้ำหนักทางกายภาพของกล่อง = actualWeight (ค่าเดียวกับที่ตาชั่งแสดง)
+    /// เป็น source of truth เดียวของน้ำหนักพัสดุ — ห้ามใช้ declaredWeight (ค่าบนฉลาก)
+    /// </summary>
+    public float Weight
+    {
+        get
+        {
+            if (officialDatabaseData != null)
+                return Mathf.Max(0f, officialDatabaseData.actualWeight);
+
+            if (innerItemPrefab != null &&
+                innerItemPrefab.TryGetComponent(out ItemObject inner))
+                return Mathf.Max(0f, inner.itemWeight);
+
+            // fallback สุดท้าย: ItemObject บนตัวกล่องเอง (กันกรณี manifest ยังไม่ถูกสร้าง)
+            if (TryGetComponent(out ItemObject self))
+                return Mathf.Max(0f, self.itemWeight);
+
+            return 0f;
         }
     }
 
@@ -192,6 +224,7 @@ public class PackageBox : MonoBehaviour, IInteractable
 
     public void SetStamp(InspectionStatus status)
     {
+        bool wasNotStamped = (currentStamp == InspectionStatus.None);
         currentStamp = status;
         Debug.Log($"ประทับตรากล่องเรียบร้อย: {currentStamp}");
 
@@ -200,10 +233,38 @@ public class PackageBox : MonoBehaviour, IInteractable
         {
             labelView.UpdateStampVisual(status);
         }
+
+        if (wasNotStamped)
+        {
+            OnAnyPackageStamped?.Invoke(this, status);
+        }
+    }
+
+    /// <summary>
+    /// เรียกใช้เมื่อพัสดุถูกทำลาย หรือถูกขโมยหนีไปได้สำเร็จ เพื่อหักคะแนนผู้เล่น
+    /// </summary>
+    public void NotifyPackageDestroyed(string reason = "Package Destroyed")
+    {
+        if (isDestroyedNotified) return;
+        isDestroyedNotified = true;
+
+        if (ScoreManager.Instance != null && destructionPenaltyScore > 0)
+        {
+            ScoreManager.Instance.DeductScore(destructionPenaltyScore, reason);
+        }
+        OnAnyPackageDestroyed?.Invoke(this, destructionPenaltyScore);
     }
 
     public void ToggleOpenBox()
     {
+        // หากกล่องนี้เป็น Mimic ปลอมตัวมา ให้สั่งแปลงร่างทันทีและยกเลิกการเปิดกล่องปกติ
+        MimicPackage mimic = GetComponent<MimicPackage>();
+        if (mimic != null && mimic.enabled)
+        {
+            mimic.OnAttemptOpen();
+            return;
+        }
+
         if (!isOpen)
         {
             // หากยังไม่เคยเปิดกล่องนี้มาก่อน ต้องมีโควต้าเปิดตรวจคงเหลืออยู่

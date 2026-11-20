@@ -482,6 +482,9 @@ public class StorageHazardManager : MonoBehaviour
 
             if (boxA != null)
             {
+                PackageBox pBoxA = boxA.GetComponent<PackageBox>();
+                if (pBoxA != null) pBoxA.NotifyPackageDestroyed("Hazard Explosion");
+
                 BaseDropPoint dpA = BaseDropPoint.GetDropPointHolding(boxA);
                 if (dpA != null) dpA.currentPlacedItem = null;
 
@@ -490,6 +493,9 @@ public class StorageHazardManager : MonoBehaviour
             }
             if (boxB != null)
             {
+                PackageBox pBoxB = boxB.GetComponent<PackageBox>();
+                if (pBoxB != null) pBoxB.NotifyPackageDestroyed("Hazard Explosion");
+
                 BaseDropPoint dpB = BaseDropPoint.GetDropPointHolding(boxB);
                 if (dpB != null) dpB.currentPlacedItem = null;
 

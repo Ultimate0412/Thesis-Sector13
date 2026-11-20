@@ -38,6 +38,34 @@ public class ScoreUI : MonoBehaviour
         // เตรียม UI แสดงโควต้าการเปิดกล่องตรวจประจำวัน
         SetupOpenQuotaUI();
 
+        // ตรวจสอบและเพิ่ม PlayerHealthUI และ GameOverUI เข้ากับ UI Manager หากยังไม่มีในฉาก
+        if (GetComponent<PlayerHealthUI>() == null && FindFirstObjectByType<PlayerHealthUI>() == null)
+        {
+            gameObject.AddComponent<PlayerHealthUI>();
+        }
+        if (GetComponent<GameOverUI>() == null && FindFirstObjectByType<GameOverUI>() == null)
+        {
+            gameObject.AddComponent<GameOverUI>();
+        }
+
+        // ตรวจสอบและเพิ่ม EventUIController และ GameEventManager
+        if (GetComponent<EventUIController>() == null && FindFirstObjectByType<EventUIController>() == null)
+        {
+            gameObject.AddComponent<EventUIController>();
+        }
+        if (FindFirstObjectByType<GameEventManager>() == null)
+        {
+            GameObject eventManagerObj = new GameObject("GameEventManager");
+            eventManagerObj.AddComponent<GameEventManager>();
+        }
+
+        // ตรวจสอบและเพิ่ม ThiefManager
+        if (FindFirstObjectByType<ThiefManager>() == null)
+        {
+            GameObject thiefManagerObj = new GameObject("ThiefManager");
+            thiefManagerObj.AddComponent<ThiefManager>();
+        }
+
         if (GameDayManager.Instance != null)
         {
             UpdateOpenQuotaText(GameDayManager.Instance.RemainingQuotaToday);
@@ -100,7 +128,7 @@ public class ScoreUI : MonoBehaviour
             openQuotaText = quotaObj.GetComponent<TextMeshProUGUI>();
             if (openQuotaText != null)
             {
-                openQuotaText.color = new Color(0.35f, 0.9f, 1f, 1f); // สีฟ้าอ่อนคมชัด
+                openQuotaText.color = new Color(1f, 0.87058824f, 0.34901962f, 1f); // #ffde59 // สีฟ้าอ่อนคมชัด
             }
         }
     }

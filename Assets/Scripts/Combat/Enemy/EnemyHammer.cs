@@ -1,11 +1,5 @@
 using System.Collections;
 using UnityEngine;
-
-/// <summary>
-/// ศัตรูชนิด Hammer:
-/// พฤติกรรม: สแกนหาผู้เล่น -> ล็อคเป้าและชาร์จเตรียมพุ่ง (Windup) -> วิ่งพุ่งชนเป็นเส้นตรงด้วยความเร็วสูง
-/// หากชนผู้เล่นจะทำดาเมจ หากชนกำแพงจะหยุดชะงักเปิดโอกาสให้ผู้เล่นเข้าตี
-/// </summary>
 public class EnemyHammer : EnemyBase
 {
     public enum HammerState
@@ -140,7 +134,6 @@ public class EnemyHammer : EnemyBase
         {
             Vector3 moveDir = toPlayer.normalized;
 
-            // หันหน้าเข้าหาผู้เล่นอย่างนุ่มนวล
             if (moveDir != Vector3.zero)
             {
                 transform.rotation = Quaternion.Slerp(

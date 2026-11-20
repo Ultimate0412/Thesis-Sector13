@@ -20,6 +20,14 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Prefab ของศัตรูที่จะสปอน (เช่น Enemy_Hammer)")]
     public GameObject enemyPrefab;
 
+    [Header("Mimic Debug Settings")]
+    [Tooltip("Prefab กล่องพัสดุ Mimic สำหรับสปอนทดสอบ")]
+    public GameObject mimicPackagePrefab;
+    [Tooltip("Prefab ศัตรู Mimic")]
+    public GameObject enemyMimicPrefab;
+    [Tooltip("ปุ่มสำหรับกดสปอนกล่องพัสดุ Mimic ออกมาหน้าผู้เล่นทันที (Default = M)")]
+    public KeyCode debugSpawnMimicKey = KeyCode.M;
+
     [Header("Spawn Points (ตำแหน่งเกิดที่กำหนด)")]
     [Tooltip("จุดเกิดทั้งหมดในฉาก (ลาก Empty GameObject มาใส่ได้หลายจุด)")]
     public Transform[] spawnPoints;
@@ -70,6 +78,73 @@ public class EnemySpawner : MonoBehaviour
         {
             ClearAllEnemies();
         }
+
+        // 3. ตรวจสอบการกดปุ่มสปอนกล่อง Mimic เพื่อทดสอบ
+        if (debugSpawnMimicKey != KeyCode.None && Input.GetKeyDown(debugSpawnMimicKey))
+        {
+            SpawnMimicPackage();
+        }
+    }
+
+    /// <summary>
+    /// สปอนกล่องพัสดุ Mimic ออกมาตรงหน้าผู้เล่นเพื่อทดสอบระบบทันที (กดปุ่ม M)
+    /// </summary>
+    [ContextMenu("Spawn Mimic Package Now")]
+    public GameObject SpawnMimicPackage()
+    {
+        Vector3 spawnPos = transform.position;
+        Quaternion spawnRot = Quaternion.identity;
+
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            spawnPos = mainCam.transform.position + mainCam.transform.forward * 2.2f;
+            // ปรับระดับให้อยู่เหนือพื้น
+            RaycastHit hit;
+            if (Physics.Raycast(spawnPos, Vector3.down, out hit, 4.0f))
+            {
+                spawnPos = hit.point + Vector3.up * 0.3f;
+            }
+            spawnRot = Quaternion.Euler(0f, mainCam.transform.eulerAngles.y, 0f);
+        }
+
+        GameObject mimicBox = null;
+        if (mimicPackagePrefab != null)
+        {
+            mimicBox = Instantiate(mimicPackagePrefab, spawnPos, spawnRot);
+        }
+        else
+        {
+            // หากยังไม่มี Prefab ที่ตั้งค่าไว้ ให้ค้นหากล่องพัสดุมาตรฐานและแนบ MimicPackage ให้อัตโนมัติ
+            GameObject baseBoxPrefab = Resources.Load<GameObject>("Prefab/Alien_Package");
+            if (baseBoxPrefab == null) baseBoxPrefab = Resources.Load<GameObject>("Alien_Package");
+
+            if (baseBoxPrefab != null)
+            {
+                mimicBox = Instantiate(baseBoxPrefab, spawnPos, spawnRot);
+            }
+            else
+            {
+                // สปอนกล่องทดสอบ
+                mimicBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                mimicBox.name = "Mimic_Package_Box";
+                mimicBox.transform.position = spawnPos;
+                mimicBox.transform.rotation = spawnRot;
+                mimicBox.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+                mimicBox.AddComponent<Rigidbody>();
+            }
+
+            // แนบคอมโพเนนต์ MimicPackage และ PackageBox หากยังไม่มี
+            PackageBox pb = mimicBox.GetComponent<PackageBox>();
+            if (pb == null) pb = mimicBox.AddComponent<PackageBox>();
+
+            MimicPackage mimic = mimicBox.GetComponent<MimicPackage>();
+            if (mimic == null) mimic = mimicBox.AddComponent<MimicPackage>();
+            if (mimic.enemyMimicPrefab == null) mimic.enemyMimicPrefab = enemyMimicPrefab;
+        }
+
+        Debug.Log($"<color=#FF5AA5>[EnemySpawner]</color> สปอนกล่อง Mimic พัสดุตรงหน้าผู้เล่นเรียบร้อย! ณ ตำแหน่ง {spawnPos}");
+        return mimicBox;
     }
 
     /// <summary>

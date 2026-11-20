@@ -1,18 +1,18 @@
 using UnityEngine;
-
-/// <summary>
-/// คอมโพเนนต์สำหรับอาวุธระยะประชิด (เช่น ท่อนไม้, กระบอง) ที่ผู้เล่นสามารถหยิบมาใช้โจมตีได้
-/// </summary>
-public class MeleeWeapon : MonoBehaviour
+public class MeleeWeapon : MonoBehaviour, ICarryable
 {
     [Header("Weapon Stats")]
     [Tooltip("ชื่ออาวุธ")]
     public string weaponName = "Wooden Stick";
 
+    [HideInInspector]
     [Tooltip("น้ำหนักของอาวุธเมื่อหยิบถือ (kg)")]
     public float weaponWeight = 2f;
 
-    [Tooltip("ปริมาณเกจสตั๊นที่เพิ่มให้กับศัตรูต่อการตี 1 ครั้ง (เช่น 35 = ตี 3 ครั้งสตั๊น)")]
+
+    public float Weight => 0f;
+
+    [Tooltip("ปริมาณเกจสตั๊นที่เพิ่มให้กับศัตรูต่อการตี 1 ครั้ง ")]
     public float stunDamagePerHit = 35f;
 
     [Tooltip("ระยะการโจมตี (เมตร)")]

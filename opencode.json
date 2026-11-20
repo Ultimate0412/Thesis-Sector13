@@ -5,6 +5,13 @@
       "enabled": true,
       "type": "local",
       "command": ["C:/Tools/sp-mcp/.venv/Scripts/python.exe", "C:/Tools/sp-mcp/sp-mcp.py"]
+    },
+    "unity": {
+      "enabled": true,
+      "type": "remote",
+      "url": "http://localhost:21642",
+      "timeout": 300000,
+      "oauth": false
     }
   }
 }
