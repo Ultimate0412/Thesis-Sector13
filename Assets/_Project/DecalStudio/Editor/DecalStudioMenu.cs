@@ -161,7 +161,7 @@ namespace Sector13.Decals.EditorTools
         static List<DecalSourceEntry> CollectDefaultSources()
         {
             var list = new List<DecalSourceEntry>();
-            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/Textures/Traces" });
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Art/Textures/Traces" });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);

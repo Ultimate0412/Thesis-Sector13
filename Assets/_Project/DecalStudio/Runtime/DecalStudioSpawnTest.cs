@@ -46,8 +46,8 @@ namespace Sector13.Decals
 
                 GameObject legal = null, alien = null;
 #if UNITY_EDITOR
-                legal = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefab/Legal_Package.prefab");
-                alien = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefab/Alien_Package.prefab");
+                legal = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Gameplay/Legal_Package.prefab");
+                alien = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Gameplay/Alien_Package.prefab");
 #endif
 
                 var root = new GameObject("DecalSpawnTest_Root");

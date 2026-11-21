@@ -165,7 +165,7 @@ namespace Sector13.Decals.EditorTools
 
         void FillFromTracesFolder()
         {
-            const string folder = "Assets/Textures/Traces";
+            const string folder = "Assets/_Project/Art/Textures/Traces";
             string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { folder });
             var found = new List<DecalSourceEntry>();
 

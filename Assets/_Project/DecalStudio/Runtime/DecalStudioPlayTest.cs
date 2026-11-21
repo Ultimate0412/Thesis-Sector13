@@ -54,7 +54,7 @@ namespace Sector13.Decals
                 Material stockMat = null;
                 DecalAtlas atlas = null;
 #if UNITY_EDITOR
-                stockMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Traces/M_Decal_WaterStain.mat");
+                stockMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Art/Materials/M_Decal_WaterStain.mat");
                 atlas = UnityEditor.AssetDatabase.LoadAssetAtPath<DecalAtlas>("Assets/_Project/DecalStudio/Art/Atlases/Evidence.asset");
 #endif
 
