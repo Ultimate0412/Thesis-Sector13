@@ -1,5 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
+
 public class EnemyHammer : EnemyBase
 {
     public enum HammerState
@@ -47,6 +50,28 @@ public class EnemyHammer : EnemyBase
     public Color normalEyeColor = Color.yellow;
     public Color chargingEyeColor = Color.red;
 
+    [Header("Stage Animations (Optional)")]
+    [Tooltip("Animator ของโมเดล (ถ้าเว้นว่าง ระบบจะหา/สร้างให้อัตโนมัติตอนเริ่มเกม)")]
+    public Animator hammerAnimator;
+
+    [Tooltip("ท่ากำลังค้นหาผู้เล่น (Searching)")]
+    public AnimationClip searchingClip;
+    [Tooltip("ท่าง้าง/เล็งก่อนพุ่งชน (Windup)")]
+    public AnimationClip windupClip;
+    [Tooltip("ท่าพุ่งชน (Charging)")]
+    public AnimationClip chargingClip;
+    [Tooltip("ท่าชะงักหลังชนกำแพง (Staggered)")]
+    public AnimationClip staggeredClip;
+    [Tooltip("ท่าพักหลังพุ่งเสร็จ (Cooldown)")]
+    public AnimationClip cooldownClip;
+    [Tooltip("ท่าติดสตั๊น (Stunned)")]
+    public AnimationClip stunnedClip;
+    [Tooltip("ท่าตอนถูกผู้เล่นยกถือ (Carried)")]
+    public AnimationClip carriedClip;
+
+    [Tooltip("ระยะเวลา crossfade ตอนสลับท่า (วินาที) — 0 = สลับทันที")]
+    [Min(0f)] public float stageAnimationFade = 0.15f;
+
     public HammerState CurrentState => currentState;
     [SerializeField] private HammerState currentState = HammerState.Searching;
 
@@ -54,6 +79,15 @@ public class EnemyHammer : EnemyBase
     private Vector3 lockedChargeDirection;
     private float stateTimer = 0f;
     private Coroutine chargeCoroutine;
+
+    // --- Stage animation (Playables) ---
+    private PlayableGraph stageAnimGraph;
+    private AnimationMixerPlayable stageAnimMixer;
+    private bool stageAnimReady;
+    private int stageAnimPort = -1;
+    private float stageAnimFadeTimer = 1f;
+    private HammerState lastAnimatedState;
+    private bool hasAnimatedState;
 
     protected override void Awake()
     {
@@ -68,6 +102,22 @@ public class EnemyHammer : EnemyBase
     {
         FindPlayerReference();
         SetIndicatorColor(normalEyeColor);
+
+        InitStageAnimation();
+        PlayStageAnimation(currentState);
+    }
+
+    private void LateUpdate()
+    {
+        UpdateStageAnimationFade();
+    }
+
+    private void OnDestroy()
+    {
+        if (stageAnimGraph.IsValid())
+        {
+            stageAnimGraph.Destroy();
+        }
     }
 
     protected override void Update()
@@ -79,7 +129,7 @@ public class EnemyHammer : EnemyBase
         // หากติดสตั๊นหรือถูกยกถือ ให้ข้าม AI
         if (isStunned || isBeingCarried)
         {
-            currentState = isBeingCarried ? HammerState.Carried : HammerState.Stunned;
+            SetState(isBeingCarried ? HammerState.Carried : HammerState.Stunned);
             return;
         }
 
@@ -94,7 +144,7 @@ public class EnemyHammer : EnemyBase
                 rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
                 if (stateTimer <= 0f)
                 {
-                    currentState = HammerState.Searching;
+                    SetState(HammerState.Searching);
                 }
                 break;
 
@@ -103,7 +153,7 @@ public class EnemyHammer : EnemyBase
                 rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
                 if (stateTimer <= 0f)
                 {
-                    currentState = HammerState.Searching;
+                    SetState(HammerState.Searching);
                 }
                 break;
         }
@@ -215,7 +265,7 @@ public class EnemyHammer : EnemyBase
     private IEnumerator ChargeRoutine()
     {
         // 1. ขั้นตอน WINDUP (ล็อคทิศทางและเตือนผู้เล่น)
-        currentState = HammerState.Windup;
+        SetState(HammerState.Windup);
         SetIndicatorColor(chargingEyeColor);
 
         // ล็อคทิศทางที่จะพุ่งตรง
@@ -241,7 +291,7 @@ public class EnemyHammer : EnemyBase
         }
 
         // 2. ขั้นตอน CHARGING (พุ่งชนเป็นเส้นตรง)
-        currentState = HammerState.Charging;
+        SetState(HammerState.Charging);
         float chargeElapsed = 0f;
 
         while (chargeElapsed < maxChargeTime && currentState == HammerState.Charging)
@@ -314,7 +364,7 @@ public class EnemyHammer : EnemyBase
         }
 
         rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-        currentState = nextState;
+        SetState(nextState);
         stateTimer = duration;
         SetIndicatorColor(normalEyeColor);
     }
@@ -328,7 +378,7 @@ public class EnemyHammer : EnemyBase
         }
 
         rb.linearVelocity = Vector3.zero;
-        currentState = HammerState.Stunned;
+        SetState(HammerState.Stunned);
         SetIndicatorColor(Color.gray);
 
         base.EnterStunState();
@@ -337,9 +387,134 @@ public class EnemyHammer : EnemyBase
     public override void ExitStunState()
     {
         base.ExitStunState();
-        currentState = HammerState.Cooldown;
+        SetState(HammerState.Cooldown);
         stateTimer = 1.0f;
         SetIndicatorColor(normalEyeColor);
+    }
+
+    // ---------------------------------------------------------------- Stage Animation
+
+    /// <summary>เปลี่ยนสถานะพร้อมเล่นอนิเมชันของท่านั้น (ถ้ามีการใส่ clip ไว้)</summary>
+    private void SetState(HammerState nextState)
+    {
+        currentState = nextState;
+        PlayStageAnimation(nextState);
+    }
+
+    private bool HasAnyStageClip()
+    {
+        return searchingClip != null || windupClip != null || chargingClip != null ||
+               staggeredClip != null || cooldownClip != null || stunnedClip != null ||
+               carriedClip != null;
+    }
+
+    private AnimationClip GetStageClip(HammerState state)
+    {
+        switch (state)
+        {
+            case HammerState.Searching: return searchingClip;
+            case HammerState.Windup: return windupClip;
+            case HammerState.Charging: return chargingClip;
+            case HammerState.Staggered: return staggeredClip;
+            case HammerState.Cooldown: return cooldownClip;
+            case HammerState.Stunned: return stunnedClip;
+            case HammerState.Carried: return carriedClip;
+            default: return null;
+        }
+    }
+
+    /// <summary>
+    /// เตรียม PlayableGraph สำหรับเล่น clip ต่อสเตจ
+    /// (ทำงานเฉพาะเมื่อมีการใส่ clip อย่างน้อย 1 ท่า — ถ้าใช้ Animator Controller อยู่จะไม่แตะต้อง)
+    /// </summary>
+    private void InitStageAnimation()
+    {
+        if (stageAnimReady) return;
+        if (!HasAnyStageClip()) return;
+
+        if (hammerAnimator == null)
+        {
+            hammerAnimator = GetComponent<Animator>();
+        }
+        if (hammerAnimator == null)
+        {
+            hammerAnimator = GetComponentInChildren<Animator>();
+        }
+        if (hammerAnimator == null)
+        {
+            hammerAnimator = gameObject.AddComponent<Animator>();
+        }
+
+        hammerAnimator.applyRootMotion = false;
+
+        stageAnimGraph = PlayableGraph.Create("EnemyHammer_StageAnim");
+        stageAnimGraph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+
+        stageAnimMixer = AnimationMixerPlayable.Create(stageAnimGraph, 2);
+
+        AnimationPlayableOutput output = AnimationPlayableOutput.Create(stageAnimGraph, "StageAnim", hammerAnimator);
+        output.SetSourcePlayable(stageAnimMixer);
+
+        stageAnimGraph.Play();
+        stageAnimReady = true;
+    }
+
+    /// <summary>เล่น clip ของสถานะที่ระบุ (ถ้าไม่ได้ใส่ clip ของท่านั้น จะเล่นท่าเดิมต่อ)</summary>
+    private void PlayStageAnimation(HammerState state)
+    {
+        if (!stageAnimReady) return;
+        if (hasAnimatedState && state == lastAnimatedState) return;
+
+        AnimationClip clip = GetStageClip(state);
+        if (clip == null)
+        {
+            // สเตจนี้ไม่ได้ใส่ clip ไว้ — เล่นท่าเดิมต่อไป แต่ล้าง marker
+            // เพื่อให้กลับมาสเตจที่มี clip อีกครั้งแล้วเล่นท่าใหม่ได้
+            hasAnimatedState = false;
+            return;
+        }
+
+        hasAnimatedState = true;
+        lastAnimatedState = state;
+
+        int nextPort = stageAnimPort < 0 ? 0 : 1 - stageAnimPort;
+
+        // คืนหน่วยความจำของ playable ท่าเดิมก่อนเสียบท่าใหม่
+        Playable previous = stageAnimMixer.GetInput(nextPort);
+        stageAnimMixer.DisconnectInput(nextPort);
+        if (previous.IsValid())
+        {
+            previous.Destroy();
+        }
+
+        AnimationClipPlayable playable = AnimationClipPlayable.Create(stageAnimGraph, clip);
+        playable.SetApplyFootIK(false);
+        stageAnimMixer.ConnectInput(nextPort, playable, 0, 0f);
+
+        if (stageAnimPort < 0)
+        {
+            // ท่าแรก: เล่นเต็มน้ำหนักทันที
+            stageAnimPort = nextPort;
+            stageAnimMixer.SetInputWeight(nextPort, 1f);
+            stageAnimFadeTimer = 1f;
+            return;
+        }
+
+        // สลับท่า: เริ่ม crossfade จาก 0 ไป 1 ใน LateUpdate
+        stageAnimPort = nextPort;
+        stageAnimFadeTimer = 0f;
+    }
+
+    private void UpdateStageAnimationFade()
+    {
+        if (!stageAnimReady || stageAnimPort < 0) return;
+
+        float duration = Mathf.Max(0.0001f, stageAnimationFade);
+        stageAnimFadeTimer = Mathf.Min(1f, stageAnimFadeTimer + Time.deltaTime / duration);
+
+        float weight = stageAnimFadeTimer;
+        stageAnimMixer.SetInputWeight(stageAnimPort, weight);
+        stageAnimMixer.SetInputWeight(1 - stageAnimPort, 1f - weight);
     }
 
     private void SetIndicatorColor(Color color)
