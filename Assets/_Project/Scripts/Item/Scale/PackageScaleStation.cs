@@ -18,7 +18,7 @@ public class PackageScaleStation : BaseDropPoint
 
     [Header("Display Settings")]
     public Color standbyColor = new Color(1f, 0.67f, 0f);   // amber
-    public Color weighingColor = new Color(0f, 0.9f, 1f);   // cyan
+    public Color weighingColor = new Color(1f, 0.827f, 0.302f);   // cyan
     public string standbyStatus = "● STANDBY";
     public string weighingStatus = "● WEIGHING";
     public string standbyHint = "PLACE PACKAGE ON PLATFORM";
@@ -235,12 +235,12 @@ public class PackageScaleStation : BaseDropPoint
         bg.color = new Color(0.015f, 0.05f, 0.075f, 0.96f);
         bg.raycastTarget = false;
 
-        // ขอบเรืองแสง cyan
+        // ขอบเรืองแสง amber
         GameObject borderObj = CreateUIObject("Border", canvasObj.transform);
         RectTransform borderRt = borderObj.GetComponent<RectTransform>();
         StretchFull(borderRt);
         Image border = borderObj.AddComponent<Image>();
-        border.color = new Color(0f, 0.75f, 0.9f, 0.55f);
+        border.color = new Color(1f, 0.827f, 0.302f);
         border.raycastTarget = false;
 
         // แผ่นด้านในทับขอบ เพื่อให้เหลือแค่เส้นขอบบาง ๆ
@@ -255,7 +255,7 @@ public class PackageScaleStation : BaseDropPoint
 
         // Header
         TextMeshProUGUI header = CreateText(canvasObj.transform, "ScaleHeaderText",
-            "SECTOR 13 // CARGO SCALE", 30f, new Color(0f, 0.9f, 1f), TextAlignmentOptions.Center);
+            "SECTOR 13 // CARGO SCALE", 30f, new Color(1f, 0.827f, 0.302f), TextAlignmentOptions.Center);
         SetRect(header.rectTransform, new Vector2(0f, -26f), new Vector2(-24f, 44f), new Vector2(0.5f, 1f));
 
         // เส้นคั่น
@@ -267,7 +267,7 @@ public class PackageScaleStation : BaseDropPoint
         dividerRt.anchoredPosition = new Vector2(0f, -64f);
         dividerRt.sizeDelta = new Vector2(-40f, 2f);
         Image divider = dividerObj.AddComponent<Image>();
-        divider.color = new Color(0f, 0.75f, 0.9f, 0.4f);
+        divider.color = new Color(1f, 0.827f, 0.302f);
         divider.raycastTarget = false;
 
         // Status
@@ -283,7 +283,7 @@ public class PackageScaleStation : BaseDropPoint
 
         // Hint
         hintText = CreateText(canvasObj.transform, "ScaleHintText",
-            standbyHint, 22f, new Color(0.55f, 0.7f, 0.8f), TextAlignmentOptions.Center);
+            standbyHint, 22f, new Color(1f, 0.827f, 0.302f), TextAlignmentOptions.Center);
         SetRect(hintText.rectTransform, new Vector2(0f, 30f), new Vector2(-40f, 40f), new Vector2(0.5f, 0f));
 
         screenBuilt = true;
