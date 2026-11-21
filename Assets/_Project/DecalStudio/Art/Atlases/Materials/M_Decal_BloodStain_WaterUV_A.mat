@@ -39,7 +39,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Cutoff: 0.5
-    - _EmissionIntensity: 0
+    - _EmissionIntensity: 3
     - _HeightContrast: 1.5
     - _HeightStrength: 0.25
     - _MetallicScale: 1
@@ -50,6 +50,6 @@ Material:
     - _SmoothnessScale: 1
     m_Colors:
     - _BaseColor: {r: 0.36, g: 0.06, b: 0.05, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissionColor: {r: 0.55, g: 0.85, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

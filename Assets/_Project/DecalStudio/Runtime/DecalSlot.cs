@@ -92,10 +92,14 @@ namespace Sector13.Decals
             if (entry.material != null) p.material = entry.material;
 
             var rect = entry.uvRect;
-            p.uvScale = new Vector2(rect.width * uvScaleMul.x, rect.height * uvScaleMul.y);
+            // Inset a few pixels so bilinear filtering never samples the atlas gutter
+            // (that gutter shows up as thin dark lines across the stain).
+            const float inset = 0.004f;
+            p.uvScale = new Vector2((rect.width - inset * 2f) * uvScaleMul.x,
+                                    (rect.height - inset * 2f) * uvScaleMul.y);
             p.uvBias = new Vector2(
-                rect.x + uvOffset.x * rect.width,
-                rect.y + uvOffset.y * rect.height);
+                rect.x + inset + uvOffset.x * rect.width,
+                rect.y + inset + uvOffset.y * rect.height);
         }
     }
 }

@@ -276,8 +276,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -1251,8 +1251,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -2633,6 +2633,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ce4ba43cea67444f8eb049d83df5806, type: 3}
+--- !u!4 &37175142 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8949383288804798862, guid: fbb552878f0b741448831298503040cc, type: 3}
+  m_PrefabInstance: {fileID: 117371017}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &37912140
 GameObject:
   m_ObjectHideFlags: 0
@@ -2755,11 +2760,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!4 &37175142 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8949383288804798862, guid: fbb552878f0b741448831298503040cc, type: 3}
-  m_PrefabInstance: {fileID: 117371017}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &40424274 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6267469796897853637, guid: 6964e795453a2404aa973d7f42487d4e, type: 3}
@@ -3232,8 +3232,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6003,8 +6003,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6510,8 +6510,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -6963,6 +6963,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7204414968161081938, guid: 8e0b3d84b7b184541820f1fb14d10e20, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8663,8 +8667,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -8741,6 +8745,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7204414968161081938, guid: 8e0b3d84b7b184541820f1fb14d10e20, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10703,7 +10711,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &206200697
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11740,8 +11748,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -13131,6 +13139,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7204414968161081938, guid: 8e0b3d84b7b184541820f1fb14d10e20, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15542,7 +15554,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6324753327013748217, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_text
-      value: '...'
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 6324753327013748217, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_fontAsset
@@ -15558,6 +15570,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6324753327013748217, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6392260356354216532, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6579399504819034207, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
@@ -15677,6 +15693,10 @@ PrefabInstance:
     - target: {fileID: 8719328140573550692, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 8848514875904906940, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
+      propertyPath: m_text
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 8848514875904906940, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
       propertyPath: m_fontAsset
@@ -18132,8 +18152,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -19800,6 +19820,133 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
   m_PrefabInstance: {fileID: 360767896}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &361755772
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 361755773}
+  - component: {fileID: 361755774}
+  - component: {fileID: 361755775}
+  m_Layer: 0
+  m_Name: Hero_Scale
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &361755773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 361755772}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -3.62, y: 5.5, z: -15.57}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 804979228}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!108 &361755774
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 361755772}
+  m_Enabled: 1
+  serializedVersion: 13
+  m_Type: 0
+  m_Color: {r: 1, g: 0.96, b: 0.88, a: 1}
+  m_Intensity: 48
+  m_Range: 7
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 0.9
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShapeRadius: 0.025
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!114 &361755775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 361755772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &362623831
 GameObject:
   m_ObjectHideFlags: 0
@@ -19937,133 +20084,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362623831}
   m_CullTransparentMesh: 1
---- !u!1 &361755772
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 361755773}
-  - component: {fileID: 361755774}
-  - component: {fileID: 361755775}
-  m_Layer: 0
-  m_Name: Hero_Scale
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &361755773
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 361755772}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -3.62, y: 5.5, z: -15.57}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 804979228}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!108 &361755774
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 361755772}
-  m_Enabled: 1
-  serializedVersion: 13
-  m_Type: 0
-  m_Color: {r: 1, g: 1, b: 0.92, a: 1}
-  m_Intensity: 45
-  m_Range: 12
-  m_SpotAngle: 75
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize2D: {x: 0.5, y: 0.5}
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 0.9
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShapeRadius: 0.025
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!114 &361755775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 361755772}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
 --- !u!1001 &363950173
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22080,8 +22100,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -23929,8 +23949,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -24397,8 +24417,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -25581,8 +25601,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -25955,8 +25975,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -26506,6 +26526,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1558152065}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29534,8 +29558,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -29860,6 +29884,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -30786,6 +30814,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2051143940560515516, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ccd869a359617004a96e157afff5b8a0, type: 2}
     - target: {fileID: 2386582875927954229, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
       propertyPath: m_fontColor.b
       value: 0.3019608
@@ -30794,10 +30826,6 @@ PrefabInstance:
       propertyPath: m_fontColor.g
       value: 0.827451
       objectReference: {fileID: 0}
-    - target: {fileID: 2051143940560515516, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: ccd869a359617004a96e157afff5b8a0, type: 2}
     - target: {fileID: 2386582875927954229, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
       propertyPath: m_fontColor.r
       value: 1
@@ -33606,8 +33634,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -34296,8 +34324,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -34474,8 +34502,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -37438,7 +37466,7 @@ RectTransform:
   - {fileID: 1693677406}
   - {fileID: 26052261}
   - {fileID: 910846515}
-  m_Father: {fileID: 1212142234}
+  m_Father: {fileID: 287935511}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -37797,8 +37825,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -38115,8 +38143,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -39183,8 +39211,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -40392,8 +40420,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -41729,8 +41757,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -42239,8 +42267,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -45095,8 +45123,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -45273,8 +45301,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 10.7026205
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 10.7026205
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -46850,8 +46878,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -47607,8 +47635,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -48314,8 +48342,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -55214,8 +55242,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -56512,6 +56540,44 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 103213247851261714, guid: d567afb4be08faa4d8ca9b9423860409, type: 3}
   m_PrefabInstance: {fileID: 1058959993}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1059250442
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1059250443}
+  m_Layer: 0
+  m_Name: Structure
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1059250443
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1059250442}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 506927339}
+  - {fileID: 2057268097}
+  - {fileID: 1926007704}
+  - {fileID: 1704589748}
+  - {fileID: 614205399}
+  - {fileID: 1025143520}
+  - {fileID: 1667653547}
+  m_Father: {fileID: 90947244}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1062485726
 GameObject:
   m_ObjectHideFlags: 0
@@ -56649,44 +56715,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &1059250442
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1059250443}
-  m_Layer: 0
-  m_Name: Structure
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1059250443
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1059250442}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 506927339}
-  - {fileID: 2057268097}
-  - {fileID: 1926007704}
-  - {fileID: 1704589748}
-  - {fileID: 614205399}
-  - {fileID: 1025143520}
-  - {fileID: 1667653547}
-  m_Father: {fileID: 90947244}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1063744537 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7065704450782576327, guid: 1022c53db14a67e4aa27c4c31ec17cae, type: 3}
@@ -58081,6 +58109,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 843375438}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -58667,8 +58699,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -58804,7 +58836,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1340259399}
-  m_Father: {fileID: 1212142234}
+  m_Father: {fileID: 287935511}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1101305821
 PrefabInstance:
@@ -59258,8 +59290,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -59436,8 +59468,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -63045,8 +63077,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -63595,8 +63627,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -63696,6 +63728,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1671612469}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -64514,11 +64550,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ce4ba43cea67444f8eb049d83df5806, type: 3}
---- !u!224 &1212142234 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 445997557259778745, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
-  m_PrefabInstance: {fileID: 287935510}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1212904206
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -65734,8 +65765,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -66561,8 +66592,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -67011,6 +67042,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1671612469}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -68126,7 +68161,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '-'
+  m_text: "\u2014"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b9441f326a436a745b8af0c939b33161, type: 2}
   m_sharedMaterial: {fileID: 287995134387836217, guid: b9441f326a436a745b8af0c939b33161, type: 2}
@@ -69665,6 +69700,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1106386190}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -70754,8 +70793,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -71409,8 +71448,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -73305,8 +73344,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -74230,6 +74269,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1106386190}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -74970,6 +75013,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
   m_PrefabInstance: {fileID: 1426252522}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1427089481 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
+  m_PrefabInstance: {fileID: 2015545421}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1428740301
 GameObject:
   m_ObjectHideFlags: 0
@@ -75045,11 +75093,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1428740301}
   m_CullTransparentMesh: 1
---- !u!4 &1427089481 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
-  m_PrefabInstance: {fileID: 2015545421}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1429900050
 GameObject:
   m_ObjectHideFlags: 0
@@ -77460,8 +77503,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -79588,8 +79631,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -81849,8 +81892,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -82373,8 +82416,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -83382,8 +83425,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -83455,6 +83498,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7204414968161081938, guid: 8e0b3d84b7b184541820f1fb14d10e20, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -84259,8 +84306,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -85140,8 +85187,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -85370,6 +85417,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 843375438}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -87469,8 +87520,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -88574,8 +88625,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -93153,8 +93204,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -93393,8 +93444,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -93886,6 +93937,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1558152065}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -94579,11 +94634,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7065704450782576327, guid: 1022c53db14a67e4aa27c4c31ec17cae, type: 3}
   m_PrefabInstance: {fileID: 1778252918}
   m_PrefabAsset: {fileID: 0}
---- !u!224 &1782087951 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 7623038046916624897, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
-  m_PrefabInstance: {fileID: 287935510}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1781770803
 GameObject:
   m_ObjectHideFlags: 0
@@ -94711,6 +94761,11 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!224 &1782087951 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7623038046916624897, guid: 55dded25891268b4dbbf32a5df0dfed3, type: 3}
+  m_PrefabInstance: {fileID: 287935510}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1782672752
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -95447,8 +95502,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -96837,8 +96892,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -100216,6 +100271,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -100594,8 +100653,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -101388,7 +101447,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1911224589
 RectTransform:
   m_ObjectHideFlags: 0
@@ -101402,7 +101461,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 206200697}
-  m_Father: {fileID: 1212142234}
+  m_Father: {fileID: 287935511}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -101808,6 +101867,88 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
   m_PrefabInstance: {fileID: 1923242609}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1923519053
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1750450433}
+    m_Modifications:
+    - target: {fileID: 4665915515874088868, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 868920037}
+    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 868920037}
+    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_VersionIndex
+      value: 906
+      objectReference: {fileID: 0}
+    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_SelectedVertices.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7949296341163439160, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_Name
+      value: Wall_1x3 (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -23
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071079
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.70710576
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9174570639785991630, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 868920037}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+--- !u!4 &1923519054 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
+  m_PrefabInstance: {fileID: 1923519053}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1924986826
 GameObject:
   m_ObjectHideFlags: 0
@@ -101945,88 +102086,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1001 &1923519053
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1750450433}
-    m_Modifications:
-    - target: {fileID: 4665915515874088868, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 868920037}
-    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 868920037}
-    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_VersionIndex
-      value: 906
-      objectReference: {fileID: 0}
-    - target: {fileID: 5813148590581278448, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_SelectedVertices.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7949296341163439160, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_Name
-      value: Wall_1x3 (11)
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -23
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -18
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071079
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.70710576
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9174570639785991630, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 868920037}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
---- !u!4 &1923519054 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8679113186060815948, guid: ce7df4146e3c9614e9925510e575fb1f, type: 3}
-  m_PrefabInstance: {fileID: 1923519053}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1925299798
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -103295,8 +103354,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -104373,8 +104432,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -106748,8 +106807,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -109072,8 +109131,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -112249,9 +112308,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1566099436}
     - target: {fileID: 7667711575376318569, guid: 9c59bbb26cc58444cb13f708a1d96a1f, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: -876546973899608171, guid: 48ae4d1f77b1f25438c9b722f4457e98, type: 3}
+      objectReference: {fileID: 2100000, guid: 2984a7480c8ef91439301b7fcb4393e1, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -112746,8 +112805,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -113203,8 +113262,8 @@ Mesh:
   m_CookingOptions: 30
   m_BakedConvexCollisionMesh: 
   m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
   m_MeshOptimizationFlags: 1
   m_StreamData:
     serializedVersion: 2
@@ -115393,39 +115452,39 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 6710169368151423947, guid: 7eccca39e9c08794f82283e35d5b121f, type: 3}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[0]
+      propertyPath: 'spawnSlots.Array.data[0]'
       value: 
       objectReference: {fileID: 925834086}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[1]
+      propertyPath: 'spawnSlots.Array.data[1]'
       value: 
       objectReference: {fileID: 1974185180}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[2]
+      propertyPath: 'spawnSlots.Array.data[2]'
       value: 
       objectReference: {fileID: 1950927708}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[3]
+      propertyPath: 'spawnSlots.Array.data[3]'
       value: 
       objectReference: {fileID: 63287859}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[4]
+      propertyPath: 'spawnSlots.Array.data[4]'
       value: 
       objectReference: {fileID: 146366453}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[5]
+      propertyPath: 'spawnSlots.Array.data[5]'
       value: 
       objectReference: {fileID: 1429900051}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[6]
+      propertyPath: 'spawnSlots.Array.data[6]'
       value: 
       objectReference: {fileID: 1139180419}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[7]
+      propertyPath: 'spawnSlots.Array.data[7]'
       value: 
       objectReference: {fileID: 1101614027}
     - target: {fileID: 785633715487001694, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[8]
+      propertyPath: 'spawnSlots.Array.data[8]'
       value: 
       objectReference: {fileID: 1033635906}
     - target: {fileID: 6983079723217707015, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
@@ -115485,39 +115544,39 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[0]
+      propertyPath: 'spawnSlots.Array.data[0]'
       value: 
       objectReference: {fileID: 925834086}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[1]
+      propertyPath: 'spawnSlots.Array.data[1]'
       value: 
       objectReference: {fileID: 1974185180}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[2]
+      propertyPath: 'spawnSlots.Array.data[2]'
       value: 
       objectReference: {fileID: 1950927708}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[3]
+      propertyPath: 'spawnSlots.Array.data[3]'
       value: 
       objectReference: {fileID: 63287859}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[4]
+      propertyPath: 'spawnSlots.Array.data[4]'
       value: 
       objectReference: {fileID: 146366453}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[5]
+      propertyPath: 'spawnSlots.Array.data[5]'
       value: 
       objectReference: {fileID: 1429900051}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[6]
+      propertyPath: 'spawnSlots.Array.data[6]'
       value: 
       objectReference: {fileID: 1139180419}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[7]
+      propertyPath: 'spawnSlots.Array.data[7]'
       value: 
       objectReference: {fileID: 1101614027}
     - target: {fileID: 9147460590486228788, guid: ae8da65dd943766498008cb9ae2db08b, type: 3}
-      propertyPath: spawnSlots.Array.data[8]
+      propertyPath: 'spawnSlots.Array.data[8]'
       value: 
       objectReference: {fileID: 1033635906}
     m_RemovedComponents: []

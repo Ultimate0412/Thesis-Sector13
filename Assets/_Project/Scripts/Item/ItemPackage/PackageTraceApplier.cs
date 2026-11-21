@@ -158,7 +158,7 @@ public class PackageTraceApplier : MonoBehaviour
         // seed ถูกเลือกครั้งเดียวต่อกล่อง → สุ่มเหมือนเดิมทุกครั้งที่เรียกซ้ำ
         if (!seedInitialized)
         {
-            resolvedSeed = traceSeed != 0 ? traceSeed : Random.Range(1, int.MaxValue);
+            resolvedSeed = ResolveSeedFromSerial();
             seedInitialized = true;
         }
         var rng = new System.Random(resolvedSeed);
@@ -232,6 +232,10 @@ public class PackageTraceApplier : MonoBehaviour
         // 3) ที่เหลือสุ่ม (จะหลบพื้นที่ที่ถูกจองไว้)
         for (int i = 0; i < procedural.Count; i++)
             SpawnOneInternal(procedural[i], rng, i);
+
+        // Guarantee: never ship a dirty parcel with fewer clues than it rolled for,
+        // and never ship an alien parcel without a UV-readable clue.
+        EnsureMinimumEvidence(slots, currentVerdict, typeCount, rng, boxCenter, boxHalf);
     }
 
     private bool TryUseAuthoredSlot(TraceSpawnRule rule, System.Random rng, Vector3 boxCenter, Vector3 boxHalf)
@@ -337,6 +341,181 @@ public class PackageTraceApplier : MonoBehaviour
             var chosen = candidates[rng.Next(0, candidates.Count)];
             ShowSlot(chosen);
         }
+
+        EnsureMinimumEvidence(slots, currentVerdict, typeCount, rng,
+            boxCollider != null ? boxCollider.center : Vector3.zero,
+            (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f);
+    }
+
+    // ------------------------------------------------------------------
+    // Seed
+    // ------------------------------------------------------------------
+    /// <summary>
+    /// Stable per-parcel seed derived from the manifest serial number.
+    /// Same parcel (same serial, also restored from a save file) always gets the
+    /// same evidence layout, while two parcels never share one — the old fixed
+    /// prefab seed made every box of a type look identical.
+    /// </summary>
+    private int ResolveSeedFromSerial()
+    {
+        var box = GetComponent<PackageBox>();
+        string serial = box != null && box.officialDatabaseData != null
+            ? box.officialDatabaseData.serialNumber : null;
+
+        if (string.IsNullOrEmpty(serial))
+            return traceSeed != 0 ? traceSeed : Random.Range(1, int.MaxValue);
+
+        unchecked
+        {
+            int h = 17;
+            for (int i = 0; i < serial.Length; i++) h = h * 31 + serial[i];
+            h = h * 486187739 ^ traceSeed;
+            if (h == 0) h = 1;
+            return h & 0x7FFFFFFF;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Minimum evidence guarantee
+    // ------------------------------------------------------------------
+    private int CountVisibleSlots(DecalSlot[] slots)
+    {
+        int n = 0;
+        for (int i = 0; i < slots.Length; i++)
+            if (slots[i] != null && slots[i].gameObject.activeSelf) n++;
+        return n;
+    }
+
+    private bool HasVisibleUvSlot(DecalSlot[] slots)
+    {
+        for (int i = 0; i < slots.Length; i++)
+            if (slots[i] != null && slots[i].gameObject.activeSelf &&
+                slots[i].visibility == TraceVisibility.RequiresUV) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// A parcel that rolled for N clues must show N clues, and an alien parcel must
+    /// always carry at least one UV-readable clue. Without this, the authored-slot
+    /// matching can silently drop every pick and ship a blank box.
+    /// </summary>
+    private void EnsureMinimumEvidence(DecalSlot[] slots, VerdictType verdict, int targetCount,
+                                       System.Random rng, Vector3 boxCenter, Vector3 boxHalf)
+    {
+        if (slots == null || slots.Length == 0) return;
+
+        int visible = CountVisibleSlots(slots);
+
+        // 1) Top up to the rolled clue count.
+        int guard = 0;
+        while (targetCount > 0 && visible < targetCount && guard++ < 8)
+        {
+            var pool = new List<DecalSlot>();
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var s = slots[i];
+                if (s == null || s.gameObject.activeSelf || s.alwaysVisible) continue;
+                if (!s.Allows(verdict)) continue;
+                pool.Add(s);
+            }
+            if (pool.Count == 0) break;
+
+            ShowSlot(pool[rng.Next(0, pool.Count)]);
+            visible++;
+        }
+
+        // 2) Alien parcels always keep one UV clue so the flashlight has a payoff.
+        if (verdict == VerdictType.Alien && visible > 0 && !HasVisibleUvSlot(slots))
+        {
+            var uv = new List<DecalSlot>();
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var s = slots[i];
+                if (s == null || s.gameObject.activeSelf || s.alwaysVisible) continue;
+                if (!s.Allows(verdict)) continue;
+                if (s.visibility != TraceVisibility.RequiresUV) continue;
+                uv.Add(s);
+            }
+
+            if (uv.Count > 0)
+            {
+                ShowSlot(uv[rng.Next(0, uv.Count)]);
+            }
+            else
+            {
+                // No authored UV slot on this prefab - spawn the clue procedurally instead.
+                var rule = spawnTable != null ? spawnTable.Get(verdict) : null;
+                if (rule != null)
+                {
+                    for (int i = 0; i < rule.rules.Count; i++)
+                    {
+                        var r = rule.rules[i];
+                        if (r == null || !r.enabled) continue;
+                        if (r.visibility != TraceVisibility.RequiresUV) continue;
+                        SpawnOneInternal(r, rng, 0);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Authored slots were rotated by hand and many of them point sideways instead of
+    /// into the box, so the projection volume misses the face and nothing renders.
+    /// Snap every slot to the nearest face: sit just outside it, look inward.
+    /// </summary>
+    private void AlignSlotToFace(DecalSlot slot)
+    {
+        if (slot == null) return;
+        if (boxCollider == null) boxCollider = GetComponent<BoxCollider>();
+        if (boxCollider == null) boxCollider = GetComponentInChildren<BoxCollider>();
+        if (boxCollider == null) return;
+
+        var boxT = boxCollider.transform;
+        Vector3 half = boxCollider.size * 0.5f;
+
+        // The player inspects parcels from above, so evidence always goes on the lid.
+        // Authored slots were scattered over every face (many on the bottom), which is
+        // why most parcels looked clean.
+        Vector3 n = Vector3.up;
+        Vector3 faceLocal = boxCollider.center + new Vector3(0f, half.y, 0f);
+        faceLocal.x += (StableRoll(slot, 11) / 360f - 0.5f) * half.x * 1.15f;
+        faceLocal.z += (StableRoll(slot, 23) / 360f - 0.5f) * half.z * 1.15f;
+        Vector3 faceWorld = boxT.TransformPoint(faceLocal);
+        Vector3 nWorld = boxT.TransformDirection(n).normalized;
+
+        var proj = slot.Projector;
+        float depth = proj != null ? Mathf.Max(0.55f, proj.size.z) : 0.55f;
+        if (proj != null)
+        {
+            var s = proj.size;
+            s.z = depth;
+            proj.size = s;
+        }
+
+        // The projection volume starts at the transform and extends 'depth' along the
+        // face normal, so sit the transform just inside the surface - not above it.
+        slot.transform.position = faceWorld + nWorld * (depth * 0.5f - 0.03f);
+        Vector3 upHint = Mathf.Abs(nWorld.y) > 0.9f ? Vector3.forward : Vector3.up;
+        slot.transform.rotation = Quaternion.LookRotation(-nWorld, upHint)
+                                  * Quaternion.Euler(0f, 0f, StableRoll(slot));
+    }
+
+    private static float StableRoll(DecalSlot slot)
+    {
+        return StableRoll(slot, 0);
+    }
+
+    private static float StableRoll(DecalSlot slot, int salt)
+    {
+        unchecked
+        {
+            int h = 17 + salt * 7919;
+            string key = (slot.decalId ?? "") + (int)slot.traceType + slot.name;
+            for (int i = 0; i < key.Length; i++) h = h * 31 + key[i];
+            return (h & 0x7FFFFFFF) % 360;
+        }
     }
 
     private static bool HasAvailableSlot(DecalSlot[] slots, TraceType type)
@@ -349,6 +528,7 @@ public class PackageTraceApplier : MonoBehaviour
     private void ShowSlot(DecalSlot slot)
     {
         slot.SetVisible(true);
+        AlignSlotToFace(slot);
         var projector = slot.Projector;
         if (projector == null) return;
 
@@ -496,14 +676,22 @@ public class PackageTraceApplier : MonoBehaviour
         decalGo.transform.localRotation = localRot;
 
         DecalProjector projector = decalGo.AddComponent<DecalProjector>();
-        projector.size = new Vector3(size, size, depth);
+        // The projection volume starts at pivot.z * size.z from the transform, so a
+        // projector sitting exactly on the face starts inside the mesh and never
+        // renders. Deepen the volume and sit it just inside the surface.
+        float projDepth = Mathf.Max(depth, 0.55f);
+        projector.size = new Vector3(size, size, projDepth);
+        decalGo.transform.position -= decalGo.transform.forward * (projDepth * 0.5f - 0.03f);
         projector.fadeFactor = 1f;
 
         if (useSpecific)
         {
             projector.material = specific.material;
-            projector.uvScale = new Vector2(specific.uvRect.width, specific.uvRect.height);
-            projector.uvBias = new Vector2(specific.uvRect.x, specific.uvRect.y);
+            const float uvInset = 0.004f;
+            projector.uvScale = new Vector2(specific.uvRect.width - uvInset * 2f,
+                                            specific.uvRect.height - uvInset * 2f);
+            projector.uvBias = new Vector2(specific.uvRect.x + uvInset,
+                                           specific.uvRect.y + uvInset);
         }
         else if (useLibrary)
         {

@@ -569,37 +569,37 @@ public class GameDayManager : MonoBehaviour
         List<string> issues = new List<string>();
         if (boxesOnSpawn > 0)
         {
-            issues.Add($"มีกล่องค้างที่จุด Spawn ({boxesOnSpawn} กล่อง)");
+            issues.Add($"{boxesOnSpawn} parcel(s) still on the delivery shelf");
         }
         if (boxesOnFloor > 0)
         {
-            issues.Add($"มีกล่องตกค้างอยู่บนพื้น ({boxesOnFloor} กล่อง)");
+            issues.Add($"{boxesOnFloor} parcel(s) left on the floor");
         }
         if (boxesInHands > 0)
         {
-            issues.Add($"มีกล่องอยู่ในมือผู้เล่น ({boxesInHands} กล่อง)");
+            issues.Add($"{boxesInHands} parcel(s) still in your hands");
         }
         if (boxesAtShipping > 0)
         {
-            issues.Add($"มีกล่องค้างที่จุดส่งสินค้า ({boxesAtShipping} กล่อง)");
+            issues.Add($"{boxesAtShipping} parcel(s) waiting at the shipping bay");
         }
         if (itemsOnSpawn > 0)
         {
-            issues.Add($"มีสินค้าเดี่ยวค้างที่จุด Spawn ({itemsOnSpawn} ชิ้น)");
+            issues.Add($"{itemsOnSpawn} loose item(s) on the delivery shelf");
         }
         if (itemsOnFloor > 0)
         {
-            issues.Add($"มีสินค้าเดี่ยวตกค้างอยู่บนพื้น ({itemsOnFloor} ชิ้น)");
+            issues.Add($"{itemsOnFloor} loose item(s) left on the floor");
         }
         if (itemsInHands > 0)
         {
-            issues.Add($"มีสินค้าเดี่ยวอยู่ในมือผู้เล่น ({itemsInHands} ชิ้น)");
+            issues.Add($"{itemsInHands} loose item(s) still in your hands");
         }
 
         // ต้องใช้โควต้าสปอนของวันนี้ให้หมดก่อน (โควต้าที่เหลือ = ยังมีพัสดุที่ยังไม่ถูกสร้าง)
         if (remainingSpawnQuotaToday > 0)
         {
-            issues.Add($"ยังเหลือโควต้าสปอนอีก {remainingSpawnQuotaToday} กล่อง — กด E ที่ชั้นวางให้ครบก่อนจบวัน");
+            issues.Add($"{remainingSpawnQuotaToday} parcel(s) still waiting to be called in — press E at the shelf");
         }
 
         // ส่งพัสดุไม่ถึงขั้นต่ำ: บล็อกไว้ก่อน แต่ผู้เล่นยืนยันรับโทษเพื่อข้ามได้
@@ -609,13 +609,18 @@ public class GameDayManager : MonoBehaviour
             int shipped = ShippedToday;
             if (required > 0 && shipped < required)
             {
-                issues.Add($"ส่งพัสดุแล้ว {shipped}/{required} กล่อง (ขาดอีก {required - shipped} กล่อง)");
+                issues.Add($"shipped {shipped}/{required} parcels (short by {required - shipped})");
             }
         }
 
+        // Forcing the day (END DAY ANYWAY) means the player accepts the penalty, so
+        // leftover parcels must not hard-block the day. Without this, a full storage
+        // room or a parcel stuck on the floor soft-locks the run.
+        if (ignoreMinShipped) issues.Clear();
+
         if (issues.Count > 0)
         {
-            failReason = "ไม่สามารถจบวันได้:\n• " + string.Join("\n• ", issues);
+            failReason = "CANNOT END THE DAY:\n• " + string.Join("\n• ", issues);
             return false;
         }
 

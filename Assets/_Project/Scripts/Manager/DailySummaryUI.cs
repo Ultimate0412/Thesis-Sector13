@@ -168,32 +168,32 @@ public class DailySummaryUI : MonoBehaviour
 
             if (rejectedCountText != null)
             {
-                rejectedCountText.text = $"{stats.dailyRejectedCount} กล่อง";
+                rejectedCountText.text = $"{stats.dailyRejectedCount} boxes";
             }
 
             if (approvedCountText != null)
             {
-                approvedCountText.text = $"{stats.dailyApprovedCount} กล่อง";
+                approvedCountText.text = $"{stats.dailyApprovedCount} boxes";
             }
 
             if (legalCountText != null)
             {
-                legalCountText.text = $"<color=#5AFFA5>{stats.legalShippedCount} กล่อง</color>";
+                legalCountText.text = $"<color=#5AFFA5>{stats.legalShippedCount} boxes</color>";
             }
 
             if (illegalCountText != null)
             {
-                illegalCountText.text = $"<color=#FFD64E>{stats.illegalShippedCount} กล่อง</color>";
+                illegalCountText.text = $"<color=#FFD64E>{stats.illegalShippedCount} boxes</color>";
             }
 
             if (alienCountText != null)
             {
-                alienCountText.text = $"<color=#FF5AA5>{stats.alienShippedCount} กล่อง</color>";
+                alienCountText.text = $"<color=#FF5AA5>{stats.alienShippedCount} boxes</color>";
             }
 
             if (totalShippedText != null)
             {
-                totalShippedText.text = $"{stats.TotalShippedToday} กล่อง";
+                totalShippedText.text = $"{stats.TotalShippedToday} boxes";
             }
         }
 

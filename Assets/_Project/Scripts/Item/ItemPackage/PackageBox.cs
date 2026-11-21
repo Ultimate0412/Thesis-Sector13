@@ -68,6 +68,39 @@ public class PackageBox : MonoBehaviour, IInteractable, ICarryable
         InitializeManifest();
     }
 
+    /// <summary>
+    /// Safety net: a parcel that gets launched out of the world (physics glitch, bad
+    /// teleport, thrown through a hole) otherwise counts as "left on the floor"
+    /// forever and makes the day impossible to end. Bring it back to the shelf.
+    /// </summary>
+    private void Update()
+    {
+        Vector3 p = transform.position;
+        if (p.y > 60f || p.y < -15f || Mathf.Abs(p.x) > 120f || Mathf.Abs(p.z) > 120f)
+        {
+            Vector3 target = new Vector3(0f, 1.5f, 0f);
+            ItemSpawner spawner = FindFirstObjectByType<ItemSpawner>();
+            if (spawner != null && spawner.spawnSlots != null && spawner.spawnSlots.Length > 0)
+            {
+                Transform slot = null;
+                for (int i = 0; i < spawner.spawnSlots.Length; i++)
+                {
+                    if (spawner.spawnSlots[i] != null) { slot = spawner.spawnSlots[i]; break; }
+                }
+                if (slot != null) target = slot.position + Vector3.up * 0.35f;
+            }
+
+            transform.position = target;
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+            Debug.LogWarning($"[PackageBox] '{name}' หลุดขอบโลก (y={p.y:F0}) -> ย้ายกลับจุดรับพัสดุ");
+        }
+    }
+
     // สุ่มสินค้าใส่ในกล่องหากมีการกำหนด possibleInnerItemPrefabs
     public void InitializeInnerItem()
     {
