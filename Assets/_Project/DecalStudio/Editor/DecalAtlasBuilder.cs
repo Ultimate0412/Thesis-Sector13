@@ -170,6 +170,7 @@ namespace Sector13.Decals.EditorTools
                 mat.SetFloat("_MetallicScale", src.metallicScale);
                 mat.SetFloat("_SmoothnessScale", src.smoothnessScale);
                 mat.SetFloat("_Opacity", 1f);
+                mat.SetVector("_DecalRect", new Vector4(u0, v0, u1 - u0, v1 - v0));
                 mat.enableInstancing = true;
 
                 if (src.requiresUV)

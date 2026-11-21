@@ -39,7 +39,12 @@ Shader "Sector13/Decals/DecalAtlas"
         [Header(Emission (UV traces))]
         [HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0, 1)
         _EmissionIntensity ("Emission Intensity", Range(0, 8)) = 1
+
+        // ช่องของ decal ใน atlas (x,y,w,h) — ใช้แค่วาดพรีวิวใน Inspector
+        [HideInInspector] _DecalRect ("Atlas Cell", Vector) = (0, 0, 1, 1)
     }
+
+    CustomEditor "Sector13.Decals.EditorTools.DecalAtlasShaderGUI"
 
     SubShader
     {
