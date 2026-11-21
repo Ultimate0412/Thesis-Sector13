@@ -244,7 +244,7 @@ public class PlayerHealthUI : MonoBehaviour
         whiteSprite = CreateWhiteSprite();
 
         RectTransform labelRect = NewRect("HP_Label", root);
-        SetRect(labelRect, 0f, 3f, 28f, 28f);
+        SetRect(labelRect, 0f, 3f, 38f, 28f);
         crtLabel = labelRect.gameObject.AddComponent<TextMeshProUGUI>();
         crtLabel.text = "HP";
         crtLabel.fontSize = 20f;
@@ -252,9 +252,10 @@ public class PlayerHealthUI : MonoBehaviour
         crtLabel.alignment = TextAlignmentOptions.MidlineLeft;
         crtLabel.color = crtYellow;
         crtLabel.raycastTarget = false;
+        crtLabel.enableWordWrapping = false;
 
         // Bar starts to the right of the HP label.
-        float barX = 33f;
+        float barX = 42f;
         float barY = 8f;
         float barWidth = 192f;
         float barHeight = 18f;
