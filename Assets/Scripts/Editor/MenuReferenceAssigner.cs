@@ -167,6 +167,33 @@ public static class MenuReferenceAssigner
         Debug.Log("[MenuReferenceAssigner] ผูก reference ของ Daily Summary เรียบร้อย");
     }
 
+    [MenuItem("Tools/Sector13/UI/Assign Objective HUD References")]
+    public static void AssignObjectiveHUD()
+    {
+        DailyObjectiveHUD hud = Object.FindAnyObjectByType<DailyObjectiveHUD>(FindObjectsInactive.Include);
+        if (hud == null)
+        {
+            Debug.LogError("[MenuReferenceAssigner] ไม่พบ DailyObjectiveHUD ในซีนที่เปิดอยู่");
+            return;
+        }
+
+        Transform panel = hud.transform;
+
+        Undo.RecordObject(hud, "Assign Objective HUD References");
+        SerializedObject so = new SerializedObject(hud);
+
+        Set(so, "canvasGroup", panel.GetComponent<CanvasGroup>());
+        Set(so, "dayTitleText", Find<TextMeshProUGUI>(panel, "Title"));
+        Set(so, "shippedValueText", Find<TextMeshProUGUI>(panel, "ShippedRow/Value"));
+        Set(so, "stationFeeValueText", Find<TextMeshProUGUI>(panel, "FeeRow/Value"));
+
+        so.ApplyModifiedProperties();
+        EditorUtility.SetDirty(hud);
+        EditorSceneManager.MarkSceneDirty(hud.gameObject.scene);
+
+        Debug.Log("[MenuReferenceAssigner] ผูก reference ของ Objective HUD เรียบร้อย");
+    }
+
     private static void AssignEndDayBlockedDialog(Transform canvas)
     {
         EndDayBlockedDialog dialog = Object.FindAnyObjectByType<EndDayBlockedDialog>();
