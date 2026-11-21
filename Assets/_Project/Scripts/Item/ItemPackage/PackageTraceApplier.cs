@@ -336,6 +336,10 @@ public class PackageTraceApplier : MonoBehaviour
         Vector3 boxCenter = boxCollider != null ? boxCollider.center : Vector3.zero;
         Vector3 boxHalf = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
 
+        // กันรอยยืดทะลุขอบ: ขนาดต้องไม่เกินหน้าที่เล็กที่สุด
+        float maxFaceSize = 2f * Mathf.Min(boxHalf.x, Mathf.Min(boxHalf.y, boxHalf.z)) * 0.92f;
+        size = Mathf.Min(size, maxFaceSize);
+
         // 2) หาตำแหน่ง — ถ้าเปิด preventOverlap จะลองสุ่มใหม่จนไม่ทับรอยเดิม
         Vector3 localPos = Vector3.zero;
         Quaternion localRot = Quaternion.identity;
@@ -528,6 +532,29 @@ public class PackageTraceApplier : MonoBehaviour
             localPos.y = Mathf.Lerp(localPos.y, lowest, t);
         }
 
+        // กันรอยล้นขอบหน้า: ดันตำแหน่งให้อยู่ในการ์ดของหน้า
+        float padX = Mathf.Min(size * 0.5f + 0.01f, half.x * 0.98f);
+        float padY = Mathf.Min(size * 0.5f + 0.01f, half.y * 0.98f);
+        float padZ = Mathf.Min(size * 0.5f + 0.01f, half.z * 0.98f);
+
+        switch (face)
+        {
+            case DecalFaceMask.Top:
+            case DecalFaceMask.Bottom:
+                localPos.x = Mathf.Clamp(localPos.x, center.x - half.x + padX, center.x + half.x - padX);
+                localPos.z = Mathf.Clamp(localPos.z, center.z - half.z + padZ, center.z + half.z - padZ);
+                break;
+            case DecalFaceMask.Front:
+            case DecalFaceMask.Back:
+                localPos.x = Mathf.Clamp(localPos.x, center.x - half.x + padX, center.x + half.x - padX);
+                localPos.y = Mathf.Clamp(localPos.y, center.y - half.y + padY, center.y + half.y - padY);
+                break;
+            default: // Left / Right
+                localPos.z = Mathf.Clamp(localPos.z, center.z - half.z + padZ, center.z + half.z - padZ);
+                localPos.y = Mathf.Clamp(localPos.y, center.y - half.y + padY, center.y + half.y - padY);
+                break;
+        }
+
         float spin = Mathf.Lerp(profile.spinRange.x, profile.spinRange.y, NextFloat(rng));
         Vector3 upVector = Mathf.Abs(Vector3.Dot(forward, Vector3.up)) > 0.85f ? Vector3.forward : Vector3.up;
         localRot = Quaternion.AngleAxis(spin, forward) * Quaternion.LookRotation(forward, upVector);
@@ -631,6 +658,12 @@ public class PackageTraceApplier : MonoBehaviour
     public void SetUVIlluminated(bool illuminated)
     {
         isUVIlluminated = illuminated;
+    }
+
+    /// <summary>ล้าง seed ที่จำไว้ (ใช้โดยเครื่องมือ bake / เทสต์)</summary>
+    public void ResetSeed()
+    {
+        seedInitialized = false;
     }
 
     private void EnsureTracesRoot()

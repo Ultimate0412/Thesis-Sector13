@@ -64,6 +64,104 @@ namespace Sector13.Decals.EditorTools
             Debug.Log($"[DecalStudio] เพิ่ม DecalSlot {added} ตัว");
         }
 
+        [MenuItem("Tools/Sector13/Decal Studio/Bake Procedural Layout to Slots", false, 32)]
+        public static void BakeSelectionToSlots()
+        {
+            int baked = 0;
+            foreach (var go in Selection.gameObjects)
+            {
+                var path = AssetDatabase.GetAssetPath(go);
+                if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab")) continue;
+                if (BakePrefab(path)) baked++;
+            }
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[DecalStudio] bake slots สำเร็จ {baked} prefab");
+        }
+
+        static bool BakePrefab(string path)
+        {
+            var root = UnityEditor.PrefabUtility.LoadPrefabContents(path);
+            var applier = root.GetComponentInChildren<PackageTraceApplier>(true);
+            if (applier == null)
+            {
+                UnityEditor.PrefabUtility.UnloadPrefabContents(root);
+                return false;
+            }
+
+            var old = applier.transform.Find("DecalSlots");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+
+            var container = new GameObject("DecalSlots");
+            container.transform.SetParent(applier.transform, false);
+
+            var library = AssetDatabase.LoadAssetAtPath<DecalLibrary>("Assets/_Project/DecalStudio/Art/DecalLibrary.asset");
+
+            var plans = new (VerdictType verdict, ItemCategory category)[]
+            {
+                (VerdictType.Approve, ItemCategory.Legal),
+                (VerdictType.Illegal, ItemCategory.Illegal),
+                (VerdictType.Alien, ItemCategory.Alien)
+            };
+
+            foreach (var plan in plans)
+            {
+                // 3 รอบต่อ verdict เพื่อเก็บ slot ให้ครอบคลุมชนิดที่สุ่มได้
+                for (int pass = 0; pass < 4; pass++)
+                {
+                    applier.spawnMode = TraceSpawnMode.Procedural;
+                    applier.ResetSeed();
+                    applier.traceSeed = 1000 + (int)plan.verdict * 10 + pass;
+                    applier.ApplyTraces(plan.verdict, plan.category);
+
+                    var traces = applier.transform.Find("SurfaceTracesRoot");
+                    if (traces == null) continue;
+
+                    var children = new List<Transform>();
+                    for (int i = 0; i < traces.childCount; i++) children.Add(traces.GetChild(i));
+
+                    foreach (var child in children)
+                    {
+                        bool uv = child.name.StartsWith("UV_");
+                        string payload = child.name.Substring(uv ? 9 : 6);   // ตัด "UV_Trace_" / "Trace_"
+                        int cut = payload.LastIndexOf('_');
+                        if (cut > 0) payload = payload.Substring(0, cut);
+
+                        var slot = child.GetComponent<DecalSlot>();
+                        if (slot == null) slot = child.gameObject.AddComponent<DecalSlot>();
+
+                        if (System.Enum.TryParse(payload, out TraceType parsed)) slot.traceType = parsed;
+                        slot.visibility = uv ? TraceVisibility.RequiresUV : TraceVisibility.NakedEye;
+                        slot.allowedVerdicts = new[] { plan.verdict };
+                        slot.weight = 10f;
+
+                        // จำ variant เดิมไว้ (ดูจาก material ที่ bake มา)
+                        var projector = child.GetComponent<DecalProjector>();
+                        if (library != null && projector != null && projector.material != null)
+                        {
+                            foreach (var entry in library.AllEntries())
+                            {
+                                if (entry != null && entry.material == projector.material)
+                                {
+                                    slot.decalId = entry.id;
+                                    break;
+                                }
+                            }
+                        }
+
+                        child.name = $"Slot_{plan.verdict}_{pass}_{parsed}";
+                        child.SetParent(container.transform, true);
+                    }
+
+                    Object.DestroyImmediate(traces.gameObject);
+                }
+            }
+
+            applier.spawnMode = TraceSpawnMode.AuthoredSlots;
+            UnityEditor.PrefabUtility.SaveAsPrefabAsset(root, path);
+            UnityEditor.PrefabUtility.UnloadPrefabContents(root);
+            return true;
+        }
+
         static DecalAtlasBuildSettings LoadOrCreateSettings()
         {
             var settings = AssetDatabase.LoadAssetAtPath<DecalAtlasBuildSettings>(DefaultSettingsPath);
