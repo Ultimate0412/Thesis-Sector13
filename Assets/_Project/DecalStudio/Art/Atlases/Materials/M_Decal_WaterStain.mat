@@ -40,19 +40,20 @@ Material:
     - _AlphaClip: 0
     - _Brightness: 3.29
     - _Cutoff: 0
-    - _EmissionIntensity: 0.8
+    - _EmissionIntensity: 0
     - _HeightContrast: 1.5
     - _HeightStrength: 0
     - _MetallicScale: 1
     - _NormalFlipY: 0
     - _NormalStrength: 1
     - _OcclusionScale: 0
-    - _Opacity: 0.386
+    - _Opacity: 0.4
     - _Saturation: 1.53
     - _SmoothnessScale: 1
-    - _Variation: 0.515
+    - _Variation: 1
     m_Colors:
-    - _BaseColor: {r: 0.6320754, g: 0.5064402, b: 0.12224099, a: 1}
+    - _BaseColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+    - _DecalRect: {r: 0, g: 0, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
