@@ -115,8 +115,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // หากผู้เล่นตายแล้ว ให้หยุดการประมวลผลอินพุตและการเคลื่อนไหว
+        // หากผู้เล่นตายแล้ว หรือเกมหยุดเวลา (Pause/สรุปผล) ให้หยุดรับอินพุต
         if (stats != null && stats.IsDead) return;
+        if (Time.timeScale <= 0f) return;
 
         // ล็อกเคอร์เซอร์กลับมาเมื่อคลิกในจอเล่นเกม (หากไม่ได้เปิดเมนูปั๊มตราหรือหน้าต่างสรุปผล)
         if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)

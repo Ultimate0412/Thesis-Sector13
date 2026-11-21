@@ -1,40 +1,47 @@
-using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
+/// <summary>
+/// หน้าต่างสรุปผลประจำวัน
+/// - วันที่ผ่านเงื่อนไข: แสดงปุ่ม NEXT DAY
+/// - วันที่คะแนนไม่พอจ่ายค่าสถานี: แสดงแค่ RESTART / MAIN MENU
+/// UI อยู่ใน scene — ลาก reference ใน Inspector
+/// </summary>
 public class DailySummaryUI : MonoBehaviour
 {
     public static DailySummaryUI Instance { get; private set; }
 
     [Header("UI Panels")]
     [Tooltip("หน้าต่างป๊อปอัปสรุปผลประจำวัน")]
-    public GameObject summaryPanel;
+    [SerializeField] private GameObject summaryPanel;
 
     [Tooltip("ปุ่มกดจบวันบนหน้าจอ HUD")]
-    public Button endDayHUDButton;
-
-    [Tooltip("ปุ่มเริ่มวันถัดไปในหน้าต่างสรุปผล")]
-    public Button nextDayButton;
+    [SerializeField] private Button endDayHUDButton;
 
     [Header("Summary Text Displays")]
-    public TextMeshProUGUI dayTitleText;
-    public TextMeshProUGUI dailyScoreText;
-    public TextMeshProUGUI totalScoreText;
-    public TextMeshProUGUI rejectedCountText;
-    public TextMeshProUGUI approvedCountText;
-    public TextMeshProUGUI legalCountText;
-    public TextMeshProUGUI illegalCountText;
-    public TextMeshProUGUI alienCountText;
-    public TextMeshProUGUI totalShippedText;
+    [SerializeField] private TextMeshProUGUI dayTitleText;
+    [SerializeField] private TextMeshProUGUI dailyScoreText;
+    [SerializeField] private TextMeshProUGUI totalScoreText;
+    [SerializeField] private TextMeshProUGUI rejectedCountText;
+    [SerializeField] private TextMeshProUGUI approvedCountText;
+    [SerializeField] private TextMeshProUGUI legalCountText;
+    [SerializeField] private TextMeshProUGUI illegalCountText;
+    [SerializeField] private TextMeshProUGUI alienCountText;
+    [SerializeField] private TextMeshProUGUI totalShippedText;
 
-    [Header("Warning Notification Banner")]
-    [Tooltip("แผงหรือข้อความเตือนเมื่อจบวันไม่สำเร็จ (เช่น มีของตกค้าง)")]
-    public GameObject warningBannerObject;
-    public TextMeshProUGUI warningBannerText;
-    public float warningDuration = 3.5f;
+    [Header("Daily Requirements")]
+    [SerializeField] private TextMeshProUGUI shippedRequirementText;
+    [SerializeField] private TextMeshProUGUI stationFeeText;
+    [SerializeField] private GameObject penaltyRow;
+    [SerializeField] private TextMeshProUGUI penaltyText;
+    [SerializeField] private TextMeshProUGUI resultText;
 
-    private Coroutine warningCoroutine;
+    [Header("Result Buttons")]
+    [SerializeField] private Button nextDayButton;
+    [SerializeField] private Button restartButton;
+    [SerializeField] private Button mainMenuButton;
 
     public bool IsSummaryOpen => summaryPanel != null && summaryPanel.activeSelf;
 
@@ -50,24 +57,14 @@ public class DailySummaryUI : MonoBehaviour
             return;
         }
 
+        if (ValidateReferences())
+        {
+            WireButtons();
+        }
+
         if (summaryPanel != null)
         {
             summaryPanel.SetActive(false);
-        }
-
-        if (warningBannerObject != null)
-        {
-            warningBannerObject.SetActive(false);
-        }
-
-        if (endDayHUDButton != null)
-        {
-            endDayHUDButton.onClick.AddListener(OnEndDayButtonClicked);
-        }
-
-        if (nextDayButton != null)
-        {
-            nextDayButton.onClick.AddListener(OnNextDayClicked);
         }
     }
 
@@ -76,7 +73,6 @@ public class DailySummaryUI : MonoBehaviour
         if (GameDayManager.Instance != null)
         {
             GameDayManager.Instance.OnDaySummaryRequested += ShowSummary;
-            GameDayManager.Instance.OnDayEndFailed += ShowWarningBanner;
         }
     }
 
@@ -85,15 +81,66 @@ public class DailySummaryUI : MonoBehaviour
         if (GameDayManager.Instance != null)
         {
             GameDayManager.Instance.OnDaySummaryRequested -= ShowSummary;
-            GameDayManager.Instance.OnDayEndFailed -= ShowWarningBanner;
         }
     }
 
-    /// <summary>
-    /// แสดงหน้าต่างสรุปผลประจำวัน พร้อมจัดรูปแบบข้อความสถิติ
-    /// </summary>
-    public void ShowSummary(int day, DailyStatisticsData stats)
+    // ------------------------------------------------------------- Wiring
+
+    private void WireButtons()
     {
+        Bind(endDayHUDButton, OnEndDayButtonClicked);
+        Bind(nextDayButton, OnNextDayClicked);
+        Bind(restartButton, OnRestartClicked);
+        Bind(mainMenuButton, OnMainMenuClicked);
+    }
+
+    private static void Bind(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null) return;
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(action);
+    }
+
+    private bool ValidateReferences()
+    {
+        List<string> missing = new List<string>();
+
+        if (summaryPanel == null) missing.Add(nameof(summaryPanel));
+        if (endDayHUDButton == null) missing.Add(nameof(endDayHUDButton));
+        if (dayTitleText == null) missing.Add(nameof(dayTitleText));
+        if (dailyScoreText == null) missing.Add(nameof(dailyScoreText));
+        if (totalScoreText == null) missing.Add(nameof(totalScoreText));
+        if (rejectedCountText == null) missing.Add(nameof(rejectedCountText));
+        if (approvedCountText == null) missing.Add(nameof(approvedCountText));
+        if (legalCountText == null) missing.Add(nameof(legalCountText));
+        if (illegalCountText == null) missing.Add(nameof(illegalCountText));
+        if (alienCountText == null) missing.Add(nameof(alienCountText));
+        if (totalShippedText == null) missing.Add(nameof(totalShippedText));
+        if (shippedRequirementText == null) missing.Add(nameof(shippedRequirementText));
+        if (stationFeeText == null) missing.Add(nameof(stationFeeText));
+        if (penaltyRow == null) missing.Add(nameof(penaltyRow));
+        if (penaltyText == null) missing.Add(nameof(penaltyText));
+        if (resultText == null) missing.Add(nameof(resultText));
+        if (nextDayButton == null) missing.Add(nameof(nextDayButton));
+        if (restartButton == null) missing.Add(nameof(restartButton));
+        if (mainMenuButton == null) missing.Add(nameof(mainMenuButton));
+
+        if (missing.Count == 0) return true;
+
+        Debug.LogError(
+            $"[DailySummaryUI] ลาก reference ไม่ครบ — ขาด: {string.Join(", ", missing)}", this);
+        return false;
+    }
+
+    // ------------------------------------------------------------- Summary
+
+    /// <summary>แสดงหน้าต่างสรุปผลประจำวัน พร้อมจัดรูปแบบข้อความสถิติ</summary>
+    public void ShowSummary(DaySummaryResult result)
+    {
+        if (result == null) return;
+
+        DailyStatisticsData stats = result.stats;
         if (stats == null && ScoreManager.Instance != null)
         {
             stats = ScoreManager.Instance.CurrentDayStats;
@@ -101,16 +148,17 @@ public class DailySummaryUI : MonoBehaviour
 
         if (dayTitleText != null)
         {
-            dayTitleText.text = $"DAILY WORK SUMMARY - DAY {day}";
+            dayTitleText.text = $"DAILY WORK SUMMARY - DAY {result.day}";
         }
 
         if (stats != null)
         {
             if (dailyScoreText != null)
             {
-                string sign = stats.dailyScoreEarned >= 0 ? "+" : "";
-                string colorHex = stats.dailyScoreEarned >= 0 ? "#4EFA7A" : "#FA4E4E";
-                dailyScoreText.text = $"<color={colorHex}>{sign}{stats.dailyScoreEarned}</color>";
+                int net = stats.NetDailyCredits;
+                string sign = net >= 0 ? "+" : "";
+                string colorHex = net >= 0 ? "#4EFA7A" : "#FA4E4E";
+                dailyScoreText.text = $"<color={colorHex}>{sign}{net}</color>";
             }
 
             if (totalScoreText != null)
@@ -149,6 +197,43 @@ public class DailySummaryUI : MonoBehaviour
             }
         }
 
+        if (shippedRequirementText != null)
+        {
+            int required = result.requiredShipped;
+            string color = required > 0 && result.shippedToday < required ? "#FA4E4E" : "#4EFA7A";
+            shippedRequirementText.text = required > 0
+                ? $"<color={color}>{result.shippedToday} / {required}</color>"
+                : $"{result.shippedToday}";
+        }
+
+        if (stationFeeText != null)
+        {
+            stationFeeText.text = result.stationFee > 0
+                ? $"<color=#FA4E4E>-{result.stationFee}</color>"
+                : "-";
+        }
+
+        if (penaltyRow != null)
+        {
+            penaltyRow.SetActive(result.shortfallPenalty > 0);
+        }
+
+        if (penaltyText != null)
+        {
+            penaltyText.text = $"<color=#FA4E4E>-{result.shortfallPenalty}</color>";
+        }
+
+        if (resultText != null)
+        {
+            resultText.text = result.passed
+                ? "<color=#4EFA7A>OPERATION APPROVED</color>"
+                : $"<color=#FA4E4E>INSUFFICIENT CREDITS — SHORT {result.creditsShortfall}</color>";
+        }
+
+        if (nextDayButton != null) nextDayButton.gameObject.SetActive(result.passed);
+        if (restartButton != null) restartButton.gameObject.SetActive(!result.passed);
+        if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(!result.passed);
+
         if (summaryPanel != null)
         {
             summaryPanel.SetActive(true);
@@ -156,13 +241,12 @@ public class DailySummaryUI : MonoBehaviour
 
         // หยุดเวลาในเกมและเปิดเคอร์เซอร์เมาส์เพื่อคลิกปุ่ม
         Time.timeScale = 0f;
+        AudioListener.pause = true;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
-    /// <summary>
-    /// ปิดหน้าต่างสรุปผลและคืนค่าเวลาและเคอร์เซอร์
-    /// </summary>
+    /// <summary>ปิดหน้าต่างสรุปผลและคืนค่าเวลาและเคอร์เซอร์</summary>
     public void HideSummary()
     {
         if (summaryPanel != null)
@@ -171,14 +255,14 @@ public class DailySummaryUI : MonoBehaviour
         }
 
         Time.timeScale = 1f;
+        AudioListener.pause = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    /// <summary>
-    /// เมื่อผู้เล่นกดปุ่ม [ END DAY / จบวัน ] บนหน้าจอ HUD
-    /// </summary>
-    public void OnEndDayButtonClicked()
+    // ------------------------------------------------------------- Actions
+
+    private void OnEndDayButtonClicked()
     {
         if (GameDayManager.Instance != null)
         {
@@ -186,10 +270,7 @@ public class DailySummaryUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// เมื่อผู้เล่นกดปุ่ม [ START NEXT DAY / เริ่มวันถัดไป ] ในหน้าต่างสรุปผล
-    /// </summary>
-    public void OnNextDayClicked()
+    private void OnNextDayClicked()
     {
         HideSummary();
 
@@ -199,31 +280,15 @@ public class DailySummaryUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// แสดงแบนเนอร์แจ้งเตือนเมื่อจบวันไม่สำเร็จ
-    /// </summary>
-    public void ShowWarningBanner(string message)
+    private void OnRestartClicked()
     {
-        if (warningBannerObject == null) return;
-
-        if (warningBannerText != null)
-        {
-            warningBannerText.text = message;
-        }
-
-        if (warningCoroutine != null)
-        {
-            StopCoroutine(warningCoroutine);
-        }
-
-        warningCoroutine = StartCoroutine(WarningBannerRoutine());
+        HideSummary();
+        SaveSystem.RestartCurrentDay();
     }
 
-    private IEnumerator WarningBannerRoutine()
+    private void OnMainMenuClicked()
     {
-        warningBannerObject.SetActive(true);
-        yield return new WaitForSecondsRealtime(warningDuration);
-        warningBannerObject.SetActive(false);
-        warningCoroutine = null;
+        HideSummary();
+        SaveSystem.ReturnToMainMenu();
     }
 }

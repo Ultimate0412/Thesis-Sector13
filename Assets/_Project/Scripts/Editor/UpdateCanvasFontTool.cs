@@ -8,17 +8,17 @@ namespace Sector13.EditorTools
 {
     public static class UpdateCanvasFontTool
     {
-        private const string SunspireFontGuid = "851ea7628f91ef0418f31c506e1851eb";
+        private const string RestingVcrFontGuid = "b9441f326a436a745b8af0c939b33161";
 
-        [MenuItem("Tools/Sector13/Apply Sunspire Font to All UI Canvases")]
-        public static void ApplySunspireFont()
+        [MenuItem("Tools/Sector13/Apply resting-vcr Font to All UI Canvases")]
+        public static void ApplyRestingVcrFont()
         {
-            string fontPath = AssetDatabase.GUIDToAssetPath(SunspireFontGuid);
-            TMP_FontAsset sunspireFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(fontPath);
+            string fontPath = AssetDatabase.GUIDToAssetPath(RestingVcrFontGuid);
+            TMP_FontAsset fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(fontPath);
 
-            if (sunspireFont == null)
+            if (fontAsset == null)
             {
-                Debug.LogError($"[UpdateCanvasFontTool] Could not load Sunspire Font Asset from GUID {SunspireFontGuid}");
+                Debug.LogError($"[UpdateCanvasFontTool] Could not load resting-vcr Font Asset from GUID {RestingVcrFontGuid}");
                 return;
             }
 
@@ -46,10 +46,10 @@ namespace Sector13.EditorTools
                     if (parentCanvas != null && parentCanvas.gameObject.name.Contains("ShippingLabel", System.StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (text.font != sunspireFont)
+                    if (text.font != fontAsset)
                     {
-                        Undo.RecordObject(text, "Change Font to Sunspire");
-                        text.font = sunspireFont;
+                        Undo.RecordObject(text, "Change Font to resting-vcr");
+                        text.font = fontAsset;
                         modified = true;
                         totalUpdated++;
                     }
@@ -76,10 +76,10 @@ namespace Sector13.EditorTools
                     if (parentCanvas != null && parentCanvas.gameObject.name.Contains("ShippingLabel", System.StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (text.font != sunspireFont)
+                    if (text.font != fontAsset)
                     {
-                        Undo.RecordObject(text, "Change Font to Sunspire");
-                        text.font = sunspireFont;
+                        Undo.RecordObject(text, "Change Font to resting-vcr");
+                        text.font = fontAsset;
                         sceneModified = true;
                         totalUpdated++;
                     }
@@ -94,7 +94,7 @@ namespace Sector13.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[UpdateCanvasFontTool] Complete! Updated {totalUpdated} TextMeshPro components to Sunspire SDF.");
+            Debug.Log($"[UpdateCanvasFontTool] Complete! Updated {totalUpdated} TextMeshPro components to resting-vcr SDF.");
         }
     }
 }

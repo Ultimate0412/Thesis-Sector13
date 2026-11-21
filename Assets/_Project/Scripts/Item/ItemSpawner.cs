@@ -227,7 +227,7 @@ public class ItemSpawner : MonoBehaviour, IInteractable
         // 3. ถ้ายังมีโควต้าและมีที่ว่าง
         if (GameDayManager.Instance != null)
         {
-            return $"Press E Fill the Box (Quata Remaining: {GameDayManager.Instance.RemainingSpawnQuotaToday}/{GameDayManager.Instance.TotalSpawnQuotaToday})";
+            return $"Press E Fill the Box (Quota Remaining: {GameDayManager.Instance.RemainingSpawnQuotaToday}/{GameDayManager.Instance.TotalSpawnQuotaToday})";
         }
 
         return "Press E For Fill Box";

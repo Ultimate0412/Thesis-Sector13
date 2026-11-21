@@ -9,12 +9,12 @@ namespace Sector13.EditorTools
     public static class UpdateCanvasThemeTool
     {
         // Theme Colors
-        // Cyan -> #ffde59
-        public static readonly Color GoldColor = new Color(1f, 0.87058824f, 0.34901962f, 1f);
-        // Dark Blue -> #1e1a0b
-        public static readonly Color DarkOliveColor = new Color(0.11764706f, 0.101960786f, 0.043137256f, 1f);
+        // Primary Accent -> #FFD34D
+        public static readonly Color GoldColor = new Color(1f, 0.827451f, 0.3019608f, 1f);
+        // Background Dark -> #111111
+        public static readonly Color DarkColor = new Color(0.06666667f, 0.06666667f, 0.06666667f, 1f);
 
-        [MenuItem("Tools/Sector13/Apply Canvas Theme (#ffde59 and #1e1a0b)")]
+        [MenuItem("Tools/Sector13/Apply Canvas Theme (#FFD34D and #111111)")]
         public static void ApplyTheme()
         {
             int updatedCount = 0;
@@ -42,7 +42,7 @@ namespace Sector13.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[UpdateCanvasThemeTool] Completed theme update across prefabs.");
+            Debug.Log($"[UpdateCanvasThemeTool] Completed theme update across prefabs. Updated {updatedCount} prefabs.");
         }
 
         private static bool ProcessHierarchy(Transform root)
@@ -52,14 +52,14 @@ namespace Sector13.EditorTools
             Image[] images = root.GetComponentsInChildren<Image>(true);
             foreach (Image img in images)
             {
-                if (IsCyanColor(img.color))
+                if (IsAccentColor(img.color))
                 {
                     img.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, img.color.a);
                     modified = true;
                 }
-                else if (IsDarkBlueColor(img.color))
+                else if (IsDarkColor(img.color))
                 {
-                    img.color = new Color(DarkOliveColor.r, DarkOliveColor.g, DarkOliveColor.b, img.color.a);
+                    img.color = new Color(DarkColor.r, DarkColor.g, DarkColor.b, img.color.a);
                     modified = true;
                 }
             }
@@ -67,7 +67,7 @@ namespace Sector13.EditorTools
             TMP_Text[] texts = root.GetComponentsInChildren<TMP_Text>(true);
             foreach (TMP_Text txt in texts)
             {
-                if (IsCyanColor(txt.color))
+                if (IsAccentColor(txt.color))
                 {
                     txt.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, txt.color.a);
                     modified = true;
@@ -77,16 +77,20 @@ namespace Sector13.EditorTools
             return modified;
         }
 
-        private static bool IsCyanColor(Color c)
+        private static bool IsAccentColor(Color c)
         {
-            // Detect cyan / sky blue tones (high blue & green, lower red)
-            return c.b > 0.65f && c.g > 0.65f && c.r < 0.65f;
+            // Detect cyan or old #ffde59 gold/yellow tones
+            bool isCyan = c.b > 0.65f && c.g > 0.65f && c.r < 0.65f;
+            bool isOldGold = c.r > 0.95f && c.g > 0.84f && c.b > 0.30f && c.b < 0.40f;
+            return isCyan || isOldGold;
         }
 
-        private static bool IsDarkBlueColor(Color c)
+        private static bool IsDarkColor(Color c)
         {
-            // Detect deep dark blue / navy tones
-            return c.b > c.r && c.b > c.g && c.r < 0.25f && c.g < 0.35f && c.b < 0.65f;
+            // Detect deep dark blue / navy or old #1e1a0b tones
+            bool isDarkBlue = c.b > c.r && c.b > c.g && c.r < 0.25f && c.g < 0.35f && c.b < 0.65f;
+            bool isOldDark = c.r > 0.10f && c.r < 0.13f && c.g > 0.08f && c.g < 0.12f && c.b > 0.03f && c.b < 0.06f;
+            return isDarkBlue || isOldDark;
         }
     }
 }

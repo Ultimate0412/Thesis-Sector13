@@ -82,8 +82,14 @@ public class GameDayManager : MonoBehaviour
     public event Action<int> OnDayChanged;              // currentDay (รองรับโค้ดเดิม)
     public event Action<int> OnDayEnded;                // completedDay
     public event Action<int> OnDayStarted;              // newDay
-    public event Action<string> OnDayEndFailed;         // failReason (ส่งแจ้งเตือนเมื่อจบวันไม่สำเร็จ)
-    public event Action<int, DailyStatisticsData> OnDaySummaryRequested; // day, stats (เปิดหน้าต่างสรุปผลประจำวัน)
+    public event Action<DayEndFailure> OnDayEndFailed;  // รายละเอียดเมื่อจบวันไม่สำเร็จ
+    public event Action<DaySummaryResult> OnDaySummaryRequested; // ผลสรุปที่ต้องแสดงในหน้าต่างสรุปผลประจำวัน
+
+    private bool summaryPending;
+    private bool lastSummaryPassed;
+
+    /// <summary>มีหน้าต่างสรุปผลเปิดค้างรอผู้เล่นยืนยันอยู่หรือไม่</summary>
+    public bool IsSummaryPending => summaryPending;
 
     private void Awake()
     {
@@ -120,6 +126,52 @@ public class GameDayManager : MonoBehaviour
 
     /// <summary>DayConfig ของวันปัจจุบัน</summary>
     public DayConfig CurrentDayConfig => GetDayConfig(currentDay);
+
+    // --- เงื่อนไขรายวัน (อ่านจาก DayConfig ของวันปัจจุบัน) ---
+
+    /// <summary>จำนวนพัสดุขั้นต่ำที่ต้องส่งในวันนี้ (0 = ไม่บังคับ)</summary>
+    public int RequiredShippedToday
+    {
+        get
+        {
+            DayConfig config = CurrentDayConfig;
+            return config != null ? Mathf.Max(0, config.minShippedPerDay) : 0;
+        }
+    }
+
+    /// <summary>จำนวนพัสดุที่ส่งออกไปแล้วในวันนี้</summary>
+    public int ShippedToday
+    {
+        get
+        {
+            DailyStatisticsData stats = ScoreManager.Instance != null ? ScoreManager.Instance.CurrentDayStats : null;
+            return stats != null ? stats.TotalShippedToday : 0;
+        }
+    }
+
+    /// <summary>จำนวนพัสดุที่ยังขาดจากขั้นต่ำของวันนี้</summary>
+    public int ShippedShortfallToday => Mathf.Max(0, RequiredShippedToday - ShippedToday);
+
+    /// <summary>โทษที่จะถูกหักหากยืนยันจบวันทั้งที่ส่งไม่ถึงขั้นต่ำ</summary>
+    public int PenaltyForShortfall
+    {
+        get
+        {
+            DayConfig config = CurrentDayConfig;
+            int perBox = config != null ? Mathf.Max(0, config.shortfallPenaltyPerBox) : 0;
+            return ShippedShortfallToday * perBox;
+        }
+    }
+
+    /// <summary>ค่าสถานีของวันนี้ (หักจากคะแนนรวมตอนจบวัน)</summary>
+    public int StationFeeToday
+    {
+        get
+        {
+            DayConfig config = CurrentDayConfig;
+            return config != null ? Mathf.Max(0, config.stationFee) : 0;
+        }
+    }
 
     /// <summary>ตรวจว่ามีการตั้งค่าของวันนั้นหรือไม่</summary>
     public bool HasDayConfig(int day)
@@ -221,6 +273,50 @@ public class GameDayManager : MonoBehaviour
         Debug.Log($"--- เริ่มวันใหม่ ({dayLabel}) | โควต้าเปิดตรวจ: {remainingQuotaToday} ครั้ง | โควต้าสินค้า: {remainingSpawnQuotaToday} กล่อง | สัดส่วนสินค้า (Legal:{currentRate.legalWeight}, Illegal:{currentRate.illegalWeight}, Alien:{currentRate.alienWeight}) ---");
     }
 
+    /// <summary>
+    /// ตั้งเลขวันก่อนที่ Start ของวัตถุอื่นจะทำงาน (ใช้ตอนโหลดเซฟ)
+    /// โควต้าจริงจะถูกคำนวณใหม่ใน ResetDailyQuota ตอน Start
+    /// </summary>
+    public void SetDayBeforeStart(int day)
+    {
+        currentDay = Mathf.Max(1, day);
+    }
+
+    /// <summary>
+    /// คืนสถานะวัน/โควต้าจากเซฟ (เรียกหลัง Start ของฉากทำงานแล้ว)
+    /// ค่า remaining ที่เป็น -1 หมายถึงใช้โควต้าเต็มของวันนั้น
+    /// </summary>
+    public void RestoreDayState(int day, int remainingOpenQuota, int remainingSpawnQuota)
+    {
+        currentDay = Mathf.Max(1, day);
+
+        DayConfig dayConfig = GetDayConfig(currentDay);
+        if (dayConfig != null)
+        {
+            dailyOpenQuota = Mathf.Max(0, dayConfig.openQuota);
+            TotalSpawnQuotaToday = Mathf.Max(0, dayConfig.spawnQuota);
+        }
+        else
+        {
+            dailyOpenQuota = Mathf.Max(0, defaultDailyOpenQuota);
+            TotalSpawnQuotaToday = Mathf.Max(0, defaultDailySpawnQuota);
+        }
+
+        remainingQuotaToday = remainingOpenQuota < 0
+            ? dailyOpenQuota
+            : Mathf.Clamp(remainingOpenQuota, 0, dailyOpenQuota);
+
+        remainingSpawnQuotaToday = remainingSpawnQuota < 0
+            ? TotalSpawnQuotaToday
+            : Mathf.Clamp(remainingSpawnQuota, 0, TotalSpawnQuotaToday);
+
+        OnDayChanged?.Invoke(currentDay);
+        OnQuotaChanged?.Invoke(remainingQuotaToday);
+        OnSpawnQuotaChanged?.Invoke(remainingSpawnQuotaToday, TotalSpawnQuotaToday);
+
+        Debug.Log($"[GameDayManager] คืนสถานะ Day {currentDay} | โควต้าเปิดตรวจ {remainingQuotaToday}/{dailyOpenQuota} | โควต้าสินค้า {remainingSpawnQuotaToday}/{TotalSpawnQuotaToday}");
+    }
+
     // --- ตรวจสอบและหักโควต้าเปิดตรวจกล่อง ---
     public bool CanOpenBoxToday()
     {
@@ -314,7 +410,7 @@ public class GameDayManager : MonoBehaviour
     }
 
     // --- ตรวจสอบเงื่อนไขก่อนจบวัน: ห้ามมีสินค้าค้างตามพื้นหรือจุด Spawn ต้องเก็บใน Storage เท่านั้น ---
-    public bool CanEndDay(out string failReason)
+    public bool CanEndDay(out string failReason, bool ignoreMinShipped = false)
     {
         failReason = string.Empty;
 
@@ -500,9 +596,26 @@ public class GameDayManager : MonoBehaviour
             issues.Add($"มีสินค้าเดี่ยวอยู่ในมือผู้เล่น ({itemsInHands} ชิ้น)");
         }
 
+        // ต้องใช้โควต้าสปอนของวันนี้ให้หมดก่อน (โควต้าที่เหลือ = ยังมีพัสดุที่ยังไม่ถูกสร้าง)
+        if (remainingSpawnQuotaToday > 0)
+        {
+            issues.Add($"ยังเหลือโควต้าสปอนอีก {remainingSpawnQuotaToday} กล่อง — กด E ที่ชั้นวางให้ครบก่อนจบวัน");
+        }
+
+        // ส่งพัสดุไม่ถึงขั้นต่ำ: บล็อกไว้ก่อน แต่ผู้เล่นยืนยันรับโทษเพื่อข้ามได้
+        if (!ignoreMinShipped)
+        {
+            int required = RequiredShippedToday;
+            int shipped = ShippedToday;
+            if (required > 0 && shipped < required)
+            {
+                issues.Add($"ส่งพัสดุแล้ว {shipped}/{required} กล่อง (ขาดอีก {required - shipped} กล่อง)");
+            }
+        }
+
         if (issues.Count > 0)
         {
-            failReason = "ไม่สามารถจบวันได้: " + string.Join(", ", issues) + " | กรุณานำไปจัดเก็บใน Storage หรือส่งออกให้เรียบร้อย";
+            failReason = "ไม่สามารถจบวันได้:\n• " + string.Join("\n• ", issues);
             return false;
         }
 
@@ -515,14 +628,20 @@ public class GameDayManager : MonoBehaviour
         if (TryGetMissingNextDayConfigReason(out failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
-            OnDayEndFailed?.Invoke(failReason);
+            OnDayEndFailed?.Invoke(new DayEndFailure { reason = failReason });
             return false;
         }
 
         if (!CanEndDay(out failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
-            OnDayEndFailed?.Invoke(failReason);
+            OnDayEndFailed?.Invoke(new DayEndFailure
+            {
+                reason = failReason,
+                canOverrideWithPenalty = CanEndDay(out _, true),
+                penalty = PenaltyForShortfall,
+                shortfall = ShippedShortfallToday
+            });
             return false;
         }
 
@@ -532,48 +651,119 @@ public class GameDayManager : MonoBehaviour
 
     /// <summary>
     /// ขอเปิดหน้าต่างสรุปผลรายวัน (ตรวจเงื่อนไขก่อน หากผ่านจะส่ง Event เปิด DailySummaryUI)
+    /// ignoreMinShipped = true ใช้เมื่อผู้เล่นยืนยันรับโทษส่งไม่ถึงขั้นต่ำแล้ว
     /// </summary>
-    public bool RequestEndDay()
+    public bool RequestEndDay(bool ignoreMinShipped = false)
     {
+        if (summaryPending) return false;
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsOpen) return false;
+        if (EndDayBlockedDialog.Instance != null && EndDayBlockedDialog.Instance.IsOpen) return false;
+
         if (TryGetMissingNextDayConfigReason(out string failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
-            OnDayEndFailed?.Invoke(failReason);
+            OnDayEndFailed?.Invoke(new DayEndFailure { reason = failReason });
             return false;
         }
 
-        if (!CanEndDay(out failReason))
+        if (!CanEndDay(out failReason, ignoreMinShipped))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
-            OnDayEndFailed?.Invoke(failReason);
+
+            // ถ้าติดแค่เงื่อนไขขั้นต่ำ ให้ UI เปิด dialog ยืนยันรับโทษได้
+            bool minShippedOnly = !ignoreMinShipped && CanEndDay(out _, true);
+            OnDayEndFailed?.Invoke(new DayEndFailure
+            {
+                reason = failReason,
+                canOverrideWithPenalty = minShippedOnly,
+                penalty = PenaltyForShortfall,
+                shortfall = ShippedShortfallToday
+            });
             return false;
         }
 
-        DailyStatisticsData stats = ScoreManager.Instance != null ? ScoreManager.Instance.CurrentDayStats : null;
-        OnDaySummaryRequested?.Invoke(currentDay, stats);
+        ScoreManager score = ScoreManager.Instance;
+        int fee = StationFeeToday;
+        int totalBefore = score != null ? score.totalScore : 0;
+        int creditsShortfall = Mathf.Max(0, fee - totalBefore);
+
+        // หักค่าสถานีครั้งเดียวตอนเปิดสรุปผล
+        if (score != null)
+        {
+            score.ApplyStationFee(fee);
+        }
+
+        DailyStatisticsData stats = score != null ? score.CurrentDayStats : null;
+        bool passed = creditsShortfall == 0;
+
+        summaryPending = true;
+        lastSummaryPassed = passed;
+
+        OnDaySummaryRequested?.Invoke(new DaySummaryResult
+        {
+            day = currentDay,
+            stats = stats,
+            stationFee = fee,
+            requiredShipped = RequiredShippedToday,
+            shippedToday = ShippedToday,
+            shortfallPenalty = stats != null ? stats.dailyShortfallPenalty : 0,
+            creditsShortfall = creditsShortfall,
+            passed = passed
+        });
         return true;
     }
 
+    /// <summary>
+    /// ผู้เล่นยืนยันจบวันทั้งที่ส่งพัสดุไม่ถึงขั้นต่ำ: หักโทษแล้วเปิดสรุปผลต่อ
+    /// (ยังคงถูกบล็อกด้วยเงื่อนไขแข็ง เช่น ของตกค้าง/โควต้าสปอนเหลือ)
+    /// </summary>
+    public bool ConfirmEndDayWithPenalty()
+    {
+        if (summaryPending) return false;
 
+        if (TryGetMissingNextDayConfigReason(out string configReason))
+        {
+            OnDayEndFailed?.Invoke(new DayEndFailure { reason = configReason });
+            return false;
+        }
+
+        if (!CanEndDay(out string hardReason, true))
+        {
+            OnDayEndFailed?.Invoke(new DayEndFailure { reason = hardReason });
+            return false;
+        }
+
+
+        int penalty = PenaltyForShortfall;
+        if (penalty > 0 && ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.ApplyPenalty(penalty, "ส่งพัสดุไม่ถึงขั้นต่ำ");
+        }
+
+        return RequestEndDay(true);
+    }
+
+    /// <summary>ยืนยันเริ่มวันถัดไปจากหน้าสรุปผล (เฉพาะวันที่ผ่านเงื่อนไข)</summary>
     public void ConfirmEndDayAndProceed()
     {
+        if (!summaryPending || !lastSummaryPassed) return;
+
+        summaryPending = false;
+        lastSummaryPassed = false;
         ExecuteEndDay();
     }
 
     // ฟังก์ชันจบวัน (เรียกจากปุ่มจบวัน หรือระบบกะ)
     public void EndDay()
     {
-        
-        if (!RequestEndDay())
-        {
-            
-            return;
-        }
+        RequestEndDay();
     }
 
     // บังคับจบวันทันทีโดยไม่ตรวจเงื่อนไข (สำหรับโหมดทดสอบ / Debug)
     public void ForceEndDay()
     {
+        summaryPending = false;
+        lastSummaryPassed = false;
         ExecuteEndDay(true);
     }
 
@@ -583,9 +773,12 @@ public class GameDayManager : MonoBehaviour
         if (!ignoreDayConfigCheck && TryGetMissingNextDayConfigReason(out string configFailReason))
         {
             Debug.LogWarning($"[GameDayManager] {configFailReason}");
-            OnDayEndFailed?.Invoke(configFailReason);
+            OnDayEndFailed?.Invoke(new DayEndFailure { reason = configFailReason });
             return;
         }
+
+        summaryPending = false;
+        lastSummaryPassed = false;
 
         // 1. ล้างขยะที่จุดทิ้งขยะ (TrashDropPoint) หากมี
         TrashDropPoint trash = FindFirstObjectByType<TrashDropPoint>();
@@ -606,5 +799,36 @@ public class GameDayManager : MonoBehaviour
             ScoreManager.Instance.StartNewDayStats(currentDay);
         }
         OnDayStarted?.Invoke(currentDay);
+
+        // Auto Save หลังจบวัน (เขียนทับช่องเซฟที่กำลังเล่นอยู่)
+        SaveSystem.AutoSave();
     }
+}
+
+/// <summary>ข้อมูลแจ้งเตือนเมื่อจบวันไม่สำเร็จ</summary>
+public class DayEndFailure
+{
+    public string reason;
+
+    /// <summary>true = ผู้เล่นยืนยันรับโทษเพื่อข้ามเงื่อนไขขั้นต่ำได้</summary>
+    public bool canOverrideWithPenalty;
+
+    /// <summary>โทษที่จะถูกหักหากยืนยัน</summary>
+    public int penalty;
+
+    /// <summary>จำนวนพัสดุที่ยังขาดจากขั้นต่ำ</summary>
+    public int shortfall;
+}
+
+/// <summary>ผลสรุปที่ส่งให้หน้าต่าง DailySummaryUI แสดง</summary>
+public class DaySummaryResult
+{
+    public int day;
+    public DailyStatisticsData stats;
+    public int stationFee;
+    public int requiredShipped;
+    public int shippedToday;
+    public int shortfallPenalty;
+    public int creditsShortfall;
+    public bool passed;
 }

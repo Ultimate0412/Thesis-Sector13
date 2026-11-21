@@ -82,6 +82,16 @@ public class DayConfig : ScriptableObject
     [Tooltip("จำนวนกล่องพัสดุที่สปอนได้ในวันนี้ (0 = สปอนไม่ได้เลย)")]
     [Min(0)] public int spawnQuota = 10;
 
+    [Header("Daily Requirements")]
+    [Tooltip("จำนวนพัสดุขั้นต่ำที่ต้องส่งออกก่อนจบวัน (0 = ไม่บังคับ)\nหากส่งไม่ถึง ผู้เล่นยังจบวันได้ แต่จะถูกหักคะแนนตามจำนวนที่ขาด")]
+    [Min(0)] public int minShippedPerDay = 0;
+
+    [Tooltip("คะแนนที่หักต่อพัสดุ 1 กล่องที่ส่งไม่ถึงขั้นต่ำ")]
+    [Min(0)] public int shortfallPenaltyPerBox = 0;
+
+    [Tooltip("ค่าสถานีที่หักจากคะแนนรวมตอนจบวัน (0 = ไม่หัก)")]
+    [Min(0)] public int stationFee = 0;
+
     [Header("Category Spawn Weights")]
     [Tooltip("น้ำหนักโอกาสเกิดของแต่ละหมวดหมู่สินค้าในวันนี้")]
     public DailyCategorySpawnRate categoryRate = new DailyCategorySpawnRate();
@@ -109,6 +119,15 @@ public class DayConfig : ScriptableObject
     {
         openQuota = Mathf.Max(0, openQuota);
         spawnQuota = Mathf.Max(0, spawnQuota);
+        minShippedPerDay = Mathf.Max(0, minShippedPerDay);
+        shortfallPenaltyPerBox = Mathf.Max(0, shortfallPenaltyPerBox);
+        stationFee = Mathf.Max(0, stationFee);
+
+        if (minShippedPerDay > spawnQuota)
+        {
+            Debug.LogWarning(
+                $"[DayConfig] {name}: minShippedPerDay ({minShippedPerDay}) มากกว่า spawnQuota ({spawnQuota}) — อาจทำให้จบวันไม่ได้เลย", this);
+        }
 
         if (events != null)
         {

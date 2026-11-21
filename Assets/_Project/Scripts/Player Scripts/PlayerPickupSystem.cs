@@ -54,6 +54,8 @@ public class PlayerPickupSystem : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale <= 0f) return;
+
         HandleDropPointHover();
         HandleHoldQExtraction();
 
