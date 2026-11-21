@@ -7,78 +7,105 @@ public class EnemyHammer : EnemyBase
 {
     public enum HammerState
     {
-        Searching,  // กำลังมองหาผู้เล่น
-        Windup,     // ล็อคเป้าและเตรียมพุ่งชน (Telegraph)
-        Charging,   // กำลังวิ่งพุ่งชนเป็นเส้นตรง
-        Staggered,  // ชะงักหลังชนกำแพง
-        Cooldown,   // พักก่อนเริ่มค้นหาใหม่
-        Stunned,    // ติดสตั๊น (จาก EnemyBase)
-        Carried     // กำลังถูกผู้เล่นยกถือ
+        Spawn_Drop,     // Root|Spawn_Drop (0 - 80)
+        Spawn_Slide,    // Root|Spawn_Slide (0 - 80)
+        No_Animation,   // Root|No_Animation (0 - 0) : ยืนนิ่ง / คูลดาวน์
+        Roar,           // Root|Roar (0 - 80) : คำรามเตือนและล็อคเป้าก่อนพุ่ง
+        Run_Start,      // Root|Run_Start (0 - 40) : เริ่มออกตัวพุ่งชน
+        Run_Loop,       // Root|Run_Loop (0 - 30) : วิ่งเข้าหา / พุ่งชนต่อเนื่อง
+        Stunt_Start,    // Root|Stunt_Start (0 - 40) : เริ่มชะงัก / ล้มติดสตั๊น
+        Stunt_Idle,     // Root|Stunt_Idle (0 - 80) : มึนค้างระหว่างติดสตั๊น
+        Stunt_End,      // Root|Stunt_End (0 - 60) : ฟื้นตัวลุกขึ้นจากสตั๊น
+        Carry           // Root|Carry (0 - 0) : ถูกผู้เล่นยกถือ
     }
+
+    public enum SpawnMode
+    {
+        None,
+        Spawn_Drop,
+        Spawn_Slide
+    }
+
+    [Header("Spawn Settings")]
+    [Tooltip("รูปแบบการเกิดเมื่อเริ่มเกม (จะเล่นคลิป Spawn ก่อนเริ่ม AI)")]
+    public SpawnMode spawnMode = SpawnMode.Spawn_Drop;
 
     [Header("Hammer Detection Settings")]
     [Tooltip("ระยะการตรวจจับสายตาหาผู้เล่น")]
     public float detectionRadius = 25f;
-    [Tooltip("ความเร็วในการเดินค้นหา/เข้าหาผู้เล่น")]
+    [Tooltip("ความเร็วในการวิ่งเข้าหาผู้เล่นระหว่างค้นหา")]
     public float searchMoveSpeed = 3.5f;
-    [Tooltip("ระยะเริ่มล็อคเป้าเพื่อพุ่งชน (เมื่อมี Line of Sight)")]
+    [Tooltip("ระยะเริ่มล็อคเป้าเพื่อคำรามและพุ่งชน (เมื่อมี Line of Sight)")]
     public float chargeTriggerDistance = 14f;
+    [Tooltip("ให้หันหน้าหาผู้เล่นตามทิศทางการเคลื่อนที่หรือไม่")]
+    public bool facePlayer = true;
+    [Tooltip("ความเร็วในการหันหน้าหาผู้เล่น")]
+    public float turnSpeed = 6f;
     [Tooltip("เลเยอร์ของผู้เล่น")]
     public LayerMask playerLayer;
     [Tooltip("เลเยอร์ของสิ่งกีดขวาง/กำแพง")]
     public LayerMask obstacleLayer;
+    [Tooltip("ติ๊กถูกเพื่อข้ามท่า Roar แล้วเข้าสู่ Run_Start ทันที")]
+    public bool skipRoar = false;
 
     [Header("Charge Attack Settings")]
-    [Tooltip("เวลาเตรียมตัวก่อนพุ่งชน (Windup / เล็งเป้า)")]
-    public float windupDuration = 0.8f;
-    [Tooltip("ความเร็วในการพุ่งชนเป็นเส้นตรง")]
+    [Tooltip("ความเร็วสูงสุดในการพุ่งชนเป็นเส้นตรง (Run_Loop)")]
     public float chargeSpeed = 14f;
-    [Tooltip("ระยะเวลาสูงสุดที่พุ่งชนได้ก่อนหยุด")]
-    public float maxChargeTime = 2.0f;
+    [Tooltip("จำนวนรอบของคลิป Run_Loop ที่ใช้คำนวณเวลาพุ่งสูงสุดเมื่อ Sync กับคลิป")]
+    [Min(1)] public int runLoopChargeCycles = 2;
     [Tooltip("ความเสียหายที่ทำต่อผู้เล่นเมื่อพุ่งชน")]
     public float chargeDamage = 25f;
     [Tooltip("แรงกระแทกผลักผู้เล่น")]
     public float knockbackForce = 10f;
-    [Tooltip("เวลาหยุดชะงักหลังชนกำแพง")]
-    public float wallStaggerDuration = 1.4f;
-    [Tooltip("ระยะเวลาคูลดาวน์หลังพุ่งเสร็จ")]
-    public float attackCooldown = 2.0f;
 
-    [Header("Visual Indicators")]
-    [Tooltip("วัตถุโมเดลส่วนหัว/ตา ที่จะเปลี่ยนสีเวลาเล็งหรือชาร์จ")]
-    public Renderer indicatorRenderer;
-    public Color normalEyeColor = Color.yellow;
-    public Color chargingEyeColor = Color.red;
+    [Header("Action Durations (Auto-synced with Clips)")]
+    [Tooltip("อัปเดตระยะเวลาของแต่ละ Action ให้ตรงกับความยาวจริงของ Clip อัตโนมัติ")]
+    public bool syncDurationWithClip = true;
 
-    [Header("Stage Animations (Optional)")]
-    [Tooltip("Animator ของโมเดล (ถ้าเว้นว่าง ระบบจะหา/สร้างให้อัตโนมัติตอนเริ่มเกม)")]
+    [Tooltip("ระยะเวลา Spawn_Drop (ค่าเริ่มต้น 80 เฟรม @30fps = 2.67 วิ)")]
+    [Min(0f)] public float spawnDropDuration = 2.67f;
+    [Tooltip("ระยะเวลา Spawn_Slide (ค่าเริ่มต้น 80 เฟรม @30fps = 2.67 วิ)")]
+    [Min(0f)] public float spawnSlideDuration = 2.67f;
+    [Tooltip("ระยะเวลา Roar ก่อนออกตัวพุ่ง (ค่าเริ่มต้น 80 เฟรม @30fps = 2.67 วิ)")]
+    [Min(0f)] public float roarDuration = 2.67f;
+    [Tooltip("ระยะเวลา Run_Start ช่วงเร่งออกตัว (ค่าเริ่มต้น 40 เฟรม @30fps = 1.33 วิ)")]
+    [Min(0f)] public float runStartDuration = 1.33f;
+    [Tooltip("ระยะเวลาสูงสุดของ Run_Loop ตอนพุ่งชน (ค่าเริ่มต้น 30 เฟรม x 2 รอบ @30fps = 2.0 วิ)")]
+    [Min(0f)] public float runLoopMaxDuration = 2.0f;
+    [Tooltip("ระยะเวลา Stunt_Start ช่วงเริ่มชะงัก/ติดสตั๊น (ค่าเริ่มต้น 40 เฟรม @30fps = 1.33 วิ)")]
+    [Min(0f)] public float stuntStartDuration = 1.33f;
+    [Tooltip("ระยะเวลา Stunt_Idle ช่วงมึนค้างหลังชนกำแพง (ค่าเริ่มต้น 80 เฟรม @30fps = 2.67 วิ)")]
+    [Min(0f)] public float stuntIdleDuration = 2.67f;
+    [Tooltip("ระยะเวลา Stunt_End ช่วงฟื้นตัวลุกขึ้น (ค่าเริ่มต้น 60 เฟรม @30fps = 2.0 วิ)")]
+    [Min(0f)] public float stuntEndDuration = 2.0f;
+    [Tooltip("ระยะเวลาพัก (No_Animation) หลังพุ่งชนผู้เล่นหรือหมดเวลาพุ่ง")]
+    [Min(0f)] public float noAnimationCooldown = 1.5f;
+
+    [Header("Animation Clips")]
+    [Tooltip("Animator ของโมเดล (ถ้าเว้นว่าง ระบบจะหาจากลูก เช่น hammerHead3 ให้อัตโนมัติ)")]
     public Animator hammerAnimator;
 
-    [Tooltip("ท่ากำลังค้นหาผู้เล่น (Searching)")]
-    public AnimationClip searchingClip;
-    [Tooltip("ท่าง้าง/เล็งก่อนพุ่งชน (Windup)")]
-    public AnimationClip windupClip;
-    [Tooltip("ท่าพุ่งชน (Charging)")]
-    public AnimationClip chargingClip;
-    [Tooltip("ท่าชะงักหลังชนกำแพง (Staggered)")]
-    public AnimationClip staggeredClip;
-    [Tooltip("ท่าพักหลังพุ่งเสร็จ (Cooldown)")]
-    public AnimationClip cooldownClip;
-    [Tooltip("ท่าติดสตั๊น (Stunned)")]
-    public AnimationClip stunnedClip;
-    [Tooltip("ท่าตอนถูกผู้เล่นยกถือ (Carried)")]
-    public AnimationClip carriedClip;
+    public AnimationClip spawnDropClip;    // Root|Spawn_Drop
+    public AnimationClip spawnSlideClip;   // Root|Spawn_Slide
+    public AnimationClip noAnimationClip;  // Root|No_Animation
+    public AnimationClip roarClip;         // Root|Roar
+    public AnimationClip runStartClip;     // Root|Run_Start
+    public AnimationClip runLoopClip;      // Root|Run_Loop
+    public AnimationClip stuntStartClip;   // Root|Stunt_Start
+    public AnimationClip stuntIdleClip;    // Root|Stunt_Idle
+    public AnimationClip stuntEndClip;     // Root|Stunt_End
+    public AnimationClip carryClip;        // Root|Carry
 
     [Tooltip("ระยะเวลา crossfade ตอนสลับท่า (วินาที) — 0 = สลับทันที")]
     [Min(0f)] public float stageAnimationFade = 0.15f;
 
     public HammerState CurrentState => currentState;
-    [SerializeField] private HammerState currentState = HammerState.Searching;
+    [SerializeField] private HammerState currentState = HammerState.No_Animation;
 
     private Transform playerTarget;
     private Vector3 lockedChargeDirection;
-    private float stateTimer = 0f;
-    private Coroutine chargeCoroutine;
+    private Coroutine actionCoroutine;
+    private bool isCharging;
 
     // --- Stage animation (Playables) ---
     private PlayableGraph stageAnimGraph;
@@ -89,22 +116,74 @@ public class EnemyHammer : EnemyBase
     private HammerState lastAnimatedState;
     private bool hasAnimatedState;
 
+    private void OnValidate()
+    {
+        if (syncDurationWithClip)
+        {
+            SyncDurationsFromClips();
+        }
+    }
+
+    [ContextMenu("Sync Durations From Clips")]
+    public void SyncDurationsFromClips()
+    {
+        if (spawnDropClip != null && spawnDropClip.length > 0f)
+            spawnDropDuration = spawnDropClip.length;
+
+        if (spawnSlideClip != null && spawnSlideClip.length > 0f)
+            spawnSlideDuration = spawnSlideClip.length;
+
+        if (roarClip != null && roarClip.length > 0f)
+            roarDuration = roarClip.length;
+
+        if (runStartClip != null && runStartClip.length > 0f)
+            runStartDuration = runStartClip.length;
+
+        if (runLoopClip != null && runLoopClip.length > 0f)
+            runLoopMaxDuration = runLoopClip.length * Mathf.Max(1, runLoopChargeCycles);
+
+        if (stuntStartClip != null && stuntStartClip.length > 0f)
+            stuntStartDuration = stuntStartClip.length;
+
+        if (stuntIdleClip != null && stuntIdleClip.length > 0f)
+            stuntIdleDuration = stuntIdleClip.length;
+
+        if (stuntEndClip != null && stuntEndClip.length > 0f)
+            stuntEndDuration = stuntEndClip.length;
+    }
+
     protected override void Awake()
     {
         base.Awake();
+
         if (obstacleLayer.value == 0)
         {
             obstacleLayer = LayerMask.GetMask("Default");
+        }
+
+        if (syncDurationWithClip)
+        {
+            SyncDurationsFromClips();
         }
     }
 
     private void Start()
     {
         FindPlayerReference();
-        SetIndicatorColor(normalEyeColor);
-
         InitStageAnimation();
-        PlayStageAnimation(currentState);
+
+        if (spawnMode == SpawnMode.Spawn_Drop && spawnDropClip != null)
+        {
+            actionCoroutine = StartCoroutine(SpawnRoutine(HammerState.Spawn_Drop, spawnDropDuration));
+        }
+        else if (spawnMode == SpawnMode.Spawn_Slide && spawnSlideClip != null)
+        {
+            actionCoroutine = StartCoroutine(SpawnRoutine(HammerState.Spawn_Slide, spawnSlideDuration));
+        }
+        else
+        {
+            SetState(HammerState.No_Animation);
+        }
     }
 
     private void LateUpdate()
@@ -124,39 +203,33 @@ public class EnemyHammer : EnemyBase
     {
         base.Update();
 
-        if (isDead) return;
-
-        // หากติดสตั๊นหรือถูกยกถือ ให้ข้าม AI
-        if (isStunned || isBeingCarried)
+        if (isDead)
         {
-            SetState(isBeingCarried ? HammerState.Carried : HammerState.Stunned);
+            StopActionCoroutine();
             return;
         }
 
-        switch (currentState)
+        if (isBeingCarried)
         {
-            case HammerState.Searching:
-                HandleSearching();
-                break;
-
-            case HammerState.Staggered:
-                stateTimer -= Time.deltaTime;
-                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-                if (stateTimer <= 0f)
-                {
-                    SetState(HammerState.Searching);
-                }
-                break;
-
-            case HammerState.Cooldown:
-                stateTimer -= Time.deltaTime;
-                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-                if (stateTimer <= 0f)
-                {
-                    SetState(HammerState.Searching);
-                }
-                break;
+            StopActionCoroutine();
+            SetState(HammerState.Carry);
+            return;
         }
+
+        if (isStunned)
+        {
+            // กรณีถูกวางลงพื้นแล้วยังติดสตั๊นอยู่ ให้กลับเข้าท่า Stunt_Idle
+            if (actionCoroutine == null && currentState != HammerState.Stunt_Start && currentState != HammerState.Stunt_Idle)
+            {
+                SetState(HammerState.Stunt_Idle);
+            }
+            return;
+        }
+
+        // หากกำลังเล่น Action Routine (Spawn / Charge / Wall Stunt / Stunt_End / Cooldown) ให้รันจนจบก่อน
+        if (actionCoroutine != null) return;
+
+        HandleSearching();
     }
 
     private void FindPlayerReference()
@@ -173,53 +246,43 @@ public class EnemyHammer : EnemyBase
         if (playerTarget == null)
         {
             FindPlayerReference();
+            SetHorizontalVelocity(Vector3.zero);
+            SetState(HammerState.No_Animation);
             return;
         }
 
         Vector3 toPlayer = playerTarget.position - transform.position;
-        toPlayer.y = 0f; // สนใจเฉพาะระนาบพื้น
+        toPlayer.y = 0f;
         float dist = toPlayer.magnitude;
 
         if (dist <= detectionRadius)
         {
             Vector3 moveDir = toPlayer.normalized;
-
-            if (moveDir != Vector3.zero)
-            {
-                transform.rotation = Quaternion.Slerp(
-                    transform.rotation,
-                    Quaternion.LookRotation(moveDir),
-                    Time.deltaTime * 6f
-                );
-            }
+            RotateSmoothlyTowards(moveDir);
 
             bool hasClearLOS = HasLineOfSightToPlayer();
 
             if (hasClearLOS && dist <= chargeTriggerDistance)
             {
-                // มองเห็นผู้เล่นตรงๆ และอยู่ในระยะพุ่ง -> หยุดเดินแล้วเริ่มชาร์จ
-                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-                StartWindupSequence();
+                // มองเห็นผู้เล่นตรงๆ และอยู่ในระยะพุ่ง -> หยุดแล้วเริ่มลำดับ Roar -> Run_Start -> Run_Loop
+                SetHorizontalVelocity(Vector3.zero);
+                StartChargeSequence();
             }
             else
             {
-                // ยังมีสิ่งกีดขวางหรือยังอยู่นอกระยะพุ่ง -> เดินรุกคืบเข้าหาผู้เล่น
-                Vector3 moveVelocity = moveDir * searchMoveSpeed;
-                moveVelocity.y = rb.linearVelocity.y;
-                rb.linearVelocity = moveVelocity;
+                // ยังมีสิ่งกีดขวางหรืออยู่นอกระยะพุ่ง -> วิ่งเข้าหาผู้เล่นด้วยท่า Run_Loop
+                SetHorizontalVelocity(moveDir * searchMoveSpeed);
+                SetState(HammerState.Run_Loop);
             }
         }
         else
         {
-            // อยู่นอกระยะตรวจจับ -> หยุดนิ่ง
-            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            // อยู่นอกระยะตรวจจับ -> หยุดนิ่งด้วยท่า No_Animation
+            SetHorizontalVelocity(Vector3.zero);
+            SetState(HammerState.No_Animation);
         }
     }
 
-    /// <summary>
-    /// ตรวจสอบว่ามีสิ่งกีดขวางบังสายตาระหว่างตาศัตรูกับตัวผู้เล่นหรือไม่
-    /// ข้ามตัว Collider ของตัวเอง และนับว่ามองเห็นหาก Ray ชนโดนตัวผู้เล่น
-    /// </summary>
     private bool HasLineOfSightToPlayer()
     {
         if (playerTarget == null) return false;
@@ -236,85 +299,230 @@ public class EnemyHammer : EnemyBase
 
         foreach (var hit in hits)
         {
-            // ข้ามคอลไลเดอร์ของตัวเอง
             if (hit.transform == transform || hit.transform.IsChildOf(transform))
                 continue;
 
-            // หากชนตัวผู้เล่นหรือส่วนประกอบของผู้เล่น แปลว่ามองเห็นผู้เล่นโดยตรง
             if (hit.transform == playerTarget || hit.transform.IsChildOf(playerTarget) || hit.collider.GetComponentInParent<PlayerController>() != null)
             {
                 return true;
             }
 
-            // หากชนสิ่งของหรือกำแพงที่เป็นของแข็ง (ไม่ใช่ Trigger)
             if (!hit.collider.isTrigger)
             {
-                return false; // โดนสิ่งกีดขวางบังสายตา
+                return false;
             }
         }
 
         return true;
     }
 
-    private void StartWindupSequence()
+    // ---------------------------------------------------------------- Action Routines
+
+    private void StopActionCoroutine()
     {
-        if (chargeCoroutine != null) StopCoroutine(chargeCoroutine);
-        chargeCoroutine = StartCoroutine(ChargeRoutine());
+        if (actionCoroutine != null)
+        {
+            StopCoroutine(actionCoroutine);
+            actionCoroutine = null;
+        }
+        isCharging = false;
+    }
+
+    private IEnumerator SpawnRoutine(HammerState spawnState, float duration)
+    {
+        SetState(spawnState);
+        SetHorizontalVelocity(Vector3.zero);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (isDead || isStunned || isBeingCarried) yield break;
+            SetHorizontalVelocity(Vector3.zero);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        actionCoroutine = null;
+        SetState(HammerState.No_Animation);
+    }
+
+    private void StartChargeSequence()
+    {
+        StopActionCoroutine();
+        actionCoroutine = StartCoroutine(ChargeRoutine());
     }
 
     private IEnumerator ChargeRoutine()
     {
-        // 1. ขั้นตอน WINDUP (ล็อคทิศทางและเตือนผู้เล่น)
-        SetState(HammerState.Windup);
-        SetIndicatorColor(chargingEyeColor);
+        lockedChargeDirection = Vector3.zero;
+        SetHorizontalVelocity(Vector3.zero);
 
-        // ล็อคทิศทางที่จะพุ่งตรง
-        Vector3 aimDir = (playerTarget.position - transform.position);
-        aimDir.y = 0f;
-        lockedChargeDirection = aimDir.normalized;
-
-        if (lockedChargeDirection != Vector3.zero)
+        if (!skipRoar && roarDuration > 0f)
         {
-            transform.rotation = Quaternion.LookRotation(lockedChargeDirection);
+            SetState(HammerState.Roar);
+
+            float elapsedRoar = 0f;
+            while (elapsedRoar < roarDuration)
+            {
+                if (isStunned || isBeingCarried || isDead) yield break;
+
+                UpdateChargeDirectionFromPlayer();
+                RotateSmoothlyTowards(lockedChargeDirection);
+                SetHorizontalVelocity(Vector3.zero);
+
+                elapsedRoar += Time.deltaTime;
+                yield return null;
+            }
+        }
+        else
+        {
+            UpdateChargeDirectionFromPlayer();
         }
 
-        rb.linearVelocity = Vector3.zero;
-
-        // สั่นกระตุกเตือนระหว่างง้าง
-        float elapsedWindup = 0f;
-        Vector3 origPos = transform.position;
-        while (elapsedWindup < windupDuration)
+        if (lockedChargeDirection.sqrMagnitude < 0.001f)
         {
-            if (isStunned || isDead) yield break;
-            elapsedWindup += Time.deltaTime;
+            lockedChargeDirection = transform.forward;
+            lockedChargeDirection.y = 0f;
+            lockedChargeDirection.Normalize();
+        }
+
+        SetState(HammerState.Run_Start);
+        isCharging = false;
+
+        float elapsedStart = 0f;
+        while (elapsedStart < runStartDuration)
+        {
+            if (isStunned || isBeingCarried || isDead) yield break;
+
+            RotateSmoothlyTowards(lockedChargeDirection);
+            SetHorizontalVelocity(Vector3.zero);
+
+            elapsedStart += Time.deltaTime;
             yield return null;
         }
 
-        // 2. ขั้นตอน CHARGING (พุ่งชนเป็นเส้นตรง)
-        SetState(HammerState.Charging);
-        float chargeElapsed = 0f;
+        SetState(HammerState.Run_Loop);
+        isCharging = true;
+        float elapsedLoop = 0f;
 
-        while (chargeElapsed < maxChargeTime && currentState == HammerState.Charging)
+        while (elapsedLoop < runLoopMaxDuration && isCharging)
         {
-            if (isStunned || isDead) yield break;
+            if (isStunned || isBeingCarried || isDead) yield break;
 
-            chargeElapsed += Time.deltaTime;
-
-            // เคลื่อนที่ด้วยความเร็วสูงไปตาม lockedChargeDirection
-            Vector3 moveVelocity = lockedChargeDirection * chargeSpeed;
-            moveVelocity.y = rb.linearVelocity.y; // รักษาระนาบแนวดิ่ง/แรงโน้มถ่วง
-            rb.linearVelocity = moveVelocity;
-
+            elapsedLoop += Time.fixedDeltaTime;
+            SetHorizontalVelocity(lockedChargeDirection * chargeSpeed);
             yield return new WaitForFixedUpdate();
         }
 
-        // หากพุ่งจนหมดเวลาโดยไม่ชนอะไร
-        EndCharge(HammerState.Cooldown, attackCooldown);
+        isCharging = false;
+        yield return CooldownSequence(noAnimationCooldown);
     }
+
+    private void UpdateChargeDirectionFromPlayer()
+    {
+        if (playerTarget == null) return;
+
+        Vector3 aimDir = playerTarget.position - transform.position;
+        aimDir.y = 0f;
+        if (aimDir.sqrMagnitude > 0.001f)
+        {
+            lockedChargeDirection = aimDir.normalized;
+        }
+    }
+
+    // --- สรุปการทำงานของโค้ด ---
+    // 1. เช็กเงื่อนไข !skipRoar && roarDuration > 0f: ถ้าไม่ได้ข้าม จะเข้าสถานะ Roar หยุดนิ่งและอัปเดตทิศเล็งหาผู้เล่นจนครบ roarDuration
+    // 2. ถ้าติ๊ก skipRoar ไว้ จะข้าม Roar แล้วดึงทิศทางผู้เล่นล่าสุดผ่าน UpdateChargeDirectionFromPlayer() ทันที เพื่อไม่ให้ทิศพุ่งเป็นศูนย์
+    // 3. เข้าสถานะ Run_Start โดยยืนนิ่ง (isCharging = false) พร้อมค่อยๆ หันหน้าเข้าหาทิศที่ล็อคไว้จนครบ runStartDuration
+    // 4. เข้าสถานะ Run_Loop และเปิด isCharging = true เพื่อออกตัวพุ่งชนเป็นเส้นตรงจนชนเป้าหมายหรือครบ runLoopMaxDuration แล้วจึงพักใน CooldownSequence
+
+    private void StartWallStuntSequence()
+    {
+        StopActionCoroutine();
+        SetHorizontalVelocity(Vector3.zero);
+        actionCoroutine = StartCoroutine(WallStuntRoutine());
+    }
+
+    private IEnumerator WallStuntRoutine()
+    {
+        // 1. Stunt_Start
+        SetState(HammerState.Stunt_Start);
+        yield return WaitStationary(stuntStartDuration);
+        if (isDead || isBeingCarried || isStunned) yield break;
+
+        // 2. Stunt_Idle
+        SetState(HammerState.Stunt_Idle);
+        yield return WaitStationary(stuntIdleDuration);
+        if (isDead || isBeingCarried || isStunned) yield break;
+
+        // 3. Stunt_End
+        SetState(HammerState.Stunt_End);
+        yield return WaitStationary(stuntEndDuration);
+        if (isDead || isBeingCarried || isStunned) yield break;
+
+        actionCoroutine = null;
+        SetState(HammerState.No_Animation);
+    }
+
+    private void StartCooldownSequence(float duration)
+    {
+        StopActionCoroutine();
+        SetHorizontalVelocity(Vector3.zero);
+        actionCoroutine = StartCoroutine(CooldownSequence(duration));
+    }
+
+    private IEnumerator CooldownSequence(float duration)
+    {
+        SetState(HammerState.No_Animation);
+        yield return WaitStationary(duration);
+
+        actionCoroutine = null;
+    }
+
+    private IEnumerator ExternalStunRoutine()
+    {
+        // เล่น Stunt_Start ก่อนแล้วค้างที่ Stunt_Idle จนกว่าจะออกจากสถานะ Stun
+        SetState(HammerState.Stunt_Start);
+
+        float elapsed = 0f;
+        while (elapsed < stuntStartDuration)
+        {
+            if (isDead || isBeingCarried || !isStunned) yield break;
+            SetHorizontalVelocity(Vector3.zero);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        SetState(HammerState.Stunt_Idle);
+        actionCoroutine = null;
+    }
+
+    private IEnumerator StuntEndRoutine()
+    {
+        SetState(HammerState.Stunt_End);
+        yield return WaitStationary(stuntEndDuration);
+
+        actionCoroutine = null;
+        SetState(HammerState.No_Animation);
+    }
+
+    private IEnumerator WaitStationary(float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (isDead || isBeingCarried) yield break;
+            SetHorizontalVelocity(Vector3.zero);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    // ---------------------------------------------------------------- Collisions & Stun Hooks
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (currentState != HammerState.Charging) return;
+        if (!isCharging) return;
 
         // 1. ตรวจสอบว่าชนผู้เล่นหรือไม่
         PlayerController player = collision.gameObject.GetComponentInParent<PlayerController>();
@@ -330,71 +538,71 @@ public class EnemyHammer : EnemyBase
                 targetLiving.TakeDamage(chargeDamage, hitPoint, hitDir);
             }
 
-            // แรงผลักผู้เล่น
             Rigidbody playerRb = player.GetComponent<Rigidbody>();
             if (playerRb != null)
             {
                 playerRb.AddForce(lockedChargeDirection * knockbackForce + Vector3.up * 2f, ForceMode.Impulse);
             }
 
-            Debug.Log($"[{gameObject.name}] พุ่งชนโดนผู้เล่น! ทำดาเมจ {chargeDamage}");
-            EndCharge(HammerState.Cooldown, attackCooldown);
+            Debug.Log($"[{gameObject.name}] พุ่งชนโดนผู้เล่น! ทำดาเมจ {chargeDamage} และเข้าสู่ Stunt_Start -> Stunt_Idle -> Stunt_End");
+            StartWallStuntSequence();
             return;
         }
 
-        // 2. ตรวจสอบว่าชนกำแพงหรือสิ่งกีดขวางหรือไม่
-        // ถ้าหน้าสัมผัสทำมุมชัน (เป็นกำแพง)
+        // 2. ตรวจสอบว่าชนกำแพงแนวตั้งหรือไม่ -> เข้าลำดับ Stunt_Start -> Stunt_Idle -> Stunt_End
         if (collision.contactCount > 0)
         {
             Vector3 normal = collision.contacts[0].normal;
-            if (Vector3.Dot(normal, Vector3.up) < 0.5f) // ผนังแนวตั้ง
+            if (Vector3.Dot(normal, Vector3.up) < 0.5f)
             {
-                Debug.Log($"[{gameObject.name}] พุ่งชนกำแพงอย่างจัง! ชะงัก (Staggered)");
-                EndCharge(HammerState.Staggered, wallStaggerDuration);
+                Debug.Log($"[{gameObject.name}] พุ่งชนกำแพง! เข้าสู่ Stunt_Start -> Stunt_Idle -> Stunt_End");
+                StartWallStuntSequence();
             }
         }
     }
 
-    private void EndCharge(HammerState nextState, float duration)
-    {
-        if (chargeCoroutine != null)
-        {
-            StopCoroutine(chargeCoroutine);
-            chargeCoroutine = null;
-        }
-
-        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-        SetState(nextState);
-        stateTimer = duration;
-        SetIndicatorColor(normalEyeColor);
-    }
-
     public override void EnterStunState()
     {
-        if (chargeCoroutine != null)
-        {
-            StopCoroutine(chargeCoroutine);
-            chargeCoroutine = null;
-        }
-
-        rb.linearVelocity = Vector3.zero;
-        SetState(HammerState.Stunned);
-        SetIndicatorColor(Color.gray);
+        StopActionCoroutine();
+        SetHorizontalVelocity(Vector3.zero);
 
         base.EnterStunState();
+
+        if (!isDead && !isBeingCarried)
+        {
+            actionCoroutine = StartCoroutine(ExternalStunRoutine());
+        }
     }
 
     public override void ExitStunState()
     {
+        StopActionCoroutine();
         base.ExitStunState();
-        SetState(HammerState.Cooldown);
-        stateTimer = 1.0f;
-        SetIndicatorColor(normalEyeColor);
+
+        if (!isDead && !isBeingCarried)
+        {
+            actionCoroutine = StartCoroutine(StuntEndRoutine());
+        }
     }
 
-    // ---------------------------------------------------------------- Stage Animation
+    // ---------------------------------------------------------------- Movement Helpers
 
-    /// <summary>เปลี่ยนสถานะพร้อมเล่นอนิเมชันของท่านั้น (ถ้ามีการใส่ clip ไว้)</summary>
+    private void SetHorizontalVelocity(Vector3 horizontalVelocity)
+    {
+        if (rb == null || rb.isKinematic) return;
+        rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.z);
+    }
+
+    private void RotateSmoothlyTowards(Vector3 direction)
+    {
+        if (!facePlayer || direction.sqrMagnitude < 0.001f) return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * turnSpeed);
+    }
+
+    // ---------------------------------------------------------------- Stage Animation (Playables)
+
     private void SetState(HammerState nextState)
     {
         currentState = nextState;
@@ -403,47 +611,41 @@ public class EnemyHammer : EnemyBase
 
     private bool HasAnyStageClip()
     {
-        return searchingClip != null || windupClip != null || chargingClip != null ||
-               staggeredClip != null || cooldownClip != null || stunnedClip != null ||
-               carriedClip != null;
+        return spawnDropClip != null || spawnSlideClip != null || noAnimationClip != null ||
+               roarClip != null || runStartClip != null || runLoopClip != null ||
+               stuntStartClip != null || stuntIdleClip != null || stuntEndClip != null ||
+               carryClip != null;
     }
 
     private AnimationClip GetStageClip(HammerState state)
     {
         switch (state)
         {
-            case HammerState.Searching: return searchingClip;
-            case HammerState.Windup: return windupClip;
-            case HammerState.Charging: return chargingClip;
-            case HammerState.Staggered: return staggeredClip;
-            case HammerState.Cooldown: return cooldownClip;
-            case HammerState.Stunned: return stunnedClip;
-            case HammerState.Carried: return carriedClip;
+            case HammerState.Spawn_Drop: return spawnDropClip;
+            case HammerState.Spawn_Slide: return spawnSlideClip;
+            case HammerState.No_Animation: return noAnimationClip;
+            case HammerState.Roar: return roarClip;
+            case HammerState.Run_Start: return runStartClip;
+            case HammerState.Run_Loop: return runLoopClip;
+            case HammerState.Stunt_Start: return stuntStartClip;
+            case HammerState.Stunt_Idle: return stuntIdleClip;
+            case HammerState.Stunt_End: return stuntEndClip;
+            case HammerState.Carry: return carryClip;
             default: return null;
         }
     }
 
-    /// <summary>
-    /// เตรียม PlayableGraph สำหรับเล่น clip ต่อสเตจ
-    /// (ทำงานเฉพาะเมื่อมีการใส่ clip อย่างน้อย 1 ท่า — ถ้าใช้ Animator Controller อยู่จะไม่แตะต้อง)
-    /// </summary>
     private void InitStageAnimation()
     {
         if (stageAnimReady) return;
         if (!HasAnyStageClip()) return;
 
         if (hammerAnimator == null)
-        {
             hammerAnimator = GetComponent<Animator>();
-        }
         if (hammerAnimator == null)
-        {
             hammerAnimator = GetComponentInChildren<Animator>();
-        }
         if (hammerAnimator == null)
-        {
             hammerAnimator = gameObject.AddComponent<Animator>();
-        }
 
         hammerAnimator.applyRootMotion = false;
 
@@ -459,7 +661,6 @@ public class EnemyHammer : EnemyBase
         stageAnimReady = true;
     }
 
-    /// <summary>เล่น clip ของสถานะที่ระบุ (ถ้าไม่ได้ใส่ clip ของท่านั้น จะเล่นท่าเดิมต่อ)</summary>
     private void PlayStageAnimation(HammerState state)
     {
         if (!stageAnimReady) return;
@@ -468,8 +669,6 @@ public class EnemyHammer : EnemyBase
         AnimationClip clip = GetStageClip(state);
         if (clip == null)
         {
-            // สเตจนี้ไม่ได้ใส่ clip ไว้ — เล่นท่าเดิมต่อไป แต่ล้าง marker
-            // เพื่อให้กลับมาสเตจที่มี clip อีกครั้งแล้วเล่นท่าใหม่ได้
             hasAnimatedState = false;
             return;
         }
@@ -479,7 +678,6 @@ public class EnemyHammer : EnemyBase
 
         int nextPort = stageAnimPort < 0 ? 0 : 1 - stageAnimPort;
 
-        // คืนหน่วยความจำของ playable ท่าเดิมก่อนเสียบท่าใหม่
         Playable previous = stageAnimMixer.GetInput(nextPort);
         stageAnimMixer.DisconnectInput(nextPort);
         if (previous.IsValid())
@@ -493,14 +691,12 @@ public class EnemyHammer : EnemyBase
 
         if (stageAnimPort < 0)
         {
-            // ท่าแรก: เล่นเต็มน้ำหนักทันที
             stageAnimPort = nextPort;
             stageAnimMixer.SetInputWeight(nextPort, 1f);
             stageAnimFadeTimer = 1f;
             return;
         }
 
-        // สลับท่า: เริ่ม crossfade จาก 0 ไป 1 ใน LateUpdate
         stageAnimPort = nextPort;
         stageAnimFadeTimer = 0f;
     }
@@ -515,13 +711,5 @@ public class EnemyHammer : EnemyBase
         float weight = stageAnimFadeTimer;
         stageAnimMixer.SetInputWeight(stageAnimPort, weight);
         stageAnimMixer.SetInputWeight(1 - stageAnimPort, 1f - weight);
-    }
-
-    private void SetIndicatorColor(Color color)
-    {
-        if (indicatorRenderer != null && indicatorRenderer.material != null)
-        {
-            indicatorRenderer.material.color = color;
-        }
     }
 }
