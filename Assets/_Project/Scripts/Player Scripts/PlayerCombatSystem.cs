@@ -24,6 +24,7 @@ public class PlayerCombatSystem : MonoBehaviour
     private AudioSource audioSource;
     private float nextAttackTime = 0f;
     private bool isSwinging = false;
+    private bool attackTriggerValid;
 
     private void Awake()
     {
@@ -36,6 +37,16 @@ public class PlayerCombatSystem : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.spatialBlend = 0f; // 2D sound สำหรับผู้เล่น
         }
+        attackTriggerValid = HasParameter(playerStats != null ? playerStats.playerAnimator : null, attackTriggerName);
+    }
+
+    private static bool HasParameter(Animator animator, string paramName)
+    {
+        if (animator == null || string.IsNullOrEmpty(paramName)) return false;
+        var parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+            if (parameters[i].name == paramName) return true;
+        return false;
     }
 
     private void Update()
@@ -88,8 +99,8 @@ public class PlayerCombatSystem : MonoBehaviour
     {
         nextAttackTime = Time.time + weapon.attackCooldown;
 
-        // สั่งเล่นแอนิเมชันโจมตีหากมีการกำหนด Animator
-        if (playerStats != null && playerStats.playerAnimator != null && !string.IsNullOrEmpty(attackTriggerName))
+        // สั่งเล่นแอนิเมชันโจมตีหากมีการกำหนด Animator และ controller มี trigger นี้จริง
+        if (attackTriggerValid && playerStats.playerAnimator != null)
         {
             playerStats.playerAnimator.SetTrigger(attackTriggerName);
         }

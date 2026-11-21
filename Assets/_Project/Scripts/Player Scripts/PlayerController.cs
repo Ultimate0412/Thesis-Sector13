@@ -39,6 +39,11 @@ public class PlayerController : MonoBehaviour
     private Vector3 targetMoveDirection = Vector3.zero;
     private bool jumpRequested = false;
 
+    // Animator parameter ที่มีจริงใน controller (กัน error "Parameter does not exist" ทุกเฟรม)
+    private bool speedParamValid;
+    private bool groundedParamValid;
+    private bool jumpTriggerValid;
+
     // States
     private PlayerStateBase currentState;
     public IdleState idleState;
@@ -86,7 +91,26 @@ public class PlayerController : MonoBehaviour
         rotationY = transform.eulerAngles.y;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        ValidateAnimatorParameters();
         SwitchState(idleState);
+    }
+
+    /// <summary>ตรวจชื่อ parameter ครั้งเดียวตอนเริ่ม — Animator ที่ไม่มี param จะได้ไม่ log error ทุกเฟรม</summary>
+    private void ValidateAnimatorParameters()
+    {
+        var animator = stats != null ? stats.playerAnimator : null;
+        speedParamValid = HasParameter(animator, speedParamName);
+        groundedParamValid = HasParameter(animator, isGroundedParamName);
+        jumpTriggerValid = HasParameter(animator, jumpTriggerName);
+    }
+
+    private static bool HasParameter(Animator animator, string paramName)
+    {
+        if (animator == null || string.IsNullOrEmpty(paramName)) return false;
+        var parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+            if (parameters[i].name == paramName) return true;
+        return false;
     }
 
     private void Update()
@@ -112,11 +136,23 @@ public class PlayerController : MonoBehaviour
         HandleCameraLook();
         CheckGrounded();
 
+        // ปลดล็อก cursor ด้วย Esc เพื่อให้กดปุ่ม HUD (เช่น END DAY) ได้
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            bool isMenuOpen = (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen) ||
+                              (DailySummaryUI.Instance != null && DailySummaryUI.Instance.IsSummaryOpen);
+            if (!isMenuOpen)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+        }
+
         // ตรวจสอบการกดปุ่มกระโดดใน Update เพื่อไม่ให้พลาด input ในแต่ละเฟรม
         if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
         {
             jumpRequested = true;
-            if (stats != null && stats.playerAnimator != null && !string.IsNullOrEmpty(jumpTriggerName))
+            if (jumpTriggerValid && stats != null && stats.playerAnimator != null)
             {
                 stats.playerAnimator.SetTrigger(jumpTriggerName);
             }
@@ -142,11 +178,11 @@ public class PlayerController : MonoBehaviour
     {
         if (stats == null || stats.playerAnimator == null) return;
 
-        if (!string.IsNullOrEmpty(speedParamName))
+        if (speedParamValid)
         {
             stats.playerAnimator.SetFloat(speedParamName, targetMoveDirection.magnitude);
         }
-        if (!string.IsNullOrEmpty(isGroundedParamName))
+        if (groundedParamValid)
         {
             stats.playerAnimator.SetBool(isGroundedParamName, _isGrounded);
         }

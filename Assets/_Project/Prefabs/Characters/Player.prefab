@@ -1591,9 +1591,9 @@ MonoBehaviour:
   playerCamera: {fileID: 8550138162432030878}
   lookSpeed: 2
   lookXLimit: 90
-  speedParamName: Speed
+  speedParamName: 
   isGroundedParamName: IsGrounded
-  jumpTriggerName: Jump
+  jumpTriggerName: 
   rb: {fileID: 0}
   capsuleCollider: {fileID: 0}
   stats: {fileID: 0}
