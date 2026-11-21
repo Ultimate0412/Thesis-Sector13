@@ -105,55 +105,50 @@ namespace Sector13.Decals.EditorTools
 
             foreach (var plan in plans)
             {
-                // 3 รอบต่อ verdict เพื่อเก็บ slot ให้ครอบคลุมชนิดที่สุ่มได้
-                for (int pass = 0; pass < 4; pass++)
+                var verdictRule = applier.spawnTable != null ? applier.spawnTable.Get(plan.verdict) : null;
+                if (verdictRule == null || !verdictRule.IsUsable) continue;
+
+                applier.spawnMode = TraceSpawnMode.Procedural;
+                applier.ClearTraces();
+
+                int seedBase = 1000 + (int)plan.verdict * 100;
+                for (int r = 0; r < verdictRule.rules.Count; r++)
                 {
-                    applier.spawnMode = TraceSpawnMode.Procedural;
-                    applier.ResetSeed();
-                    applier.traceSeed = 1000 + (int)plan.verdict * 10 + pass;
-                    applier.ApplyTraces(plan.verdict, plan.category);
+                    var rule = verdictRule.rules[r];
+                    if (rule == null || !rule.enabled) continue;
 
-                    var traces = applier.transform.Find("SurfaceTracesRoot");
-                    if (traces == null) continue;
+                    GameObject created = null;
+                    for (int attempt = 0; attempt < 6 && created == null; attempt++)
+                        created = applier.SpawnRuleForBake(rule, seedBase + r * 10 + attempt, r + attempt);
+                    if (created == null) continue;
 
-                    var children = new List<Transform>();
-                    for (int i = 0; i < traces.childCount; i++) children.Add(traces.GetChild(i));
+                    var slot = created.GetComponent<DecalSlot>();
+                    if (slot == null) slot = created.AddComponent<DecalSlot>();
 
-                    foreach (var child in children)
+                    slot.traceType = rule.traceType;
+                    slot.visibility = rule.visibility;
+                    slot.allowedVerdicts = new[] { plan.verdict };
+                    slot.weight = Mathf.Max(1f, rule.weight);
+
+                    if (!string.IsNullOrEmpty(rule.decalId)) slot.decalId = rule.decalId;
+                    else
                     {
-                        bool uv = child.name.StartsWith("UV_");
-                        string payload = child.name.Substring(uv ? 9 : 6);   // ตัด "UV_Trace_" / "Trace_"
-                        int cut = payload.LastIndexOf('_');
-                        if (cut > 0) payload = payload.Substring(0, cut);
-
-                        var slot = child.GetComponent<DecalSlot>();
-                        if (slot == null) slot = child.gameObject.AddComponent<DecalSlot>();
-
-                        if (System.Enum.TryParse(payload, out TraceType parsed)) slot.traceType = parsed;
-                        slot.visibility = uv ? TraceVisibility.RequiresUV : TraceVisibility.NakedEye;
-                        slot.allowedVerdicts = new[] { plan.verdict };
-                        slot.weight = 10f;
-
-                        // จำ variant เดิมไว้ (ดูจาก material ที่ bake มา)
-                        var projector = child.GetComponent<DecalProjector>();
+                        // ถ้า rule ไม่ระบุ id ให้จำจาก material ที่ได้จริง
+                        var projector = created.GetComponent<DecalProjector>();
                         if (library != null && projector != null && projector.material != null)
                         {
                             foreach (var entry in library.AllEntries())
                             {
-                                if (entry != null && entry.material == projector.material)
-                                {
-                                    slot.decalId = entry.id;
-                                    break;
-                                }
+                                if (entry != null && entry.material == projector.material) { slot.decalId = entry.id; break; }
                             }
                         }
-
-                        child.name = $"Slot_{plan.verdict}_{pass}_{parsed}";
-                        child.SetParent(container.transform, true);
                     }
 
-                    Object.DestroyImmediate(traces.gameObject);
+                    created.name = $"Slot_{plan.verdict}_{r:00}_{rule.traceType}";
+                    created.transform.SetParent(container.transform, true);
                 }
+
+                applier.ClearTraces();
             }
 
             applier.spawnMode = TraceSpawnMode.AuthoredSlots;

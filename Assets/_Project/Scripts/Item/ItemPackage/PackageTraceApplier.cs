@@ -310,6 +310,22 @@ public class PackageTraceApplier : MonoBehaviour
 
     private void SpawnOne(TraceSpawnRule rule, System.Random rng, int index)
     {
+        SpawnOneInternal(rule, rng, index);
+    }
+
+    /// <summary>ใช้โดยเครื่องมือ Bake: สร้างรอย 1 ตัวจาก rule ที่กำหนด แล้วคืน GameObject (หรือ null)</summary>
+    public GameObject SpawnRuleForBake(TraceSpawnRule rule, int seed, int forcedFace = -1)
+    {
+        if (rule == null) return null;
+        if (boxCollider == null) boxCollider = GetComponent<BoxCollider>();
+        if (boxCollider == null) boxCollider = GetComponentInChildren<BoxCollider>();
+        EnsureTracesRoot();
+        var rng = new System.Random(seed);
+        return SpawnOneInternal(rule, rng, 0, forcedFace);
+    }
+
+    private GameObject SpawnOneInternal(TraceSpawnRule rule, System.Random rng, int index, int forcedFace = -1)
+    {
         // 1) เลือก decal: ระบุ id เจาะจง (variant) ก่อน ถ้าไม่มีค่อยใช้ traceType
         DecalEntry specific = null;
         bool useSpecific = !string.IsNullOrEmpty(rule.decalId)
@@ -321,7 +337,7 @@ public class PackageTraceApplier : MonoBehaviour
                           && decalLibrary.TryGetEntry(rule.traceType, out _);
 
         Material mat = (useSpecific || useLibrary) ? null : GetMaterialForTraceType(rule.traceType);
-        if (!useSpecific && !useLibrary && mat == null) return;
+        if (!useSpecific && !useLibrary && mat == null) return null;
 
         TracePlacementProfile profile = rule.placement;
         Vector2 sizeRange = (rule.sizeOverride.x > 0f && rule.sizeOverride.y > 0f)
@@ -349,7 +365,7 @@ public class PackageTraceApplier : MonoBehaviour
         for (int attempt = 0; attempt < attempts; attempt++)
         {
             if (profile != null)
-                GetProfileTransform(profile, rng, size, boxCenter, boxHalf, out localPos, out localRot);
+                GetProfileTransform(profile, rng, size, boxCenter, boxHalf, out localPos, out localRot, forcedFace);
             else
                 GetRandomTraceTransform(boxCenter, boxHalf, size, rng, out localPos, out localRot);
 
@@ -364,7 +380,7 @@ public class PackageTraceApplier : MonoBehaviour
         if (!placed)
         {
             // หาที่ว่างไม่ได้ → ข้ามรอยนี้ ไม่ให้ทับกัน
-            return;
+            return null;
         }
 
         placedDecals.Add(new Vector4(localPos.x, localPos.y, localPos.z, size * 0.5f));
@@ -415,6 +431,8 @@ public class PackageTraceApplier : MonoBehaviour
             projector.fadeFactor = 1.0f;
             nakedEyeProjectors.Add(projector);
         }
+
+        return decalGo;
     }
 
     private bool OverlapsExisting(Vector3 pos, float radius, float minSpacing, int face)
@@ -469,7 +487,7 @@ public class PackageTraceApplier : MonoBehaviour
 
     /// <summary>วางรอยตาม profile (หน้า, ขอบ, แรงโน้มถ่วง, มุมหมุน)</summary>
     private void GetProfileTransform(TracePlacementProfile profile, System.Random rng, float size,
-        Vector3 center, Vector3 half, out Vector3 localPos, out Quaternion localRot)
+        Vector3 center, Vector3 half, out Vector3 localPos, out Quaternion localRot, int forcedFace = -1)
     {
         var faces = new List<DecalFaceMask>(6);
         if (profile.Allows(DecalFaceMask.Top)) faces.Add(DecalFaceMask.Top);
@@ -481,7 +499,9 @@ public class PackageTraceApplier : MonoBehaviour
 
         if (faces.Count == 0) faces.Add(DecalFaceMask.Top);
 
-        DecalFaceMask face = faces[rng.Next(0, faces.Count)];
+        DecalFaceMask face = forcedFace >= 0
+            ? faces[Mathf.Abs(forcedFace) % faces.Count]
+            : faces[rng.Next(0, faces.Count)];
         float m = Mathf.Clamp(profile.margin, 0.4f, 1f);
 
         float rx = Mathf.Lerp(-half.x * m, half.x * m, NextFloat(rng));
@@ -646,6 +666,8 @@ public class PackageTraceApplier : MonoBehaviour
     {
         nakedEyeProjectors.Clear();
         uvProjectors.Clear();
+        placedDecals.Clear();
+        placedFaces.Clear();
 
         if (tracesRoot != null)
         {
