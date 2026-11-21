@@ -1,0 +1,89 @@
+{
+  "root": "D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/DecalRefs",
+  "board_name": "DecalRefs",
+  "per_group": 8,
+  "min_width": 600,
+  "purformat_path": "C:/Users/PC/AppData/Local/Temp/opencode/tools/PureRef-format",
+  "groups": [
+    {
+      "folder": "01_WaterStain",
+      "en": "WATER STAIN",
+      "th": "คราบน้ำ",
+      "note": "Atlas A [0,0] - NakedEye | stain ON a parcel",
+      "look": "tide rim (dark receding edge) / soaked fiber swell / uneven absorption / no hard outline",
+      "queries": ["water stain cardboard box", "water damaged cardboard box", "wet cardboard box stain", "moisture stain shipping box", "soaked package cardboard"]
+    },
+    {
+      "folder": "02_OilStain",
+      "en": "OIL STAIN",
+      "th": "คราบน้ำมัน",
+      "note": "Atlas A [0,1] - NakedEye | stain ON a parcel",
+      "look": "dark saturated core / sharp halo edge / wet vs dry split / low roughness center",
+      "queries": ["oil stain cardboard box", "grease stain cardboard packaging", "oil soaked cardboard box", "oil leak package box", "dark stained carton"]
+    },
+    {
+      "folder": "03_ClawMarks",
+      "en": "CLAW MARKS",
+      "th": "รอยข่วน",
+      "note": "Atlas A [1,0] - NakedEye | damage ON a parcel",
+      "look": "3-4 parallel gouges / torn fiber lift at the exit / V groove depth / torn paper white",
+      "queries": ["claw marks cardboard box", "torn cardboard box scratches", "scratch marks cardboard packaging", "gouged cardboard surface", "ripped cardboard box damage"]
+    },
+    {
+      "folder": "04_CardboardScuff",
+      "en": "CARDBOARD SCUFF",
+      "th": "รอยถู / สีซีด",
+      "note": "Atlas A [1,1] - NakedEye | wear ON a parcel",
+      "look": "abraded fiber / lighter rubbed tone / directional streak / worn corner",
+      "queries": ["scuffed cardboard box", "worn cardboard box edge", "rubbed cardboard packaging", "cardboard box wear marks", "abraded cardboard surface"]
+    },
+    {
+      "folder": "05_BloodStain",
+      "en": "BLOOD STAIN",
+      "th": "คราบเลือด",
+      "note": "Atlas A [2,0] - NakedEye | stain ON a parcel",
+      "look": "brown oxidation / dark dried rim / thin translucent center / satellite droplets",
+      "queries": ["blood stain cardboard box", "blood on packaging box", "blood splatter carton", "blood stained parcel", "dried blood on brown paper"]
+    },
+    {
+      "folder": "06_AcidBurn",
+      "en": "ACID BURN",
+      "th": "รอยกรดกัด",
+      "note": "Atlas A [2,1] - NakedEye | damage ON a parcel",
+      "look": "eaten surface / bubbled rim / color eaten to raw / charred dark core",
+      "queries": ["burned cardboard box", "chemical stain cardboard box", "acid stain packaging box", "chemical damage package", "burn mark cardboard surface"]
+    },
+    {
+      "folder": "07_Frost",
+      "en": "FROST",
+      "th": "คราบฝ้า / น้ำแข็ง",
+      "note": "Atlas A [3,0] - NakedEye | frost ON a parcel",
+      "look": "crystal needles / translucent milky center / soft feathered edge / condensation",
+      "queries": ["frost on cardboard box", "frozen cardboard package", "ice crystals on paper", "frost damaged parcel", "condensation cardboard box"]
+    },
+    {
+      "folder": "08_TapeResidue",
+      "en": "TAPE RESIDUE",
+      "th": "คราบกาวจากเทป",
+      "note": "Atlas A [3,1] - NakedEye | residue ON a parcel",
+      "look": "rectangle ghost shape / dusty sticky line / matte film / fiber pulled by tape",
+      "queries": ["tape residue cardboard box", "old tape marks cardboard box", "packing tape removed box", "adhesive residue cardboard", "tape stain on carton"]
+    },
+    {
+      "folder": "09_AlienSlime_UV",
+      "en": "ALIEN SLIME (UV)",
+      "th": "เมือกเอเลี่ยน (UV)",
+      "note": "Atlas B [0,0] - RequiresUV | slime ON a parcel",
+      "look": "viscous blob / trailing drip / high specular / thin spread film",
+      "queries": ["slime on cardboard box", "wet slime stain surface", "goo drip on box", "gel stain on paper", "sticky liquid on carton"]
+    },
+    {
+      "folder": "10_ChemicalResidue_UV",
+      "en": "CHEMICAL RESIDUE (UV)",
+      "th": "สารเคมีตกค้าง (UV)",
+      "note": "Atlas B [0,1] - RequiresUV | residue ON a parcel",
+      "look": "powder dusting / crystalline grain / reactive ring / spilled liquid edge",
+      "queries": ["chemical powder on cardboard box", "white powder residue package", "chemical stain packaging box", "spilled powder on box", "chemical residue cardboard"]
+    }
+  ]
+}

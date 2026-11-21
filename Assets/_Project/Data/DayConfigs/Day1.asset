@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f319da07c24ab44aee34c017266096, type: 3}
+  m_Name: Day1
+  m_EditorClassIdentifier: Assembly-CSharp::DayConfig
+  dayName: Day 1
+  openQuota: 3
+  spawnQuota: 5
+  minShippedPerDay: 3
+  shortfallPenaltyPerBox: 50
+  stationFee: 200
+  categoryRate:
+    legalWeight: 70
+    illegalWeight: 20
+    alienWeight: 10
+  packagePrefabs:
+  - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
+  - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+  - {fileID: 6710169368151423947, guid: 7eccca39e9c08794f82283e35d5b121f, type: 3}
+  events:
+    enableRandomEvents: 0
+    minInterval: 60
+    maxInterval: 120
+    allowedEventIds:
+    - NoGravity
+  thief:
+    enableThief: 1
+    minStampsThreshold: 3
+    guaranteedStampsThreshold: 5
+    spawnChancePerStamp: 0.45
+    maxThievesPerDay: 1
+    warningDelay: 4
+  dialogue:
+    enableDialogue: 1
+    startDelay: 1.5
+    speakerName: Speaker
+    portrait: {fileID: 21300000, guid: 26f616a1cdb5f634f88223ead06e6b2b, type: 3}
+    charactersPerSecond: 35
+    holdDuration: 2.5
+    lines:
+    - speakerName: Boss
+      text: welcome to Sector 13.
+      portrait: {fileID: 0}
+      charactersPerSecond: 0
+      holdDuration: 0
+      voiceClip: {fileID: 8300000, guid: 6b2744d62ffdb2c4e9b52af99790b320, type: 3}
+      voiceVolume: 1
+      waitForVoiceToFinish: 1
+    - speakerName: Boss
+      text: start your work check all parcel ship them correctly.
+      portrait: {fileID: 0}
+      charactersPerSecond: 0
+      holdDuration: 0
+      voiceClip: {fileID: 8300000, guid: 6b2744d62ffdb2c4e9b52af99790b320, type: 3}
+      voiceVolume: 1
+      waitForVoiceToFinish: 1

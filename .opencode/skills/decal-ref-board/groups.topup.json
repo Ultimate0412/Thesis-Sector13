@@ -1,0 +1,33 @@
+{
+  "root": "D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/DecalRefs",
+  "board_name": "DecalRefs",
+  "per_group": 8,
+  "min_width": 640,
+  "purformat_path": "C:/Users/PC/AppData/Local/Temp/opencode/tools/PureRef-format",
+  "groups": [
+    {
+      "folder": "06_AcidBurn",
+      "en": "ACID BURN",
+      "th": "รอยกรดกัด",
+      "note": "Atlas A [2,1] - NakedEye",
+      "look": "eaten surface / bubbled rim / color eaten to raw / charred dark core",
+      "queries": ["rusted metal texture", "corrosion metal macro", "oxidized steel closeup", "burned paper edge", "chemical etching metal"]
+    },
+    {
+      "folder": "08_TapeResidue",
+      "en": "TAPE RESIDUE",
+      "th": "คราบกาวจากเทป",
+      "note": "Atlas A [3,1] - NakedEye",
+      "look": "rectangle ghost shape / dusty sticky line / matte film / fiber pulled by tape",
+      "queries": ["packing tape cardboard", "tape marks on box", "adhesive residue glass", "sticker glue residue", "masking tape removed surface"]
+    },
+    {
+      "folder": "09_AlienSlime_UV",
+      "en": "ALIEN SLIME (UV)",
+      "th": "เมือกเอเลี่ยน (UV)",
+      "note": "Atlas B [0,0] - RequiresUV",
+      "look": "viscous blob / trailing drip / high specular / thin spread film",
+      "queries": ["slime texture", "gel blob macro", "viscous liquid drip", "wet mucus surface", "jelly texture closeup"]
+    }
+  ]
+}

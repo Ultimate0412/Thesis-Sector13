@@ -1,0 +1,17 @@
+﻿{
+  "root": "D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/DecalRefs",
+  "board_name": "DecalRefs",
+  "per_group": 8,
+  "min_width": 600,
+  "purformat_path": "C:/Users/PC/AppData/Local/Temp/opencode/tools/PureRef-format",
+  "groups": [
+    {
+      "folder": "09_AlienSlime_UV",
+      "en": "ALIEN SLIME (UV)",
+      "th": "เมือกเอเลี่ยน (UV)",
+      "note": "Atlas B [0,0] - RequiresUV",
+      "look": "viscous blob / trailing drip / high specular / thin spread film",
+      "queries": ["honey drip macro", "glue drip surface", "slime mold macro", "viscous fluid closeup", "paint blob wet surface"]
+    }
+  ]
+}

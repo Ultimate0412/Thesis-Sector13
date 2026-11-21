@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5485954d14dfb9a4c8ead8edb0ded5b1, type: 3}
   m_Name: LiftGammaGain
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.LiftGammaGain
-  active: 0
+  active: 1
   lift:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 0.9392899, z: 0.7826287, w: 0}
+    m_Value: {x: 0.97, y: 0.985, z: 1.03, w: 1}
   gamma:
-    m_OverrideState: 0
-    m_Value: {x: 1, y: 1, z: 1, w: 0}
+    m_OverrideState: 1
+    m_Value: {x: 1, y: 1, z: 1, w: 1}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 0.82072765, y: 1, z: 0.85878557, w: 0}
+    m_Value: {x: 1.05, y: 1, z: 0.95, w: 1}
 --- !u!114 &-6939339402929059468
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -40,19 +40,19 @@ MonoBehaviour:
     m_Value: 1
   threshold:
     m_OverrideState: 1
-    m_Value: 0.9
+    m_Value: 0.85
   intensity:
     m_OverrideState: 1
-    m_Value: 1.5
+    m_Value: 1.15
   scatter:
-    m_OverrideState: 0
-    m_Value: 0.319
+    m_OverrideState: 1
+    m_Value: 0.68
   clamp:
     m_OverrideState: 0
     m_Value: 65472
   tint:
     m_OverrideState: 1
-    m_Value: {r: 0.74965346, g: 0.8396226, b: 0.2415895, a: 1}
+    m_Value: {r: 1, g: 0.97, b: 0.92, a: 1}
   highQualityFiltering:
     m_OverrideState: 1
     m_Value: 0
@@ -89,10 +89,10 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   intensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.12
   response:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.8
   texture:
     m_OverrideState: 0
@@ -113,3 +113,8 @@ MonoBehaviour:
   - {fileID: -6939339402929059468}
   - {fileID: -7085026194085036600}
   - {fileID: -3813559334388653534}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
