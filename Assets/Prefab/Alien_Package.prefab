@@ -145,18 +145,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageBox
   possibleInnerItemPrefabs:
-  - {fileID: 913962141465011701, guid: b661e5349037fb94bac9b7ea7380c87a, type: 3}
-  - {fileID: 8852178910862732008, guid: e3f0df9cf35790843b805f8768d85254, type: 3}
-  - {fileID: 5179522432758830804, guid: 6f1956f5a8b6526499e322ee65ee593e, type: 3}
-  innerItemPrefab: {fileID: 0}
+  - {fileID: 3631325783640814000, guid: 99df4683cd54fe9469451af8d0242ca2, type: 3}
+  innerItemPrefab: {fileID: 3631325783640814000, guid: 99df4683cd54fe9469451af8d0242ca2, type: 3}
   openSlot: {fileID: 8647961664705482763}
   Hath: {fileID: 0}
   randomizeOnAwake: 1
   isItemExtracted: 0
   maxOpenPerDay: 3
   isOpen: 0
+  hasBeenOpened: 0
   currentStamp: 0
   stampMenuKey: 114
+  destructionPenaltyScore: 50
   officialDatabaseData:
     recipientName: 
     destinationAddress: 
@@ -192,6 +192,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c072f2880146ade47bc76d9bc4c854e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageTraceApplier
+  spawnTable: {fileID: 11400000, guid: 360d68cacc53342286be744616e37f62, type: 2}
+  spawnMode: 0
+  traceSeed: 0
   legalSettings:
     spawnChancePercent: 85
     minTraces: 1
@@ -207,6 +210,7 @@ MonoBehaviour:
     minTraces: 2
     maxTraces: 4
     uvTraceRatioPercent: 70
+  decalLibrary: {fileID: 11400000, guid: 410d4f4c5ef57204f95fd80b42084d74, type: 2}
   clawMarksMat: {fileID: 2100000, guid: 475d043bc3ff28342b3b15191110e391, type: 2}
   oilStainMat: {fileID: 2100000, guid: b996f4396740c5742847ddda143588ae, type: 2}
   waterStainMat: {fileID: 2100000, guid: 8529217a016e4ff4d9f194a46b43eaf2, type: 2}
@@ -220,6 +224,7 @@ MonoBehaviour:
   startAngleFade: 45
   endAngleFade: 65
   currentCategory: 0
+  currentVerdict: 0
   isUVIlluminated: 0
 --- !u!114 &475337955682344096
 MonoBehaviour:

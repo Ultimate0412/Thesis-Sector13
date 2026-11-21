@@ -38,6 +38,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
+    - _Brightness: 1.35
     - _Cutoff: 0.5
     - _EmissionIntensity: 0
     - _HeightContrast: 1.5
@@ -47,9 +48,11 @@ Material:
     - _NormalStrength: 1
     - _OcclusionScale: 1
     - _Opacity: 1
+    - _Saturation: 1.4
     - _SmoothnessScale: 1
+    - _Variation: 0.25
     m_Colors:
-    - _BaseColor: {r: 0.55, g: 0.48, b: 0.38, a: 1}
+    - _BaseColor: {r: 0.58, g: 0.48, b: 0.32, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

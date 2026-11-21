@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace Sector13.Decals.EditorTools
 {
     /// <summary>
-    /// ทางลัดสำหรับ build atlas / สแกนโฟลเดอร์ texture จาก Substance โดยไม่ต้องเปิดหน้าต่าง
+    /// เมนูลัดของ Decal Studio: build atlas, สแกนโฟลเดอร์ texture, และช่วยติดตั้ง DecalSlot
     /// </summary>
     public static class DecalStudioMenu
     {
@@ -37,9 +38,8 @@ namespace Sector13.Decals.EditorTools
 
             if (found.Count == 0)
             {
-                Debug.LogWarning(
-                    "[DecalStudio] ไม่พบไฟล์ *_Albedo.png ใต้: " + settings.externalSourceRoot +
-                    " — ตรวจว่า export จาก Substance ลงที่ <ชื่อ>/Textures/ แล้ว");
+                Debug.LogWarning("[DecalStudio] ไม่พบไฟล์ *_Albedo.png ใต้: " + settings.externalSourceRoot +
+                                 " — ตรวจว่า export จาก Substance ลงที่ <ชื่อ>/Textures/ แล้ว");
                 return;
             }
 
@@ -50,50 +50,18 @@ namespace Sector13.Decals.EditorTools
                       string.Join(", ", found.ConvertAll(f => f.id)));
         }
 
-        /// <summary>รวม source ใหม่เข้ากับของเดิม โดยยึด id เป็นตัวจับคู่ (ของใหม่ทับของเก่า)</summary>
-        static List<DecalSourceEntry> Merge(List<DecalSourceEntry> existing, List<DecalSourceEntry> incoming)
+        [MenuItem("Tools/Sector13/Decal Studio/Add DecalSlot to selected projectors", false, 30)]
+        public static void AddSlotToSelection()
         {
-            var merged = existing != null ? new List<DecalSourceEntry>(existing) : new List<DecalSourceEntry>();
-            foreach (var entry in incoming)
+            int added = 0;
+            foreach (var go in Selection.gameObjects)
             {
-                int index = merged.FindIndex(e => e != null && e.id == entry.id);
-                if (index >= 0) merged[index] = entry;
-                else merged.Add(entry);
+                if (go.GetComponent<DecalProjector>() == null) continue;
+                if (go.GetComponent<DecalSlot>() != null) continue;
+                Undo.AddComponent<DecalSlot>(go);
+                added++;
             }
-            merged.Sort((a, b) => a.traceType.CompareTo(b.traceType));
-            return merged;
-        }
-
-        /// <summary>
-        /// แปลงชื่อโฟลเดอร์/ชื่อ texture set → TraceType
-        /// รองรับชื่อย่อที่ SP ตั้งไว้ (Blood, Acid, Tape, ...) และการ match บางส่วน
-        /// </summary>
-        static bool TryResolveTraceType(string name, out TraceType type)
-        {
-            if (System.Enum.TryParse(name, true, out type)) return true;
-
-            switch (name.ToLowerInvariant())
-            {
-                case "blood": type = TraceType.BloodStain; return true;
-                case "acid": type = TraceType.AcidBurn; return true;
-                case "tape": type = TraceType.TapeResidue; return true;
-                case "scuff": type = TraceType.CardboardScuff; return true;
-                case "slime": type = TraceType.AlienSlime_UV; return true;
-                case "chemical": type = TraceType.ChemicalResidue_UV; return true;
-            }
-
-            foreach (string enumName in System.Enum.GetNames(typeof(TraceType)))
-            {
-                if (enumName.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    name.IndexOf(enumName, System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    type = (TraceType)System.Enum.Parse(typeof(TraceType), enumName);
-                    return true;
-                }
-            }
-
-            type = default;
-            return false;
+            Debug.Log($"[DecalStudio] เพิ่ม DecalSlot {added} ตัว");
         }
 
         static DecalAtlasBuildSettings LoadOrCreateSettings()
@@ -145,6 +113,49 @@ namespace Sector13.Decals.EditorTools
 
             list.Sort((a, b) => a.traceType.CompareTo(b.traceType));
             return list;
+        }
+
+        /// <summary>รวม source ใหม่เข้ากับของเดิม โดยยึด id เป็นตัวจับคู่ (ของใหม่ทับของเก่า)</summary>
+        static List<DecalSourceEntry> Merge(List<DecalSourceEntry> existing, List<DecalSourceEntry> incoming)
+        {
+            var merged = existing != null ? new List<DecalSourceEntry>(existing) : new List<DecalSourceEntry>();
+            foreach (var entry in incoming)
+            {
+                int index = merged.FindIndex(e => e != null && e.id == entry.id);
+                if (index >= 0) merged[index] = entry;
+                else merged.Add(entry);
+            }
+            merged.Sort((a, b) => a.traceType.CompareTo(b.traceType));
+            return merged;
+        }
+
+        /// <summary>แปลงชื่อโฟลเดอร์/ชื่อ texture set → TraceType (รองรับชื่อย่อของ SP)</summary>
+        static bool TryResolveTraceType(string name, out TraceType type)
+        {
+            if (System.Enum.TryParse(name, true, out type)) return true;
+
+            switch (name.ToLowerInvariant())
+            {
+                case "blood": type = TraceType.BloodStain; return true;
+                case "acid": type = TraceType.AcidBurn; return true;
+                case "tape": type = TraceType.TapeResidue; return true;
+                case "scuff": type = TraceType.CardboardScuff; return true;
+                case "slime": type = TraceType.AlienSlime_UV; return true;
+                case "chemical": type = TraceType.ChemicalResidue_UV; return true;
+            }
+
+            foreach (string enumName in System.Enum.GetNames(typeof(TraceType)))
+            {
+                if (enumName.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    name.IndexOf(enumName, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    type = (TraceType)System.Enum.Parse(typeof(TraceType), enumName);
+                    return true;
+                }
+            }
+
+            type = default;
+            return false;
         }
 
         static List<DecalSourceEntry> CollectDefaultSources()

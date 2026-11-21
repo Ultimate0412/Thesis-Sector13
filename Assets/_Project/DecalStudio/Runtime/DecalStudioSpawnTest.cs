@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Sector13.Decals
 {
     /// <summary>
-    /// Self-test การ spawn: ถ้าเจอไฟล์ Logs/DecalTest/spawn.flag จะสร้างกล่อง 4 ใบ
-    /// (ส่งได้ / ส่งกลับ / ผิดกฎ / เอเลี่ยน) แล้วถ่ายภาพรวมไว้ที่ Logs/DecalTest/spawn.png
+    /// Self-test ด้วย prefab กล่องจริง — รองรับทั้ง Procedural และ AuthoredSlots
+    /// ทำงานเมื่อมีไฟล์ Logs/DecalTest/spawn.flag แล้วเก็บภาพที่ Logs/DecalTest/spawn.png
     /// </summary>
     public static class DecalStudioSpawnTest
     {
@@ -44,62 +44,78 @@ namespace Sector13.Decals
                     yield break;
                 }
 
-                DecalLibrary library = null;
-                TraceSpawnTable table = null;
+                GameObject legal = null, alien = null;
 #if UNITY_EDITOR
-                library = UnityEditor.AssetDatabase.LoadAssetAtPath<DecalLibrary>(
-                    "Assets/_Project/DecalStudio/Art/DecalLibrary.asset");
-                table = UnityEditor.AssetDatabase.LoadAssetAtPath<TraceSpawnTable>(
-                    "Assets/_Project/DecalStudio/Resources/TraceSpawnTable.asset");
+                legal = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefab/Legal_Package.prefab");
+                alien = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefab/Alien_Package.prefab");
 #endif
 
                 var root = new GameObject("DecalSpawnTest_Root");
                 root.transform.SetParent(cam.transform, false);
-                root.transform.localPosition = new Vector3(0f, 0f, 2.0f);
+                root.transform.localPosition = new Vector3(0f, 0f, 1.6f);
                 root.transform.localRotation = Quaternion.identity;
 
-                const float spread = 0.42f;
-                SpawnBox(root.transform, library, table, VerdictType.Approve, ItemCategory.Legal, new Vector3(-spread, spread, 0));
-                SpawnBox(root.transform, library, table, VerdictType.Return, ItemCategory.Legal, new Vector3(spread, spread, 0));
-                SpawnBox(root.transform, library, table, VerdictType.Illegal, ItemCategory.Illegal, new Vector3(-spread, -spread, 0));
-                SpawnBox(root.transform, library, table, VerdictType.Alien, ItemCategory.Alien, new Vector3(spread, -spread, 0));
+                var legalBox = Spawn(root.transform, legal, new Vector3(-0.35f, 0.28f, 0f));
+                var alienBox = Spawn(root.transform, alien, new Vector3(0.35f, 0.28f, 0f));
 
-                for (int i = 0; i < 25; i++) yield return null;
+                for (int i = 0; i < 30; i++) yield return null;
+
+                LogBox(legalBox, "Legal");
+                LogBox(alienBox, "Alien");
 
                 Directory.CreateDirectory("Logs/DecalTest");
                 ScreenCapture.CaptureScreenshot(ShotPath);
-                Debug.Log("[DecalSpawnTest] captured " + ShotPath + " | library=" + (library != null) + " table=" + (table != null));
+                Debug.Log("[DecalSpawnTest] captured " + ShotPath);
 
                 yield return new WaitForSeconds(0.6f);
                 Destroy(root);
                 Destroy(gameObject);
             }
 
-            static void SpawnBox(Transform parent, DecalLibrary library, TraceSpawnTable table,
-                VerdictType verdict, ItemCategory category, Vector3 localPos)
+            static GameObject Spawn(Transform parent, GameObject prefab, Vector3 localPos)
             {
-                var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                box.name = $"SpawnTest_{verdict}";
-                box.transform.SetParent(parent, false);
+                if (prefab == null) return null;
+
+                var box = Instantiate(prefab, parent, false);
+                box.name = "SpawnTest_" + prefab.name;
                 box.transform.localPosition = localPos;
-                box.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                box.transform.localRotation = Quaternion.identity;
+                box.transform.localScale = Vector3.one * 0.9f;
 
-                var lit = Shader.Find("Universal Render Pipeline/Lit");
-                var mat = new Material(lit);
-                mat.SetColor("_BaseColor", new Color(0.88f, 0.87f, 0.84f));
-                box.GetComponent<Renderer>().sharedMaterial = mat;
+                foreach (var rb in box.GetComponentsInChildren<Rigidbody>(true))
+                {
+                    rb.isKinematic = true;
+                    rb.useGravity = false;
+                }
 
-                var col = box.GetComponent<BoxCollider>();
-                if (col == null) col = box.AddComponent<BoxCollider>();
+                var applier = box.GetComponentInChildren<PackageTraceApplier>();
+                if (applier != null) applier.traceSeed = 12345;
+                return box;
+            }
 
-                var applier = box.AddComponent<PackageTraceApplier>();
-                applier.decalLibrary = library;
-                applier.spawnTable = table;
-                applier.traceSeed = 12345;     // ค่าเดียวกันทุกกล่องเพื่อเทียบผล
-                applier.ApplyTraces(verdict, category);
+            static void LogBox(GameObject box, string label)
+            {
+                if (box == null) { Debug.Log($"[DecalSpawnTest] {label}: null"); return; }
+                var applier = box.GetComponentInChildren<PackageTraceApplier>();
+                if (applier == null) { Debug.Log($"[DecalSpawnTest] {label}: no applier"); return; }
 
-                var traces = box.transform.Find("SurfaceTracesRoot");
-                Debug.Log($"[DecalSpawnTest] {verdict}: traces={(traces != null ? traces.childCount : 0)}");
+                int procedural = 0;
+                var tr = applier.transform.Find("SurfaceTracesRoot");
+                if (tr != null) procedural = tr.childCount;
+
+                int activeSlots = 0;
+                string slotNames = "";
+                var slots = applier.GetComponentsInChildren<DecalSlot>(true);
+                foreach (var s in slots)
+                {
+                    if (s.gameObject.activeSelf)
+                    {
+                        activeSlots++;
+                        slotNames += s.name.Replace("Slot_", "") + " ";
+                    }
+                }
+
+                Debug.Log($"[DecalSpawnTest] {label}: mode={applier.spawnMode} procedural={procedural} activeSlots={activeSlots} [{slotNames.Trim()}] library={(applier.decalLibrary != null)}");
             }
         }
     }

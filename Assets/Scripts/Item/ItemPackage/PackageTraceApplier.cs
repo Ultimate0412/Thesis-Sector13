@@ -3,6 +3,12 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using Sector13.Decals;
 
+public enum TraceSpawnMode
+{
+    Procedural,     // สุ่มตำแหน่ง/หน้าเองจาก TracePlacementProfile
+    AuthoredSlots   // ใช้ช่อง DecalSlot ที่ลากวางไว้ใน prefab (ตำแหน่งตายตัว)
+}
+
 /// <summary>
 /// สร้าง "ร่องรอยหลักฐาน" บนผิวกล่องด้วย DecalProjector
 ///
@@ -17,6 +23,10 @@ public class PackageTraceApplier : MonoBehaviour
 {
     [Header("Spawn Table (โหมดใหม่ — ถ้าไม่ใส่จะใช้ค่า Legacy ด้านล่าง)")]
     public TraceSpawnTable spawnTable;
+
+    [Header("Spawn Mode")]
+    [Tooltip("Procedural = สุ่มตำแหน่งจาก profile, AuthoredSlots = ใช้ช่อง DecalSlot ที่วางไว้ใน prefab")]
+    public TraceSpawnMode spawnMode = TraceSpawnMode.Procedural;
 
     [Tooltip("0 = สุ่ม seed ใหม่ตอนเริ่ม (แต่คงที่ต่อกล่อง), >0 = ใช้ค่านี้")]
     public int traceSeed = 0;
@@ -66,6 +76,7 @@ public class PackageTraceApplier : MonoBehaviour
     private readonly List<DecalProjector> nakedEyeProjectors = new List<DecalProjector>();
     private readonly List<DecalProjector> uvProjectors = new List<DecalProjector>();
     private readonly List<Vector4> placedDecals = new List<Vector4>();
+    private readonly List<int> placedFaces = new List<int>();
     private Transform tracesRoot;
     private BoxCollider boxCollider;
     private int resolvedSeed;
@@ -134,6 +145,7 @@ public class PackageTraceApplier : MonoBehaviour
 
         ClearTraces();
         placedDecals.Clear();
+        placedFaces.Clear();
         EnsureMaterialsLoaded();
 
         if (boxCollider == null)
@@ -152,11 +164,107 @@ public class PackageTraceApplier : MonoBehaviour
 
         if (spawnTable != null && spawnTable.Get(verdict) != null)
         {
-            SpawnFromTable(rng);
+            if (spawnMode == TraceSpawnMode.AuthoredSlots) ApplyAuthoredSlots(rng);
+            else SpawnFromTable(rng);
         }
         else
         {
-            SpawnLegacy(rng, itemObject);
+            if (spawnMode == TraceSpawnMode.AuthoredSlots) ApplyAuthoredSlots(rng);
+            else SpawnLegacy(rng, itemObject);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // โหมด AuthoredSlots: ใช้ช่องที่ลากวางไว้ใน prefab
+    // ------------------------------------------------------------------
+    private void ApplyAuthoredSlots(System.Random rng)
+    {
+        var slots = GetComponentsInChildren<DecalSlot>(true);
+        if (slots == null || slots.Length == 0)
+        {
+            Debug.LogWarning("[PackageTraceApplier] spawnMode = AuthoredSlots แต่ไม่พบ DecalSlot ใน prefab", this);
+            return;
+        }
+
+        // ปิดทุกช่อง + ผูก material จาก library ก่อน
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i].Bind(decalLibrary);
+            slots[i].SetVisible(false);
+        }
+
+        // 1) ช่องที่ "แสดงเสมอ" เมื่อ verdict ตรง
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].alwaysVisible && slots[i].Allows(currentVerdict))
+                ShowSlot(slots[i]);
+        }
+
+        var rule = spawnTable != null ? spawnTable.Get(currentVerdict) : null;
+        if (rule == null || !rule.IsUsable) return;
+
+        if (NextFloat(rng) * 100f > rule.spawnChancePercent) return;
+
+        int minTypes = Mathf.Max(0, rule.minTypes);
+        int maxTypes = Mathf.Max(minTypes, rule.maxTypes);
+        int typeCount = rng.Next(minTypes, maxTypes + 1);
+        if (typeCount <= 0) return;
+
+        // 2) รวม slot ตามชนิด (เฉพาะที่ยังว่างและ verdict อนุญาต)
+        var pool = new List<TraceSpawnRule>();
+        for (int i = 0; i < rule.rules.Count; i++)
+        {
+            var r = rule.rules[i];
+            if (r == null || !r.enabled) continue;
+            if (!HasAvailableSlot(slots, r.traceType)) continue;
+            pool.Add(r);
+        }
+
+        // 3) เลือกชนิดตามน้ำหนัก แล้วเลือก slot ของชนิดนั้น
+        for (int i = 0; i < typeCount && pool.Count > 0; i++)
+        {
+            TraceSpawnRule pick = PickWeighted(pool, rng);
+            if (pick == null) break;
+            pool.Remove(pick);
+
+            var candidates = new List<DecalSlot>();
+            for (int s = 0; s < slots.Length; s++)
+            {
+                if (!slots[s].alwaysVisible && slots[s].Allows(currentVerdict) && slots[s].traceType == pick.traceType
+                    && !slots[s].gameObject.activeSelf)
+                {
+                    candidates.Add(slots[s]);
+                }
+            }
+            if (candidates.Count == 0) continue;
+
+            var chosen = candidates[rng.Next(0, candidates.Count)];
+            ShowSlot(chosen);
+        }
+    }
+
+    private static bool HasAvailableSlot(DecalSlot[] slots, TraceType type)
+    {
+        for (int i = 0; i < slots.Length; i++)
+            if (!slots[i].alwaysVisible && slots[i].traceType == type) return true;
+        return false;
+    }
+
+    private void ShowSlot(DecalSlot slot)
+    {
+        slot.SetVisible(true);
+        var projector = slot.Projector;
+        if (projector == null) return;
+
+        if (slot.visibility == TraceVisibility.RequiresUV)
+        {
+            projector.fadeFactor = isUVIlluminated ? 1.0f : 0.0f;
+            uvProjectors.Add(projector);
+        }
+        else
+        {
+            projector.fadeFactor = 1.0f;
+            nakedEyeProjectors.Add(projector);
         }
     }
 
@@ -242,7 +350,7 @@ public class PackageTraceApplier : MonoBehaviour
                 GetRandomTraceTransform(boxCenter, boxHalf, size, rng, out localPos, out localRot);
 
             if (profile == null || !profile.preventOverlap ||
-                !OverlapsExisting(localPos, size * 0.5f, profile.minSpacing))
+                !OverlapsExisting(localPos, size * 0.5f, profile.minSpacing, FaceOf(localPos, boxCenter, boxHalf)))
             {
                 placed = true;
                 break;
@@ -256,6 +364,7 @@ public class PackageTraceApplier : MonoBehaviour
         }
 
         placedDecals.Add(new Vector4(localPos.x, localPos.y, localPos.z, size * 0.5f));
+        placedFaces.Add(FaceOf(localPos, boxCenter, boxHalf));
 
         bool isUV = useSpecific
             ? specific.requiresUV
@@ -304,16 +413,31 @@ public class PackageTraceApplier : MonoBehaviour
         }
     }
 
-    private bool OverlapsExisting(Vector3 pos, float radius, float minSpacing)
+    private bool OverlapsExisting(Vector3 pos, float radius, float minSpacing, int face)
     {
         for (int i = 0; i < placedDecals.Count; i++)
         {
+            // คนละหน้า = ไม่ทับกัน (คนละระนาบ)
+            if (placedFaces[i] != face) continue;
+
             Vector4 other = placedDecals[i];
             Vector3 otherPos = new Vector3(other.x, other.y, other.z);
             float minDistance = radius + other.w + Mathf.Max(0f, minSpacing);
             if (Vector3.Distance(pos, otherPos) < minDistance) return true;
         }
         return false;
+    }
+
+    /// <summary>บอกว่าตำแหน่งอยู่หน้าไหนของกล่อง (0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)</summary>
+    private static int FaceOf(Vector3 localPos, Vector3 center, Vector3 half)
+    {
+        float ax = Mathf.Abs(localPos.x - center.x) / Mathf.Max(0.001f, half.x);
+        float ay = Mathf.Abs(localPos.y - center.y) / Mathf.Max(0.001f, half.y);
+        float az = Mathf.Abs(localPos.z - center.z) / Mathf.Max(0.001f, half.z);
+
+        if (ax >= ay && ax >= az) return localPos.x >= center.x ? 0 : 1;
+        if (ay >= az) return localPos.y >= center.y ? 2 : 3;
+        return localPos.z >= center.z ? 4 : 5;
     }
 
     private Vector2 BetterSizeRange()

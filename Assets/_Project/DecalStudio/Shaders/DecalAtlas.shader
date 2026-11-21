@@ -14,6 +14,9 @@ Shader "Sector13/Decals/DecalAtlas"
 
         [Header(Tint)]
         _BaseColor ("Tint", Color) = (1, 1, 1, 1)
+        _Variation ("Texture Variation", Range(0, 1)) = 0.2
+        _Brightness ("Tint Brightness", Range(0, 4)) = 1.45
+        _Saturation ("Tint Saturation", Range(0, 3)) = 1.6
 
         [Header(Blend)]
         _Opacity ("Opacity", Range(0, 1)) = 1
@@ -85,6 +88,9 @@ Shader "Sector13/Decals/DecalAtlas"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseColor;
+                float  _Variation;
+                float  _Brightness;
+                float  _Saturation;
                 float  _Opacity;
                 float  _Cutoff;
                 float  _NormalStrength;
@@ -174,8 +180,17 @@ Shader "Sector13/Decals/DecalAtlas"
                 half cavity = saturate(1.0 - slope * _HeightStrength);
 
                 // --- surface --------------------------------------------
+                half lum = saturate(dot(baseSample.rgb, half3(0.299, 0.587, 0.114)));
+
+                // ดัน saturation ของ tint ให้สีออกชัด (ไม่ต้องพึ่ง emission)
+                half3 tint = _BaseColor.rgb;
+                half tintGray = dot(tint, half3(0.299, 0.587, 0.114));
+                tint = saturate(lerp(tintGray.xxx, tint, _Saturation));
+
+                half3 tinted = saturate(tint * lerp(1.0h, lum, _Variation) * _Brightness);
+
                 DecalSurfaceData surfaceData = (DecalSurfaceData)0;
-                surfaceData.baseColor   = half4(baseSample.rgb * _BaseColor.rgb, alpha);
+                surfaceData.baseColor   = half4(tinted, alpha);
                 surfaceData.normalWS    = half4(normalWS, alpha);
                 surfaceData.metallic    = saturate(maskSample.r * _MetallicScale);
                 surfaceData.occlusion   = saturate(maskSample.g * cavity * _OcclusionScale);
@@ -222,6 +237,9 @@ Shader "Sector13/Decals/DecalAtlas"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseColor;
+                float  _Variation;
+                float  _Brightness;
+                float  _Saturation;
                 float  _Opacity;
                 float  _Cutoff;
                 float  _NormalStrength;

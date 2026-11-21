@@ -81,6 +81,7 @@ MonoBehaviour:
   transformVfxPrefab: {fileID: 0}
   transformSound: {fileID: 0}
   spawnHeightOffset: 0.2
+  packageWeight: 5
   triggerOnOpen: 1
   triggerOnHold: 1
   holdDurationThreshold: 5

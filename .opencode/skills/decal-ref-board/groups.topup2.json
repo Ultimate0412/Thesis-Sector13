@@ -1,0 +1,65 @@
+{
+  "root": "D:/01_Work_Projects/3D_Models/3D/Maya/Thesis/Asset/2DAlpha/DecalRefs",
+  "board_name": "DecalRefs",
+  "per_group": 8,
+  "min_width": 600,
+  "purformat_path": "C:/Users/PC/AppData/Local/Temp/opencode/tools/PureRef-format",
+  "groups": [
+    {
+      "folder": "02_OilStain",
+      "en": "OIL STAIN",
+      "th": "คราบน้ำมัน",
+      "note": "Atlas A [0,1] - NakedEye | stain ON a parcel",
+      "look": "dark saturated core / sharp halo edge / wet vs dry split / low roughness center",
+      "queries": ["oil stain cardboard", "grease mark cardboard box", "oil soaked paper", "dark stain on carton", "oil stain paper"]
+    },
+    {
+      "folder": "03_ClawMarks",
+      "en": "CLAW MARKS",
+      "th": "รอยข่วน",
+      "note": "Atlas A [1,0] - NakedEye | damage ON a parcel",
+      "look": "3-4 parallel gouges / torn fiber lift at the exit / V groove depth / torn paper white",
+      "queries": ["scratched cardboard", "torn cardboard box", "gouge cardboard", "claw marks cardboard", "ripped cardboard"]
+    },
+    {
+      "folder": "04_CardboardScuff",
+      "en": "CARDBOARD SCUFF",
+      "th": "รอยถู / สีซีด",
+      "note": "Atlas A [1,1] - NakedEye | wear ON a parcel",
+      "look": "abraded fiber / lighter rubbed tone / directional streak / worn corner",
+      "queries": ["worn cardboard", "scuffed box", "cardboard box edge worn", "abraded paper surface", "rubbed cardboard"]
+    },
+    {
+      "folder": "06_AcidBurn",
+      "en": "ACID BURN",
+      "th": "รอยกรดกัด",
+      "note": "Atlas A [2,1] - NakedEye | damage ON a parcel",
+      "look": "eaten surface / bubbled rim / color eaten to raw / charred dark core",
+      "queries": ["burned cardboard", "burn mark paper", "chemical burn box", "stain damage box", "corroded paper"]
+    },
+    {
+      "folder": "08_TapeResidue",
+      "en": "TAPE RESIDUE",
+      "th": "คราบกาวจากเทป",
+      "note": "Atlas A [3,1] - NakedEye | residue ON a parcel",
+      "look": "rectangle ghost shape / dusty sticky line / matte film / fiber pulled by tape",
+      "queries": ["tape residue cardboard", "old tape on box", "packing tape box", "adhesive tape removed", "sticker residue cardboard"]
+    },
+    {
+      "folder": "09_AlienSlime_UV",
+      "en": "ALIEN SLIME (UV)",
+      "th": "เมือกเอเลี่ยน (UV)",
+      "note": "Atlas B [0,0] - RequiresUV | slime ON a parcel",
+      "look": "viscous blob / trailing drip / high specular / thin spread film",
+      "queries": ["slime stain", "gel blob surface", "goo on cardboard", "wet mucous surface", "viscous drip"]
+    },
+    {
+      "folder": "10_ChemicalResidue_UV",
+      "en": "CHEMICAL RESIDUE (UV)",
+      "th": "สารเคมีตกค้าง (UV)",
+      "note": "Atlas B [0,1] - RequiresUV | residue ON a parcel",
+      "look": "powder dusting / crystalline grain / reactive ring / spilled liquid edge",
+      "queries": ["powder on cardboard", "chemical stain paper", "white residue surface", "dust on box", "chemical spill cardboard"]
+    }
+  ]
+}
