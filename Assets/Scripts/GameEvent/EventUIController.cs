@@ -179,7 +179,7 @@ public class EventUIController : MonoBehaviour
         panelRect.anchoredPosition = new Vector2(0f, -15f);
 
         bannerBackground = panelObj.AddComponent<Image>();
-        bannerBackground.color = new Color(0.11764706f, 0.101960786f, 0.043137256f, 0.92f); // #1e1a0b // Deep Sci-Fi dark blue
+        bannerBackground.color = new Color(0.06666667f, 0.06666667f, 0.06666667f, 0.92f); // #111111
         bannerBackground.raycastTarget = false;
 
         canvasGroup = panelObj.AddComponent<CanvasGroup>();
@@ -197,7 +197,7 @@ public class EventUIController : MonoBehaviour
         barRect.anchoredPosition = Vector2.zero;
 
         bannerAccentBar = barObj.AddComponent<Image>();
-        bannerAccentBar.color = new Color(1f, 0.87058824f, 0.34901962f, 1.0f); // #ffde59
+        bannerAccentBar.color = new Color(1f, 0.827451f, 0.3019608f, 1.0f); // #FFD34D
         bannerAccentBar.raycastTarget = false;
 
         // 3. Title Text
@@ -214,7 +214,7 @@ public class EventUIController : MonoBehaviour
         titleText.fontSize = 20f;
         titleText.fontStyle = FontStyles.Bold;
         titleText.alignment = TextAlignmentOptions.Center;
-        titleText.color = new Color(1f, 0.87058824f, 0.34901962f, 1.0f); // #ffde59
+        titleText.color = new Color(1f, 0.827451f, 0.3019608f, 1.0f); // #FFD34D
         titleText.text = "⚠️ ANOMALY DETECTED ⚠️";
         titleText.raycastTarget = false;
 
