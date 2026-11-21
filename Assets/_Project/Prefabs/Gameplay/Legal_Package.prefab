@@ -157,7 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalSlot
   traceType: 8
-  decalId: 
+  decalId: BloodStain_Powder_A
   visibility: 0
   alwaysVisible: 0
   allowedVerdicts: 

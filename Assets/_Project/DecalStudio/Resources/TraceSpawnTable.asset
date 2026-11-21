@@ -28,60 +28,18 @@ MonoBehaviour:
       sizeOverride: {x: 0, y: 0}
       decalId: 
       placement: {fileID: 11400000, guid: cce59783d6fa56ebc445763d3555c377, type: 2}
-    - traceType: 3
-      enabled: 1
-      weight: 8
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: f480df067211c0a5da370c42aeb07cb3, type: 2}
-    - traceType: 9
-      enabled: 1
-      weight: 3
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: af3373cdcf48b92a4d47d70ccfa0eaff, type: 2}
     - traceType: 6
       enabled: 1
-      weight: 2
+      weight: 6
       minCount: 1
       maxCount: 1
       visibility: 0
       sizeOverride: {x: 0, y: 0}
       decalId: BloodStain_Damage_A
       placement: {fileID: 11400000, guid: ccc784d12346945528cc0d71fba60671, type: 2}
-  - verdict: 1
-    enabled: 1
-    spawnChancePercent: 85.0
-    minTypes: 1
-    maxTypes: 3
-    rules:
-    - traceType: 2
-      enabled: 1
-      weight: 10
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: cce59783d6fa56ebc445763d3555c377, type: 2}
-    - traceType: 3
-      enabled: 1
-      weight: 10
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: f480df067211c0a5da370c42aeb07cb3, type: 2}
     - traceType: 9
       enabled: 1
-      weight: 8
+      weight: 4
       minCount: 1
       maxCount: 1
       visibility: 0
@@ -97,42 +55,60 @@ MonoBehaviour:
       sizeOverride: {x: 0, y: 0}
       decalId: BloodStain_Powder_A
       placement: {fileID: 11400000, guid: 53db9929e243bf228d45cf6d27b02a08, type: 2}
-    - traceType: 6
-      enabled: 1
-      weight: 5
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: BloodStain_Down_A
-      placement: {fileID: 11400000, guid: 7a1641e664d2cc7513d0faebff2dc39d, type: 2}
-    - traceType: 6
-      enabled: 1
-      weight: 3
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: ad33b5a86f02b4ed5cb3da74fe78778c, type: 2}
   - verdict: 2
     enabled: 1
     spawnChancePercent: 95.0
     minTypes: 1
     maxTypes: 3
     rules:
-    - traceType: 6
+    - traceType: 3
+      enabled: 1
+      weight: 10
+      minCount: 1
+      maxCount: 1
+      visibility: 0
+      sizeOverride: {x: 0, y: 0}
+      decalId: 
+      placement: {fileID: 11400000, guid: f480df067211c0a5da370c42aeb07cb3, type: 2}
+    - traceType: 0
       enabled: 1
       weight: 9
       minCount: 1
       maxCount: 1
       visibility: 0
       sizeOverride: {x: 0, y: 0}
-      decalId: BloodStain_Side_A
-      placement: {fileID: 11400000, guid: 11aa2907e96f5aa4964812ae4e25c72d, type: 2}
+      decalId: 
+      placement: {fileID: 11400000, guid: 81f9237f3d9bb88bbc4e8344a927b62b, type: 2}
+    - traceType: 9
+      enabled: 1
+      weight: 8
+      minCount: 1
+      maxCount: 1
+      visibility: 0
+      sizeOverride: {x: 0, y: 0}
+      decalId: 
+      placement: {fileID: 11400000, guid: af3373cdcf48b92a4d47d70ccfa0eaff, type: 2}
     - traceType: 6
       enabled: 1
       weight: 8
+      minCount: 1
+      maxCount: 1
+      visibility: 0
+      sizeOverride: {x: 0, y: 0}
+      decalId: 
+      placement: {fileID: 11400000, guid: ad33b5a86f02b4ed5cb3da74fe78778c, type: 2}
+    - traceType: 6
+      enabled: 1
+      weight: 6
+      minCount: 1
+      maxCount: 1
+      visibility: 1
+      sizeOverride: {x: 0, y: 0}
+      decalId: BloodStain_WaterUV_C
+      placement: {fileID: 11400000, guid: 11aa2907e96f5aa4964812ae4e25c72d, type: 2}
+    - traceType: 6
+      enabled: 1
+      weight: 5
       minCount: 1
       maxCount: 1
       visibility: 0
@@ -141,49 +117,22 @@ MonoBehaviour:
       placement: {fileID: 11400000, guid: 7a1641e664d2cc7513d0faebff2dc39d, type: 2}
     - traceType: 1
       enabled: 1
-      weight: 8
+      weight: 4
       minCount: 1
       maxCount: 1
       visibility: 0
       sizeOverride: {x: 0, y: 0}
       decalId: 
       placement: {fileID: 11400000, guid: 0d1b885f3185cbc0fc9523fd68305abd, type: 2}
-    - traceType: 6
-      enabled: 1
-      weight: 7
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: BloodStain_Damage_A
-      placement: {fileID: 11400000, guid: ccc784d12346945528cc0d71fba60671, type: 2}
     - traceType: 7
       enabled: 1
-      weight: 6
+      weight: 3
       minCount: 1
       maxCount: 1
       visibility: 0
       sizeOverride: {x: 0, y: 0}
       decalId: 
       placement: {fileID: 11400000, guid: 87d4cc856540b14a72be1ab328d9ce34, type: 2}
-    - traceType: 2
-      enabled: 1
-      weight: 6
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: cce59783d6fa56ebc445763d3555c377, type: 2}
-    - traceType: 6
-      enabled: 1
-      weight: 5
-      minCount: 1
-      maxCount: 1
-      visibility: 0
-      sizeOverride: {x: 0, y: 0}
-      decalId: 
-      placement: {fileID: 11400000, guid: ad33b5a86f02b4ed5cb3da74fe78778c, type: 2}
   - verdict: 3
     enabled: 1
     spawnChancePercent: 100.0
@@ -226,6 +175,15 @@ MonoBehaviour:
       sizeOverride: {x: 0, y: 0}
       decalId: BloodStain_Damage_B
       placement: {fileID: 11400000, guid: ccc784d12346945528cc0d71fba60671, type: 2}
+    - traceType: 6
+      enabled: 1
+      weight: 6
+      minCount: 1
+      maxCount: 1
+      visibility: 0
+      sizeOverride: {x: 0, y: 0}
+      decalId: BloodStain_Side_B
+      placement: {fileID: 11400000, guid: 11aa2907e96f5aa4964812ae4e25c72d, type: 2}
     - traceType: 8
       enabled: 1
       weight: 6
@@ -237,7 +195,7 @@ MonoBehaviour:
       placement: {fileID: 11400000, guid: 53db9929e243bf228d45cf6d27b02a08, type: 2}
     - traceType: 6
       enabled: 1
-      weight: 6
+      weight: 5
       minCount: 1
       maxCount: 1
       visibility: 0
