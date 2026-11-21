@@ -2583,7 +2583,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageTraceApplier
   spawnTable: {fileID: 11400000, guid: 360d68cacc53342286be744616e37f62, type: 2}
-  spawnMode: 1
+  spawnMode: 2
   traceSeed: 1033
   legalSettings:
     spawnChancePercent: 85

@@ -7,17 +7,17 @@ using UnityEngine.Rendering.Universal;
 namespace Sector13.Decals.EditorTools
 {
     /// <summary>
-    /// เมนูลัดของ Decal Studio: build atlas, สแกนโฟลเดอร์ texture, และช่วยติดตั้ง DecalSlot
+    /// เมนูลัดของ Decal Studio: build atlas, สแกนโฟลเดอร์, ติดตั้ง/ตรวจ slot, และ bake layout
     /// </summary>
     public static class DecalStudioMenu
     {
         const string DefaultSettingsPath = "Assets/_Project/DecalStudio/Settings/AtlasBuildSettings.asset";
+        const string LibraryPath = "Assets/_Project/DecalStudio/Art/DecalLibrary.asset";
 
         [MenuItem("Tools/Sector13/Decal Studio/Build Atlas (default settings)", false, 11)]
         public static void BuildDefaultAtlas()
         {
             var settings = LoadOrCreateSettings();
-
             if (settings.sources == null || settings.sources.Count == 0)
             {
                 settings.sources = CollectDefaultSources();
@@ -35,19 +35,16 @@ namespace Sector13.Decals.EditorTools
         {
             var settings = LoadOrCreateSettings();
             var found = CollectExternalSources(settings);
-
             if (found.Count == 0)
             {
-                Debug.LogWarning("[DecalStudio] ไม่พบไฟล์ *_Albedo.png ใต้: " + settings.externalSourceRoot +
-                                 " — ตรวจว่า export จาก Substance ลงที่ <ชื่อ>/Textures/ แล้ว");
+                Debug.LogWarning("[DecalStudio] ไม่พบไฟล์ *_Albedo.png ใต้: " + settings.externalSourceRoot);
                 return;
             }
 
             settings.sources = Merge(settings.sources, found);
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
-            Debug.Log($"[DecalStudio] สแกนพบ {found.Count} ชุด (รวมแล้ว {settings.sources.Count}): " +
-                      string.Join(", ", found.ConvertAll(f => f.id)));
+            Debug.Log($"[DecalStudio] สแกนพบ {found.Count} ชุด (รวมแล้ว {settings.sources.Count})");
         }
 
         [MenuItem("Tools/Sector13/Decal Studio/Add DecalSlot to selected projectors", false, 30)]
@@ -78,6 +75,46 @@ namespace Sector13.Decals.EditorTools
             Debug.Log($"[DecalStudio] bake slots สำเร็จ {baked} prefab");
         }
 
+        [MenuItem("Tools/Sector13/Decal Studio/Validate Decal Slots (overlap)", false, 33)]
+        public static void ValidateSlots()
+        {
+            int problems = 0;
+            foreach (var go in Selection.gameObjects)
+            {
+                var path = AssetDatabase.GetAssetPath(go);
+                if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab")) continue;
+
+                var root = UnityEditor.PrefabUtility.LoadPrefabContents(path);
+                var slots = root.GetComponentsInChildren<DecalSlot>(true);
+                for (int i = 0; i < slots.Length; i++)
+                {
+                    var a = slots[i];
+                    var pa = a.GetComponent<DecalProjector>();
+                    if (pa == null) continue;
+
+                    for (int j = i + 1; j < slots.Length; j++)
+                    {
+                        var b = slots[j];
+                        var pb = b.GetComponent<DecalProjector>();
+                        if (pb == null) continue;
+                        if (a.allowedVerdicts != null && b.allowedVerdicts != null &&
+                            a.allowedVerdicts.Length > 0 && b.allowedVerdicts.Length > 0 &&
+                            a.allowedVerdicts[0] != b.allowedVerdicts[0]) continue;
+
+                        float minDist = (pa.size.x + pb.size.x) * 0.5f * 0.9f;
+                        float dist = Vector3.Distance(a.transform.localPosition, b.transform.localPosition);
+                        if (dist < minDist)
+                        {
+                            problems++;
+                            Debug.LogWarning($"[DecalStudio] {Path.GetFileName(path)}: '{a.name}' ทับ '{b.name}' (dist {dist:F2} < {minDist:F2})");
+                        }
+                    }
+                }
+                UnityEditor.PrefabUtility.UnloadPrefabContents(root);
+            }
+            Debug.Log($"[DecalStudio] ตรวจแล้วพบรอยทับกัน {problems} คู่");
+        }
+
         static bool BakePrefab(string path)
         {
             var root = UnityEditor.PrefabUtility.LoadPrefabContents(path);
@@ -88,13 +125,21 @@ namespace Sector13.Decals.EditorTools
                 return false;
             }
 
-            var old = applier.transform.Find("DecalSlots");
-            if (old != null) Object.DestroyImmediate(old.gameObject);
+            // ลบ container เดิมทั้งหมด (อาจมีหลายอันค้างจาก bake รอบก่อน)
+            var staleContainers = new List<Transform>();
+            foreach (var t in applier.GetComponentsInChildren<Transform>(true))
+            {
+                if (t != applier.transform && t.name == "DecalSlots") staleContainers.Add(t);
+            }
+            foreach (var t in staleContainers)
+            {
+                if (t != null) Object.DestroyImmediate(t.gameObject);
+            }
 
             var container = new GameObject("DecalSlots");
             container.transform.SetParent(applier.transform, false);
 
-            var library = AssetDatabase.LoadAssetAtPath<DecalLibrary>("Assets/_Project/DecalStudio/Art/DecalLibrary.asset");
+            var library = AssetDatabase.LoadAssetAtPath<DecalLibrary>(LibraryPath);
 
             var plans = new (VerdictType verdict, ItemCategory category)[]
             {
@@ -133,13 +178,16 @@ namespace Sector13.Decals.EditorTools
                     if (!string.IsNullOrEmpty(rule.decalId)) slot.decalId = rule.decalId;
                     else
                     {
-                        // ถ้า rule ไม่ระบุ id ให้จำจาก material ที่ได้จริง
                         var projector = created.GetComponent<DecalProjector>();
                         if (library != null && projector != null && projector.material != null)
                         {
                             foreach (var entry in library.AllEntries())
                             {
-                                if (entry != null && entry.material == projector.material) { slot.decalId = entry.id; break; }
+                                if (entry != null && entry.material == projector.material)
+                                {
+                                    slot.decalId = entry.id;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -169,7 +217,6 @@ namespace Sector13.Decals.EditorTools
             return settings;
         }
 
-        /// <summary>สแกน &lt;root&gt;/&lt;ชื่อ&gt;/Textures/*_Albedo.png แล้วจับคู่ TraceType จากชื่อโฟลเดอร์</summary>
         static List<DecalSourceEntry> CollectExternalSources(DecalAtlasBuildSettings settings)
         {
             var list = new List<DecalSourceEntry>();
@@ -208,7 +255,6 @@ namespace Sector13.Decals.EditorTools
             return list;
         }
 
-        /// <summary>รวม source ใหม่เข้ากับของเดิม โดยยึด id เป็นตัวจับคู่ (ของใหม่ทับของเก่า)</summary>
         static List<DecalSourceEntry> Merge(List<DecalSourceEntry> existing, List<DecalSourceEntry> incoming)
         {
             var merged = existing != null ? new List<DecalSourceEntry>(existing) : new List<DecalSourceEntry>();
@@ -222,7 +268,6 @@ namespace Sector13.Decals.EditorTools
             return merged;
         }
 
-        /// <summary>แปลงชื่อโฟลเดอร์/ชื่อ texture set → TraceType (รองรับชื่อย่อของ SP)</summary>
         static bool TryResolveTraceType(string name, out TraceType type)
         {
             if (System.Enum.TryParse(name, true, out type)) return true;

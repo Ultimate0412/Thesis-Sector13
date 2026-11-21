@@ -6,7 +6,8 @@ using Sector13.Decals;
 public enum TraceSpawnMode
 {
     Procedural,     // สุ่มตำแหน่ง/หน้าเองจาก TracePlacementProfile
-    AuthoredSlots   // ใช้ช่อง DecalSlot ที่ลากวางไว้ใน prefab (ตำแหน่งตายตัว)
+    AuthoredSlots,  // ใช้ช่อง DecalSlot ที่ลากวางไว้ใน prefab (ตำแหน่งตายตัว)
+    Hybrid          // ใช้ slot ถ้ามี (ตาม rule) ถ้าไม่มีค่อยสุ่ม
 }
 
 /// <summary>
@@ -25,7 +26,7 @@ public class PackageTraceApplier : MonoBehaviour
     public TraceSpawnTable spawnTable;
 
     [Header("Spawn Mode")]
-    [Tooltip("Procedural = สุ่มตำแหน่งจาก profile, AuthoredSlots = ใช้ช่อง DecalSlot ที่วางไว้ใน prefab")]
+    [Tooltip("Procedural = สุ่มเองทั้งหมด, AuthoredSlots = ใช้เฉพาะช่อง DecalSlot, Hybrid = ใช้ช่องที่ตรงก่อน ถ้าไม่มีค่อยสุ่ม (กันทับกันทุกโหมด)")]
     public TraceSpawnMode spawnMode = TraceSpawnMode.Procedural;
 
     [Tooltip("0 = สุ่ม seed ใหม่ตอนเริ่ม (แต่คงที่ต่อกล่อง), >0 = ใช้ค่านี้")]
@@ -165,13 +166,108 @@ public class PackageTraceApplier : MonoBehaviour
         if (spawnTable != null && spawnTable.Get(verdict) != null)
         {
             if (spawnMode == TraceSpawnMode.AuthoredSlots) ApplyAuthoredSlots(rng);
+            else if (spawnMode == TraceSpawnMode.Hybrid) ApplyHybrid(rng);
             else SpawnFromTable(rng);
         }
         else
         {
-            if (spawnMode == TraceSpawnMode.AuthoredSlots) ApplyAuthoredSlots(rng);
+            if (spawnMode == TraceSpawnMode.AuthoredSlots || spawnMode == TraceSpawnMode.Hybrid) ApplyAuthoredSlots(rng);
             else SpawnLegacy(rng, itemObject);
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Hybrid: ใช้ slot ถ้ามี ไม่งั้นสุ่ม (และกันทับกันทั้งสองแบบ)
+    // ------------------------------------------------------------------
+    private void ApplyHybrid(System.Random rng)
+    {
+        var slots = GetComponentsInChildren<DecalSlot>(true);
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i].Bind(decalLibrary);
+            slots[i].SetVisible(false);
+        }
+
+        var boxCenter = boxCollider != null ? boxCollider.center : Vector3.zero;
+        var boxHalf = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
+
+        // 1) ช่องที่แสดงเสมอ → เปิด + จองพื้นที่
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (!slots[i].alwaysVisible || !slots[i].Allows(currentVerdict)) continue;
+            ShowSlot(slots[i]);
+            ReserveSlotSpace(slots[i], boxCenter, boxHalf);
+        }
+
+        var rule = spawnTable != null ? spawnTable.Get(currentVerdict) : null;
+        if (rule == null || !rule.IsUsable) return;
+        if (NextFloat(rng) * 100f > rule.spawnChancePercent) return;
+
+        int minTypes = Mathf.Max(0, rule.minTypes);
+        int maxTypes = Mathf.Max(minTypes, rule.maxTypes);
+        int typeCount = rng.Next(minTypes, maxTypes + 1);
+        if (typeCount <= 0) return;
+
+        var pool = new List<TraceSpawnRule>();
+        for (int i = 0; i < rule.rules.Count; i++)
+        {
+            var r = rule.rules[i];
+            if (r == null || !r.enabled) continue;
+            pool.Add(r);
+        }
+
+        var procedural = new List<TraceSpawnRule>();
+
+        // 2) เลือกชนิดตามน้ำหนัก → ถ้า rule อนุญาตให้ใช้ slot และมี slot ว่าง ก็ใช้ slot
+        for (int i = 0; i < typeCount && pool.Count > 0; i++)
+        {
+            TraceSpawnRule pick = PickWeighted(pool, rng);
+            if (pick == null) break;
+            pool.Remove(pick);
+
+            if (pick.useAuthoredSlot && TryUseAuthoredSlot(pick, rng, boxCenter, boxHalf)) continue;
+            procedural.Add(pick);
+        }
+
+        // 3) ที่เหลือสุ่ม (จะหลบพื้นที่ที่ถูกจองไว้)
+        for (int i = 0; i < procedural.Count; i++)
+            SpawnOneInternal(procedural[i], rng, i);
+    }
+
+    private bool TryUseAuthoredSlot(TraceSpawnRule rule, System.Random rng, Vector3 boxCenter, Vector3 boxHalf)
+    {
+        var slots = GetComponentsInChildren<DecalSlot>(true);
+        var candidates = new List<DecalSlot>();
+        for (int i = 0; i < slots.Length; i++)
+        {
+            var s = slots[i];
+            if (s == null || s.gameObject.activeSelf || s.alwaysVisible) continue;
+            if (!s.Allows(currentVerdict)) continue;
+
+            if (!string.IsNullOrEmpty(rule.decalId))
+            {
+                if (s.decalId != rule.decalId) continue;
+            }
+            else if (s.traceType != rule.traceType) continue;
+
+            candidates.Add(s);
+        }
+
+        if (candidates.Count == 0) return false;
+
+        var chosen = candidates[rng.Next(0, candidates.Count)];
+        ShowSlot(chosen);
+        ReserveSlotSpace(chosen, boxCenter, boxHalf);
+        return true;
+    }
+
+    private void ReserveSlotSpace(DecalSlot slot, Vector3 boxCenter, Vector3 boxHalf)
+    {
+        var dp = slot.Projector;
+        float radius = dp != null ? dp.size.x * 0.5f : 0.2f;
+        Vector3 p = slot.transform.localPosition;
+        placedDecals.Add(new Vector4(p.x, p.y, p.z, radius));
+        placedFaces.Add(FaceOf(p, boxCenter, boxHalf));
     }
 
     // ------------------------------------------------------------------

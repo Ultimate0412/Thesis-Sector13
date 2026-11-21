@@ -36,6 +36,9 @@ namespace Sector13.Decals
         [Tooltip("ระบุ decal id เจาะจงใน atlas (เช่น BloodStain_Down_A) — ว่าง = ใช้ traceType")]
         public string decalId;
 
+        [Tooltip("โหมด Hybrid: ถ้าเปิด จะใช้ DecalSlot ที่วางไว้ก่อน ถ้าไม่มีค่อยสุ่ม")]
+        public bool useAuthoredSlot = true;
+
         public TracePlacementProfile placement;
     }
 
