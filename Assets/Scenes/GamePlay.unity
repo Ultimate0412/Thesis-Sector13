@@ -63263,7 +63263,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1167562250
 RectTransform:
   m_ObjectHideFlags: 0
@@ -113869,6 +113869,7 @@ MonoBehaviour:
   gameOverPanel: {fileID: 1467816945}
   titleText: {fileID: 0}
   subtitleText: {fileID: 0}
+  infoText: {fileID: 165611034}
   restartDayButton: {fileID: 188443913}
   respawnButton: {fileID: 305533918}
 --- !u!114 &2099499961

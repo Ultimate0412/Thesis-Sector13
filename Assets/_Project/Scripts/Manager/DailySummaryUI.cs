@@ -225,9 +225,20 @@ public class DailySummaryUI : MonoBehaviour
 
         if (resultText != null)
         {
-            resultText.text = result.passed
-                ? "<color=#4EFA7A>OPERATION APPROVED</color>"
-                : $"<color=#FA4E4E>INSUFFICIENT CREDITS — SHORT {result.creditsShortfall}</color>";
+            if (!result.passed)
+            {
+                resultText.text = $"<color=#FA4E4E>INSUFFICIENT CREDITS — SHORT {result.creditsShortfall}</color>";
+            }
+            else if (result.shortfallPenalty > 0)
+            {
+                // Day was forced through with leftover parcels: be honest about it
+                // instead of printing a clean "APPROVED".
+                resultText.text = "<color=#FFD64E>SHIFT CLOSED — PENALTY APPLIED</color>";
+            }
+            else
+            {
+                resultText.text = "<color=#4EFA7A>OPERATION APPROVED</color>";
+            }
         }
 
         if (nextDayButton != null) nextDayButton.gameObject.SetActive(result.passed);

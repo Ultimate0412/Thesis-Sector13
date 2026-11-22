@@ -19,6 +19,7 @@ public class GameOverUI : MonoBehaviour
     public GameObject gameOverPanel;
     public TextMeshProUGUI titleText;
     public TextMeshProUGUI subtitleText;
+    public TextMeshProUGUI infoText;
     public Button restartDayButton;
     public Button respawnButton;
 
@@ -79,10 +80,23 @@ public class GameOverUI : MonoBehaviour
     {
         if (gameOverPanel != null)
         {
+            RefreshInfoLine();
             gameOverPanel.SetActive(true);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
+    }
+
+    /// <summary>
+    /// The death screen used to show whatever placeholder text was authored in the
+    /// scene ("DAY 1 · 0 PTS"). Fill it with the live run instead.
+    /// </summary>
+    private void RefreshInfoLine()
+    {
+        if (infoText == null) return;
+        int day = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
+        int pts = ScoreManager.Instance != null ? ScoreManager.Instance.totalScore : 0;
+        infoText.text = $"DAY {day}  ·  {pts} PTS";
     }
 
     public void HideGameOver()

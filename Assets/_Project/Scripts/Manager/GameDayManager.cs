@@ -699,7 +699,12 @@ public class GameDayManager : MonoBehaviour
         }
 
         DailyStatisticsData stats = score != null ? score.CurrentDayStats : null;
-        bool passed = creditsShortfall == 0;
+        // Forcing the day (END DAY ANYWAY) already charges the shortfall penalty, so it
+        // must still count as "passed" and let the player continue to the next day.
+        bool shippedOk = ignoreMinShipped
+                         || RequiredShippedToday <= 0
+                         || ShippedToday >= RequiredShippedToday;
+        bool passed = creditsShortfall == 0 && shippedOk;
 
         summaryPending = true;
         lastSummaryPassed = passed;
