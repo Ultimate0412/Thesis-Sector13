@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.364
       objectReference: {fileID: 0}
+    - target: {fileID: 7016524161370858442, guid: fc741d860d220c44b819744b6e3650fb, type: 3}
+      propertyPath: anchorPoint
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 7980087161198620101, guid: fc741d860d220c44b819744b6e3650fb, type: 3}
       propertyPath: m_Name
       value: Enemy_Mimic
