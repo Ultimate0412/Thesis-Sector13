@@ -35,6 +35,19 @@ public abstract class EnemyBase : LivingEntity, ICarryable
     [Tooltip("เอฟเฟกต์หรือมาร์กเกอร์แสดงสถานะสตั๊น (เช่น ดาวหมุนรอบหัว หรือไฟช็อต)")]
     public GameObject stunVfxObject;
 
+    [Header("Spawn VFX")]
+    [Tooltip("เอฟเฟกต์ควันตอนศัตรูเกิด (เว้นว่างไว้จะโหลด Resources/VFX/EnemySpawnSmoke ให้อัตโนมัติ)")]
+    public GameObject spawnVfxPrefab;
+
+    [Tooltip("ตัวคูณขนาดเอฟเฟกต์ตอนเกิด (1 = ขนาดที่ตั้งไว้ใน Prefab)")]
+    [Min(0.1f)] public float spawnVfxScale = 1f;
+
+    [Tooltip("ระยะยกเอฟเฟกต์ขึ้นจากพื้นของศัตรู (เมตร)")]
+    public float spawnVfxHeightOffset = 0.02f;
+
+    private const string DefaultSpawnVfxResourcePath = "VFX/EnemySpawnSmoke";
+    private static GameObject cachedDefaultSpawnVfx;
+
     // สถานะปัจจุบัน
     public bool IsStunned => isStunned;
     public bool IsBeingCarried => isBeingCarried;
@@ -61,6 +74,39 @@ public abstract class EnemyBase : LivingEntity, ICarryable
         rb = GetComponent<Rigidbody>();
         mainCollider = GetComponent<Collider>();
         navAgent = GetComponent<NavMeshAgent>();
+
+        PlaySpawnVfx();
+    }
+
+    /// <summary>
+    /// เล่นเอฟเฟกต์ควันตอนศัตรูเกิด (ใช้ร่วมกันทุกศัตรูที่สืบทอดจาก EnemyBase)
+    /// </summary>
+    private void PlaySpawnVfx()
+    {
+        if (!Application.isPlaying) return;
+
+        GameObject vfxPrefab = spawnVfxPrefab;
+        if (vfxPrefab == null)
+        {
+            if (cachedDefaultSpawnVfx == null)
+            {
+                cachedDefaultSpawnVfx = Resources.Load<GameObject>(DefaultSpawnVfxResourcePath);
+            }
+            vfxPrefab = cachedDefaultSpawnVfx;
+        }
+
+        if (vfxPrefab == null) return;
+
+        // วางเอฟเฟกต์ที่ระดับพื้นใต้ตัวศัตรู เพื่อให้ควันดูกลมกลืนกับพื้นทุกขนาดตัว
+        Vector3 playPosition = transform.position + Vector3.up * spawnVfxHeightOffset;
+        if (mainCollider != null)
+        {
+            Bounds bounds = mainCollider.bounds;
+            playPosition = new Vector3(bounds.center.x, bounds.min.y + spawnVfxHeightOffset, bounds.center.z);
+        }
+
+        GameObject vfxInstance = Instantiate(vfxPrefab, playPosition, Quaternion.identity);
+        vfxInstance.transform.localScale = Vector3.one * Mathf.Max(0.1f, spawnVfxScale);
     }
 
     protected virtual void Update()

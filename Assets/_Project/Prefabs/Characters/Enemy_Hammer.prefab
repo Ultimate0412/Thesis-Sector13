@@ -139,6 +139,9 @@ MonoBehaviour:
   stunDecayDelay: 2.5
   enemyWeight: 15
   stunVfxObject: {fileID: 0}
+  spawnVfxPrefab: {fileID: 8788542168735644936, guid: fa3876efb1ea8824fbde3e1f82ea7b17, type: 3}
+  spawnVfxScale: 1.3
+  spawnVfxHeightOffset: 0.02
   spawnMode: 2
   detectionRadius: 25
   searchMoveSpeed: 3.5
@@ -246,6 +249,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: hammerHead3
       objectReference: {fileID: 0}
+    - target: {fileID: 1021893369681469213, guid: 94cb42c00f1480a489d18577fe0780bb, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 16c7e3a3f1586854a9fb79dee8e74790, type: 2}
     - target: {fileID: 5866666021909216657, guid: 94cb42c00f1480a489d18577fe0780bb, type: 3}
       propertyPath: m_Controller
       value: 
