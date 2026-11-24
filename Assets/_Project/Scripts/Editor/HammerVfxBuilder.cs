@@ -16,7 +16,7 @@ using UnityEngine.Rendering;
 /// </summary>
 public static class HammerVfxBuilder
 {
-    private const int BuilderVersion = 2;
+    private const int BuilderVersion = 3;
 
     private const string ProjectRoot = "Assets/_Project";
     private const string TextureFolder = ProjectRoot + "/Art/Textures/VFX";
@@ -244,8 +244,7 @@ public static class HammerVfxBuilder
 
     private static GameObject CreateTrailPrefab(Material smokeMaterial)
     {
-        AssetDatabase.DeleteAsset(TrailPrefabPath);
-
+        // ไม่ลบ asset เดิม เพื่อให้ GUID คงที่ (reference จาก prefab อื่นไม่ขาด)
         GameObject root = new GameObject("VFX_HammerTrail");
         try
         {
@@ -416,8 +415,7 @@ public static class HammerVfxBuilder
 
     private static GameObject CreateImpactPrefab(Material smokeMaterial)
     {
-        AssetDatabase.DeleteAsset(ImpactPrefabPath);
-
+        // ไม่ลบ asset เดิม เพื่อให้ GUID คงที่
         GameObject root = new GameObject("VFX_HammerImpact");
         try
         {
