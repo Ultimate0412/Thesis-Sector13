@@ -5,6 +5,13 @@ public class ShippingDropPoint : BaseDropPoint
     [Header("Shipping Settings")]
     public KeyCode shipKey = KeyCode.F; // ปุ่มกดส่งสินค้าออก
 
+    [Header("Pipe Routing")]
+    [Tooltip("ท่อที่พัสดุจะถูกดูดเข้าเมื่อผู้เล่นประทับ Approve")]
+    public PipeSuck approvePipe;
+
+    [Tooltip("ท่อที่พัสดุจะถูกดูดเข้าเมื่อผู้เล่นประทับ Reject")]
+    public PipeSuck rejectPipe;
+
     public override string GetInteractPrompt()
     {
         if (currentPlacedItem != null)
@@ -98,9 +105,13 @@ public class ShippingDropPoint : BaseDropPoint
             Debug.LogError("[Shipping Point] หา ScoreManager.Instance ไม่พบในฉาก!");
         }
 
-        // ลบกล่องออกจากฉาก
-        Destroy(currentPlacedItem);
+        // ส่งกล่องเข้าท่อตามผลการตรวจ (ผ่าน -> ท่อ approve, ไม่ผ่าน -> ท่อ reject)
+        GameObject shipped = currentPlacedItem;
         currentPlacedItem = null;
+
+        PipeSuck pipe = packageBox.currentStamp == InspectionStatus.Approved ? approvePipe : rejectPipe;
+        if (pipe != null && shipped != null) pipe.Suck(shipped);
+        else if (shipped != null) Destroy(shipped);
     }
 
     private int CalculateScore(ItemObject item)

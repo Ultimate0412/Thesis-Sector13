@@ -15,6 +15,31 @@ namespace Sector13.Decals.EditorTools
         private const float SurfaceInset = 0.03f;
         private const float UvInset = 0.004f;
 
+        // Env versions of the same atlas cells: lower opacity, softer height, so a
+        // stain reads as "on the floor" instead of a sticker.
+        private static readonly Dictionary<string, string> EnvMaterialByEntry = new Dictionary<string, string>
+        {
+            { "WaterStain", "M_Env_Water" },
+            { "OilStain", "M_Env_Oil" },
+            { "CardboardScuff", "M_Env_Scuff" },
+            { "Blood", "M_Env_Blood" }
+        };
+
+        private static readonly Dictionary<string, Material> EnvCache = new Dictionary<string, Material>();
+
+        private static Material ResolveMaterial(DecalEntry entry)
+        {
+            if (entry == null) return null;
+            if (!EnvMaterialByEntry.TryGetValue(entry.id, out var matName)) return entry.material;
+
+            if (EnvCache.TryGetValue(matName, out var cached) && cached != null) return cached;
+
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/_Project/Art/Materials/EnvDecals/" + matName + ".mat");
+            EnvCache[matName] = mat;
+            return mat != null ? mat : entry.material;
+        }
+
         public static DecalLibrary FindLibrary()
         {
             var guids = AssetDatabase.FindAssets("t:DecalLibrary");
@@ -49,7 +74,7 @@ namespace Sector13.Decals.EditorTools
 
             var dp = go.AddComponent<DecalProjector>();
             dp.size = new Vector3(size, size, DefaultDepth);
-            dp.material = entry.material;
+            dp.material = ResolveMaterial(entry) ?? entry.material;
             dp.uvScale = new Vector2(entry.uvRect.width - UvInset * 2f,
                                      entry.uvRect.height - UvInset * 2f);
             dp.uvBias = new Vector2(entry.uvRect.x + UvInset, entry.uvRect.y + UvInset);
@@ -120,6 +145,10 @@ namespace Sector13.Decals.EditorTools
                     made++;
                 }
             }
+
+            // The area collider is only a placement guide. Leaving it enabled makes it
+            // swallow every interaction raycast that crosses the zone.
+            box.enabled = false;
             return made;
         }
 
