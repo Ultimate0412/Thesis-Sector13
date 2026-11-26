@@ -177,6 +177,9 @@ public class EnemyHammer : EnemyBase
 
         ResolveVfxReferences();
 
+        // เตรียม pool ไว้ล่วงหน้า -> ตอนชนไม่มี Instantiate เลย (เปิด/ปิดอย่างเดียว)
+        VfxPool.EnsureExists().Prewarm(impactVfxPrefab);
+
         if (syncDurationWithClip)
         {
             SyncDurationsFromClips();
@@ -680,7 +683,7 @@ public class EnemyHammer : EnemyBase
         if (headSmoke != null) headSmoke.Emit(4);
     }
 
-    /// <summary>เสกเอฟเฟกต์กระแทกที่จุดชน</summary>
+    /// <summary>เสกเอฟเฟกต์กระแทกที่จุดชน (หยิบจาก pool: เปิด/ปิด ไม่สร้าง/ทำลาย)</summary>
     private void SpawnImpactVfx(Vector3 position, Vector3 normal, float scale)
     {
         if (impactVfxPrefab == null) return;
@@ -689,11 +692,7 @@ public class EnemyHammer : EnemyBase
             ? Quaternion.LookRotation(normal)
             : Quaternion.identity;
 
-        GameObject vfx = Instantiate(impactVfxPrefab, position, rotation);
-        if (!Mathf.Approximately(scale, 1f))
-        {
-            vfx.transform.localScale = Vector3.one * scale;
-        }
+        VfxPool.EnsureExists().Spawn(impactVfxPrefab, position, rotation, scale);
     }
 
     // ---------------------------------------------------------------- Movement Helpers
