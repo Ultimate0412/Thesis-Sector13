@@ -11,6 +11,7 @@ namespace Sector13.Decals.EditorTools
     public class DecalBrowserWindow : EditorWindow
     {
         const string LibraryPath = "Assets/_Project/DecalStudio/Art/DecalLibrary.asset";
+        const string EnvLibraryPath = "Assets/_Project/DecalStudio/Art/EnvDecalLibrary.asset";
         const float TileWidth = 124f;
         const float ThumbSize = 100f;
 
@@ -26,6 +27,7 @@ namespace Sector13.Decals.EditorTools
         DecalLibrary library;
         string search = string.Empty;
         bool uvOnly;
+        bool envMode;
         int typeFilter;              // 0 = ทุกชนิด, 1.. = TraceType ตามลำดับ enum
         Vector2 scroll;
 
@@ -50,7 +52,7 @@ namespace Sector13.Decals.EditorTools
         void Reload()
         {
             items.Clear();
-            library = AssetDatabase.LoadAssetAtPath<DecalLibrary>(LibraryPath);
+            library = AssetDatabase.LoadAssetAtPath<DecalLibrary>(envMode ? EnvLibraryPath : LibraryPath);
             if (library == null) return;
 
             foreach (var atlas in library.atlases)
@@ -93,6 +95,13 @@ namespace Sector13.Decals.EditorTools
                 typeFilter = EditorGUILayout.Popup(typeFilter, typeNames.ToArray(), EditorStyles.toolbarPopup, GUILayout.Width(130));
 
                 uvOnly = GUILayout.Toggle(uvOnly, "เฉพาะ UV", EditorStyles.toolbarButton, GUILayout.Width(74));
+
+                bool newEnvMode = GUILayout.Toggle(envMode, "Env", EditorStyles.toolbarButton, GUILayout.Width(48));
+                if (newEnvMode != envMode)
+                {
+                    envMode = newEnvMode;
+                    Reload();
+                }
 
                 if (GUILayout.Button("โหลดใหม่", EditorStyles.toolbarButton, GUILayout.Width(68))) Reload();
 
@@ -160,7 +169,18 @@ namespace Sector13.Decals.EditorTools
                 bool hover = rect.Contains(Event.current.mousePosition);
                 bool selected = Selection.activeObject == entry.material;
 
-                DecalPreview.Draw(rect, item.atlas != null ? item.atlas.albedo : null, entry.uvRect, entry.tint);
+                var mat = entry.material;
+                Color tint = mat != null && mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor") : entry.tint;
+                DecalPreview.Draw(
+                    rect,
+                    item.atlas != null ? item.atlas.albedo : null,
+                    entry.uvRect,
+                    tint,
+                    GetFloat(mat, "_Opacity", 1f),
+                    GetFloat(mat, "_Brightness", 1f),
+                    GetFloat(mat, "_Saturation", 1f),
+                    mat != null && mat.HasProperty("_EmissionColor") ? mat.GetColor("_EmissionColor") : Color.black,
+                    GetFloat(mat, "_EmissionIntensity", 0f));
 
                 if (hover) EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, 2f), new Color(0.35f, 0.65f, 1f, 1f));
                 if (selected) DecalPreview.DrawBorder(rect);
@@ -218,6 +238,11 @@ namespace Sector13.Decals.EditorTools
             }
 
             menu.ShowAsContext();
+        }
+
+        static float GetFloat(Material mat, string property, float fallback)
+        {
+            return mat != null && mat.HasProperty(property) ? mat.GetFloat(property) : fallback;
         }
     }
 }

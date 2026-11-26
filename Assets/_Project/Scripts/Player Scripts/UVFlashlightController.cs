@@ -48,7 +48,9 @@ public class UVFlashlightController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(toggleKey))
+        // ถ้าปุ่มนี้กำลังถูกใช้ส่งของที่จุดส่ง (ShippingDropPoint) อยู่
+        // ให้ข้ามการเปิด/ปิดไฟฉายในเฟรมนั้น เพื่อไม่ให้ทำงานซ้อนกัน
+        if (Input.GetKeyDown(toggleKey) && !ShippingDropPoint.IsKeyConsumedByShipping(toggleKey))
         {
             ToggleUVLight();
         }

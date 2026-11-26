@@ -1,11 +1,13 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Swallows a parcel into a curved pipe: the box is pulled into the mouth, then a
-/// single "lump" travels the elbow while <see cref="PipeBulge"/> swells the mesh.
-/// Works without rigging; the pipe mesh only needs Read/Write enabled.
+/// Swallows a parcel into a curved pipe: the box is pulled into the mouth, the
+/// mouth squeezes (cartoon gulp), then a single round "lump" travels the elbow
+/// while <see cref="PipeBulge"/> swells the mesh.
+///
+/// ทำงานได้โดยไม่ต้อง Rig — mesh ท่อต้องเปิด Read/Write Enabled
 /// </summary>
 [RequireComponent(typeof(PipeBulge))]
 public class PipeSuck : MonoBehaviour
@@ -26,6 +28,16 @@ public class PipeSuck : MonoBehaviour
     [Tooltip("Scale the parcel shrinks to while entering.")]
     [Range(0.05f, 1f)] public float entryScale = 0.3f;
 
+    [Header("Squeeze / gulp")]
+    [Tooltip("ปากท่อรัดเข้าตอนกล่องมาถึง (เมตร). 0 = ไม่รัด")]
+    public float gulpPinch = 0.06f;
+
+    [Tooltip("เวลาที่ปากท่อค้างรัดก่อนคลาย (วินาที)")]
+    public float gulpHold = 0.06f;
+
+    [Tooltip("เวลาที่ปากท่อคลายตัวกลับ (วินาที)")]
+    public float gulpRelease = 0.12f;
+
     [Header("Look")]
     [Tooltip("Extra radius of the bulge at the lump.")]
     public float bulgeAmount = 0.09f;
@@ -41,6 +53,7 @@ public class PipeSuck : MonoBehaviour
 
     private Vector3 mouth, exit, corner;
     private float tubeRadius;
+    private Vector3[] spine;
 
     private void Awake()
     {
@@ -48,7 +61,7 @@ public class PipeSuck : MonoBehaviour
         Configure();
     }
 
-    /// <summary>Finds the mouth (smaller ring), the exit (flange end) and a bend point.</summary>
+    /// <summary>หาปากท่อ (วงเล็ก), ทางออก (วงใหญ่) และเส้นกลางท่อ</summary>
     public void Configure()
     {
         if (configured) return;
@@ -74,7 +87,7 @@ public class PipeSuck : MonoBehaviour
         foreach (var p in wp) { min = Vector3.Min(min, p); max = Vector3.Max(max, p); }
         Vector3 size = max - min;
 
-        // slice along the axis with the largest extent; the ring at each end is an opening
+        // ตัดตามแกนที่ยาวที่สุด — วงแหวนที่ปลายทั้งสองคือปากท่อ/ทางออก
         int axis = size.x >= size.y && size.x >= size.z ? 0 : (size.y >= size.z ? 1 : 2);
         float lo = axis == 0 ? min.x : axis == 1 ? min.y : min.z;
         float hi = axis == 0 ? max.x : axis == 1 ? max.y : max.z;
@@ -82,49 +95,111 @@ public class PipeSuck : MonoBehaviour
 
         Vector3 endLow = Vector3.zero, endHigh = Vector3.zero;
         float rLow = -1f, rHigh = -1f;
-        int nLow = 0, nHigh = 0;
 
         for (int pass = 0; pass < 2; pass++)
         {
             float edge = pass == 0 ? lo : hi;
-            Vector3 sum = Vector3.zero; int n = 0;
+            Vector3 sum = Vector3.zero;
+            int n = 0;
+
             foreach (var p in wp)
             {
                 float val = axis == 0 ? p.x : axis == 1 ? p.y : p.z;
-                if (Mathf.Abs(val - edge) <= band) { sum += p; n++; }
+                if (Mathf.Abs(val - edge) <= band)
+                {
+                    sum += p;
+                    n++;
+                }
             }
+
             if (n == 0) continue;
+
             Vector3 c = sum / n;
             float r = 0f;
+
             foreach (var p in wp)
             {
                 float val = axis == 0 ? p.x : axis == 1 ? p.y : p.z;
                 if (Mathf.Abs(val - edge) <= band) r = Mathf.Max(r, Vector3.Distance(p, c));
             }
-            if (pass == 0) { endLow = c; rLow = r; nLow = n; }
-            else { endHigh = c; rHigh = r; nHigh = n; }
+
+            if (pass == 0) { endLow = c; rLow = r; }
+            else { endHigh = c; rHigh = r; }
         }
 
         if (rLow < 0f || rHigh < 0f) return;
 
-        // the flange end has the bigger ring; the parcel enters the smaller one
+        // ด้านที่มีหน้าแปลน = วงใหญ่ = ทางออก, วงเล็ก = ปากท่อ
         if (rLow <= rHigh) { mouth = endLow; exit = endHigh; tubeRadius = rLow; }
         else { mouth = endHigh; exit = endLow; tubeRadius = rHigh; }
 
-        // bend point: the vertex farthest from the straight line between the ends
-        Vector3 ab = exit - mouth;
-        float best = -1f;
-        corner = (mouth + exit) * 0.5f;
-        foreach (var p in wp)
-        {
-            Vector3 ap = p - mouth;
-            float proj = Mathf.Clamp01(Vector3.Dot(ap, ab) / Mathf.Max(0.0001f, ab.sqrMagnitude));
-            Vector3 closest = mouth + ab * proj;
-            float d = Vector3.Distance(p, closest);
-            if (d > best) { best = d; corner = p; }
-        }
+        // --- เส้นกลางท่อ: ไล่หาจุดกึ่งกลางของวงตัดทีละช่วง ---
+        spine = FitCenterline(wp, mouth, exit, 25, 8);
+        corner = spine[spine.Length / 2];
+
+        if (bulge != null) bulge.SetSpine(spine);
 
         configured = true;
+    }
+
+    /// <summary>
+    /// หาเส้นกลางท่อจาก mesh เอง: เริ่มจากเส้นตรง mouth→exit แล้วเลื่อนแต่ละจุด
+    /// ไปยัง centroid ของวงตัด (สไลซ์ตามแนว tangent) ทำซ้ำจนเข้าที่
+    /// </summary>
+    private static Vector3[] FitCenterline(Vector3[] wp, Vector3 mouth, Vector3 exit, int samples, int iterations)
+    {
+        const float slab = 0.14f;
+
+        var sp = new Vector3[samples];
+        for (int i = 0; i < samples; i++) sp[i] = Vector3.Lerp(mouth, exit, i / (float)(samples - 1));
+
+        for (int iter = 0; iter < iterations; iter++)
+        {
+            var next = new Vector3[samples];
+
+            for (int i = 0; i < samples; i++)
+            {
+                Vector3 tangent = sp[Mathf.Min(i + 1, samples - 1)] - sp[Mathf.Max(i - 1, 0)];
+                if (tangent.sqrMagnitude < 1e-8f) { next[i] = sp[i]; continue; }
+                tangent.Normalize();
+
+                Vector3 sum = Vector3.zero;
+                float wsum = 0f;
+
+                for (int v = 0; v < wp.Length; v++)
+                {
+                    Vector3 rel = wp[v] - sp[i];
+                    float along = Vector3.Dot(rel, tangent);
+                    if (Mathf.Abs(along) > slab) continue;
+
+                    float w = 1f - Mathf.Abs(along) / slab;
+                    sum += (wp[v] - tangent * along) * w;
+                    wsum += w;
+                }
+
+                next[i] = wsum > 3f ? sum / wsum : sp[i];
+            }
+
+            next[0] = mouth;
+            next[samples - 1] = exit;
+
+            for (int i = 1; i < samples - 1; i++)
+                sp[i] = (next[i - 1] + next[i] * 2f + next[i + 1]) * 0.25f;
+
+            sp[0] = mouth;
+            sp[samples - 1] = exit;
+        }
+
+        return sp;
+    }
+
+    private Vector3 SampleSpine(float t)
+    {
+        if (spine == null || spine.Length < 2) return Vector3.Lerp(mouth, exit, t);
+
+        float f = Mathf.Clamp01(t) * (spine.Length - 1);
+        int i = Mathf.Min(Mathf.FloorToInt(f), spine.Length - 2);
+        return Vector3.Lerp(spine[i], spine[i + 1], f - i);
     }
 
     public void Suck(GameObject package)
@@ -148,12 +223,12 @@ public class PipeSuck : MonoBehaviour
 
     private IEnumerator SuckOne(GameObject package)
     {
-        // let go of physics so the box can be animated
+        // ปลด physics ออกก่อน เพื่อ animate กล่องเอง
         var rb = package.GetComponent<Rigidbody>();
         if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
         foreach (var c in package.GetComponentsInChildren<Collider>()) c.enabled = false;
 
-        // also release it from the drop point bookkeeping
+        // ปลดจาก drop point ที่ถืออยู่
         var dp = BaseDropPoint.GetDropPointHolding(package);
         if (dp != null && dp.currentPlacedItem == package) dp.currentPlacedItem = null;
 
@@ -161,41 +236,71 @@ public class PipeSuck : MonoBehaviour
         Vector3 startScale = package.transform.localScale;
         Quaternion startRot = package.transform.rotation;
 
-        // 1) pull into the mouth
+        if (bulge != null)
+        {
+            bulge.radius = Mathf.Max(bulgeRadius, tubeRadius * 1.2f);
+            bulge.amount = 0f;
+            bulge.SetPoint(mouth);
+        }
+
+        // 1) ดูดเข้าปาก + ปากท่อเริ่มรัดตอนกล่องใกล้ถึง
         float t = 0f;
         while (t < pullDuration)
         {
             t += Time.deltaTime;
             float k = Mathf.Clamp01(t / pullDuration);
-            float e = k * k;                       // accelerate like a suction
+            float e = k * k;   // เร่งขึ้นเหมือนแรงดูด
+
             package.transform.position = Vector3.Lerp(start, mouth, e);
             package.transform.localScale = Vector3.Lerp(startScale, startScale * entryScale, e);
             package.transform.rotation = Quaternion.Slerp(startRot, Quaternion.LookRotation((exit - mouth).normalized), e * 0.5f);
+
+            if (bulge != null && gulpPinch > 0f)
+            {
+                float p = Mathf.InverseLerp(0.55f, 1f, k);
+                bulge.amount = -gulpPinch * p * p;
+                bulge.SetPoint(mouth);
+            }
+
             yield return null;
         }
 
         package.SetActive(false);
 
-        // 2) the lump runs the elbow
+        // 2) กลืน: ค้างรัดนิดนึง → คลายพร้อมปล่อยลูกป่องออกจากปาก
         if (bulge != null)
         {
+            float hold = Mathf.Max(0f, gulpHold);
+            while (hold > 0f)
+            {
+                hold -= Time.deltaTime;
+                yield return null;
+            }
+
+            float release = Mathf.Max(0.01f, gulpRelease);
+            float rel = 0f;
+
+            while (rel < release)
+            {
+                rel += Time.deltaTime;
+                float blend = Mathf.Clamp01(rel / release);
+                bulge.amount = Mathf.Lerp(-gulpPinch, bulgeAmount, blend);
+                bulge.SetPoint(mouth);
+                yield return null;
+            }
+
             bulge.amount = bulgeAmount;
-            bulge.radius = Mathf.Max(bulgeRadius, tubeRadius * 1.2f);
         }
 
-        Vector3 a = mouth, b = corner, c2 = exit;
+        // 3) ลูกป่องวิ่งไปตามเส้นกลางท่อ
         float travel = 0f;
         while (travel < travelDuration)
         {
             travel += Time.deltaTime;
             float k = Mathf.Clamp01(travel / travelDuration);
             float e = Mathf.SmoothStep(0f, 1f, k);
-            // quadratic bezier through the bend
-            Vector3 p = Vector3.Lerp(
-                Vector3.Lerp(a, b, e),
-                Vector3.Lerp(b, c2, e),
-                e);
-            if (bulge != null) bulge.SetPoint(p);
+
+            if (bulge != null) bulge.SetPoint(SampleSpine(e));
             yield return null;
         }
 
@@ -207,14 +312,16 @@ public class PipeSuck : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         if (!configured) return;
+
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(mouth, Mathf.Max(0.05f, tubeRadius));
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(exit, Mathf.Max(0.05f, tubeRadius));
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawSphere(corner, 0.05f);
-        Gizmos.color = Color.white;
-        Gizmos.DrawLine(mouth, corner);
-        Gizmos.DrawLine(corner, exit);
+
+        if (spine != null && spine.Length > 1)
+        {
+            Gizmos.color = Color.white;
+            for (int i = 0; i < spine.Length - 1; i++) Gizmos.DrawLine(spine[i], spine[i + 1]);
+        }
     }
 }

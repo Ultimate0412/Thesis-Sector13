@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8f7bed74720533498c9ba345bcbde2b, type: 3}
+  m_Name: EnvBloodVariants
+  m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalAtlas
+  atlasId: EnvBloodVariants
+  size: 2048
+  cellSize: 512
+  padding: 16
+  albedo: {fileID: 2800000, guid: 2588f4444aa4d954280d238690fc8aab, type: 3}
+  normal: {fileID: 2800000, guid: 24e7d32f5168f4542975c85a5cd4dc73, type: 3}
+  mask: {fileID: 2800000, guid: a3ee65bb7e7a4dd46bbf32ab267c8fc4, type: 3}
+  entries:
+  - id: BloodStain_Damage_A
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 0, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 3f004c9a3c584cbe9680b24468b2c53d, type: 2}
+  - id: BloodStain_Damage_B
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 1, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.25
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: fe5c7c3062ea4abfaa2d5c5fed2c6918, type: 2}
+  - id: BloodStain_Down_A
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 2, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.5
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 6d28869e575c4c55b08e07bd42aaaefb, type: 2}
+  - id: BloodStain_Powder_A
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 3, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.75
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: c062ba8f4154402784537043a1e5341b, type: 2}
+  - id: BloodStain_Side_A
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 0, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: d5f3ee091b4f4df6a174ba5df9527cdf, type: 2}
+  - id: BloodStain_Side_B
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 1, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.25
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 02737212cacd4ef7b1e521a1fa9bf0e1, type: 2}
+  - id: BloodStain_WaterUV_A
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 2, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.5
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 7a82167f56fd47e19e2d9e8b4d00813d, type: 2}
+  - id: BloodStain_WaterUV_B
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 3, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.75
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: bb56063a56f9456ca3b46a4986e9e801, type: 2}
+  - id: BloodStain_WaterUV_C
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 0, y: 2}
+    uvRect:
+      serializedVersion: 2
+      x: 0
+      y: 0.5
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: a0235001542b4e35bb8b1891465fe515, type: 2}
+  - id: BloodStain_WaterUV_D
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 1, y: 2}
+    uvRect:
+      serializedVersion: 2
+      x: 0.25
+      y: 0.5
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 960c45a6f92a47f18d0cd9c8ce8a8f98, type: 2}

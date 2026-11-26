@@ -5,6 +5,12 @@ public class ShippingDropPoint : BaseDropPoint
     [Header("Shipping Settings")]
     public KeyCode shipKey = KeyCode.F; // ปุ่มกดส่งสินค้าออก
 
+    [Tooltip("เปิด: กด F จะส่งเฉพาะจุดที่ผู้เล่นกำลังเล็งอยู่ (จำเป็นเมื่อมีหลายจุดติดกัน)")]
+    public bool shipOnlyWhenAimedAt = true;
+
+    [Tooltip("ระยะเล็งสูงสุดก่อนกด F ได้")]
+    public float shipAimDistance = 4f;
+
     [Header("Pipe Routing")]
     [Tooltip("ท่อที่พัสดุจะถูกดูดเข้าเมื่อผู้เล่นประทับ Approve")]
     public PipeSuck approvePipe;
@@ -18,19 +24,88 @@ public class ShippingDropPoint : BaseDropPoint
         {
             PackageBox box = currentPlacedItem.GetComponent<PackageBox>();
             string itemName = box != null ? "Box" : "Item";
-            return $"[Q]/[E] Pick Up {itemName} | [F] Ship Item";
+            return $"[Q]/[E] Pick Up {itemName} | [{shipKey}] Ship Item";
         }
         return string.Empty;
+    }
+
+    public override bool CanPlaceHere()
+    {
+        return currentPlacedItem == null;
     }
 
     protected override void Update()
     {
         base.Update();
 
-        if (currentPlacedItem != null && Input.GetKeyDown(shipKey))
+        if (currentPlacedItem == null) return;
+        if (!Input.GetKeyDown(shipKey)) return;
+
+        if (shipOnlyWhenAimedAt && !IsPlayerAimingAtThis()) return;
+
+        ProcessShipping();
+    }
+
+    private static Camera cachedCamera;
+
+    private bool IsPlayerAimingAtThis()
+    {
+        if (cachedCamera == null) cachedCamera = Camera.main;
+        if (cachedCamera == null) return true; // ไม่มีกล้อง = ปล่อยผ่าน
+
+        Ray ray = new Ray(cachedCamera.transform.position, cachedCamera.transform.forward);
+        int mask = (1 << 6) | (1 << 7); // Item + Drop Point
+
+        if (!Physics.Raycast(ray, out RaycastHit hit, shipAimDistance, mask))
         {
-            ProcessShipping();
+            return false;
         }
+
+        return hit.collider.GetComponentInParent<ShippingDropPoint>() == this;
+    }
+
+    /// <summary>
+    /// ใช้โดยระบบอื่น (เช่น ไฟฉาย UV) เพื่อเช็คว่าปุ่มนี้กำลังถูกใช้ส่งของอยู่หรือไม่
+    /// จะได้ไม่ทำงานซ้อนกันในเฟรมเดียวกัน
+    /// </summary>
+    public static bool IsKeyConsumedByShipping(KeyCode key)
+    {
+        if (cachedCamera == null) cachedCamera = Camera.main;
+
+        ShippingDropPoint aimed = null;
+        float aimedDistance = float.MaxValue;
+
+        if (cachedCamera != null)
+        {
+            Ray ray = new Ray(cachedCamera.transform.position, cachedCamera.transform.forward);
+            int mask = (1 << 6) | (1 << 7); // Item + Drop Point
+
+            if (Physics.Raycast(ray, out RaycastHit hit, 10f, mask))
+            {
+                aimed = hit.collider.GetComponentInParent<ShippingDropPoint>();
+                aimedDistance = hit.distance;
+            }
+        }
+
+        // โหมดส่งทีละจุด: ต้องเล็งจุดที่มีกล่องอยู่จริงและอยู่ในระยะ
+        if (aimed != null && aimed.isActiveAndEnabled && aimed.currentPlacedItem != null
+            && aimed.shipKey == key && aimedDistance <= aimed.shipAimDistance)
+        {
+            return true;
+        }
+
+        // โหมดส่งพร้อมกันทุกจุด (ไม่ต้องเล็ง): ถ้ามีกล่องวางอยู่ที่ใดก็ได้ ปุ่มนี้ถูกใช้ส่งของ
+        ShippingDropPoint[] points = Object.FindObjectsByType<ShippingDropPoint>(FindObjectsSortMode.None);
+        for (int i = 0; i < points.Length; i++)
+        {
+            ShippingDropPoint point = points[i];
+            if (point == null || !point.isActiveAndEnabled) continue;
+            if (point.shipOnlyWhenAimedAt) continue;
+            if (point.currentPlacedItem == null || point.shipKey != key) continue;
+            return true;
+        }
+
+        return false;
     }
 
     private void ProcessShipping()

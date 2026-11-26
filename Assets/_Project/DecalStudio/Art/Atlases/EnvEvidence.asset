@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8f7bed74720533498c9ba345bcbde2b, type: 3}
+  m_Name: EnvEvidence
+  m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalAtlas
+  atlasId: EnvEvidence
+  size: 2048
+  cellSize: 512
+  padding: 16
+  albedo: {fileID: 2800000, guid: d3ef7c35b451bda45976cf35dc3f7f77, type: 3}
+  normal: {fileID: 2800000, guid: cce358d64f164c742b3e6cb29cf474c1, type: 3}
+  mask: {fileID: 2800000, guid: 58bd41d719f5a5e4d898aaa2a8c95fd9, type: 3}
+  entries:
+  - id: ClawMarks
+    traceType: 0
+    requiresUV: 0
+    cell: {x: 0, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.33, g: 0.26, b: 0.19, a: 1}
+    heightStrength: 0.6
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 8bd0fbc8c76d4179a12ae12bddf0c92e, type: 2}
+  - id: OilStain
+    traceType: 1
+    requiresUV: 0
+    cell: {x: 1, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.25
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.14, g: 0.11, b: 0.08, a: 1}
+    heightStrength: 0
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 4d090dfc3a2290744b2ef40ea6c8b5f8, type: 2}
+  - id: WaterStain
+    traceType: 2
+    requiresUV: 0
+    cell: {x: 2, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.5
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.46, g: 0.38, b: 0.27, a: 1}
+    heightStrength: 0
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 1fee411c020bb0e46bfadf4e50d57591, type: 2}
+  - id: CardboardScuff
+    traceType: 3
+    requiresUV: 0
+    cell: {x: 3, y: 0}
+    uvRect:
+      serializedVersion: 2
+      x: 0.75
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.55, g: 0.48, b: 0.38, a: 1}
+    heightStrength: 0.4
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: cda04629bff46b046976d17f4ddeddb2, type: 2}
+  - id: AlienSlime_UV
+    traceType: 4
+    requiresUV: 1
+    cell: {x: 0, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.35, g: 1, b: 0.5, a: 1}
+    heightStrength: 0
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 21f85d8e75814221b6078754f410bc7a, type: 2}
+  - id: ChemicalResidue_UV
+    traceType: 5
+    requiresUV: 1
+    cell: {x: 1, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.25
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.3, g: 0.85, b: 1, a: 1}
+    heightStrength: 0
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 18c779cc3924481dae9741ff9d882831, type: 2}
+  - id: Blood
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 2, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.5
+      y: 0.25
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 33f2880bbedb8a0418dc0d9a8cb688bf, type: 2}

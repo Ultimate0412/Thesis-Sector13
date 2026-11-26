@@ -38,22 +38,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
-    - _Brightness: 0.9
-    - _Cutoff: 0.5
+    - _Brightness: 2.12
+    - _Cutoff: 0
     - _EmissionIntensity: 0
     - _HeightContrast: 1.5
     - _HeightStrength: 0.25
-    - _MetallicScale: 1
+    - _MetallicScale: 0
     - _NormalFlipY: 0
-    - _NormalStrength: 1
+    - _NormalStrength: 0
     - _OcclusionScale: 1
-    - _Opacity: 0.9
-    - _Saturation: 1.6
-    - _SmoothnessScale: 1
-    - _Variation: 0.2
+    - _Opacity: 0.45
+    - _Saturation: 1.53
+    - _SmoothnessScale: 0
+    - _Variation: 1
     m_Colors:
-    - _BaseColor: {r: 0.36, g: 0.06, b: 0.05, a: 1}
-    - _DecalRect: {r: 0, g: 0, b: 1, a: 1}
+    - _BaseColor: {r: 0.83639914, g: 1, b: 0.36320752, a: 1}
+    - _DecalRect: {r: 0.5, g: 0.25, b: 0.25, a: 0.25}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

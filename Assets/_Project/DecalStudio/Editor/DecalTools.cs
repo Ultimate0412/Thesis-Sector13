@@ -15,27 +15,20 @@ namespace Sector13.Decals.EditorTools
         private const float SurfaceInset = 0.03f;
         private const float UvInset = 0.004f;
 
-        // Env versions of the same atlas cells: lower opacity, softer height, so a
-        // stain reads as "on the floor" instead of a sticker.
-        private static readonly Dictionary<string, string> EnvMaterialByEntry = new Dictionary<string, string>
-        {
-            { "WaterStain", "M_Env_Water" },
-            { "OilStain", "M_Env_Oil" },
-            { "CardboardScuff", "M_Env_Scuff" },
-            { "Blood", "M_Env_Blood" }
-        };
-
+        // Every atlas entry has an Env copy in this folder: M_Env_<entry.id>.mat
+        // They point at the same atlas cell, but carry their own opacity/height/tint,
+        // so a stain reads as "on the floor" instead of a sticker.
+        private const string EnvMaterialFolder = "Assets/_Project/Art/Materials/EnvDecals";
         private static readonly Dictionary<string, Material> EnvCache = new Dictionary<string, Material>();
 
         private static Material ResolveMaterial(DecalEntry entry)
         {
             if (entry == null) return null;
-            if (!EnvMaterialByEntry.TryGetValue(entry.id, out var matName)) return entry.material;
 
+            string matName = "M_Env_" + entry.id;
             if (EnvCache.TryGetValue(matName, out var cached) && cached != null) return cached;
 
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(
-                "Assets/_Project/Art/Materials/EnvDecals/" + matName + ".mat");
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(EnvMaterialFolder + "/" + matName + ".mat");
             EnvCache[matName] = mat;
             return mat != null ? mat : entry.material;
         }
