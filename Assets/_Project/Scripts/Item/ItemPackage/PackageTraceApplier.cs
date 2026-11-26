@@ -22,6 +22,9 @@ public enum TraceSpawnMode
 /// </summary>
 public class PackageTraceApplier : MonoBehaviour
 {
+    /// <summary>URP Decal Layer bit 1 — ฝั่ง package เท่านั้น (floor/object อื่นใช้ bit 0)</summary>
+    private const uint PackageDecalLayer = 2u;
+
     [Header("Spawn Table (โหมดใหม่ — ถ้าไม่ใส่จะใช้ค่า Legacy ด้านล่าง)")]
     public TraceSpawnTable spawnTable;
 
@@ -254,6 +257,7 @@ public class PackageTraceApplier : MonoBehaviour
             }
             else if (s.traceType != rule.traceType) continue;
 
+            if (!SlotFitsOnBox(s, boxCenter, boxHalf)) continue;
             candidates.Add(s);
         }
 
@@ -269,9 +273,29 @@ public class PackageTraceApplier : MonoBehaviour
     {
         var dp = slot.Projector;
         float radius = dp != null ? dp.size.x * 0.5f : 0.2f;
-        Vector3 p = slot.transform.localPosition;
+        Vector3 p = boxCollider != null
+            ? boxCollider.transform.InverseTransformPoint(slot.transform.position)
+            : slot.transform.localPosition;
         placedDecals.Add(new Vector4(p.x, p.y, p.z, radius));
         placedFaces.Add(FaceOf(p, boxCenter, boxHalf));
+    }
+
+    /// <summary>
+    /// ตรวจว่าช่อง authored ที่ถูก snap ขึ้นฝากล่องแล้วยังไม่ทับช่องที่เปิดไปก่อนหน้า
+    /// (กล่องเล็ก ๆ วางได้แค่ช่องเดียว; ที่เหลือจะไป spawned แบบ procedural ด้านข้าง)
+    /// </summary>
+    private bool SlotFitsOnBox(DecalSlot slot, Vector3 boxCenter, Vector3 boxHalf)
+    {
+        if (slot == null) return false;
+        AlignSlotToFace(slot);
+
+        var dp = slot.Projector;
+        float radius = dp != null ? dp.size.x * 0.5f : 0.2f;
+        Vector3 p = boxCollider != null
+            ? boxCollider.transform.InverseTransformPoint(slot.transform.position)
+            : slot.transform.localPosition;
+
+        return !OverlapsExisting(p, radius, 0.02f, FaceOf(p, boxCenter, boxHalf));
     }
 
     // ------------------------------------------------------------------
@@ -286,6 +310,9 @@ public class PackageTraceApplier : MonoBehaviour
             return;
         }
 
+        var boxCenter = boxCollider != null ? boxCollider.center : Vector3.zero;
+        var boxHalf = (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f;
+
         // ปิดทุกช่อง + ผูก material จาก library ก่อน
         for (int i = 0; i < slots.Length; i++)
         {
@@ -297,7 +324,10 @@ public class PackageTraceApplier : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i].alwaysVisible && slots[i].Allows(currentVerdict))
+            {
                 ShowSlot(slots[i]);
+                ReserveSlotSpace(slots[i], boxCenter, boxHalf);
+            }
         }
 
         var rule = spawnTable != null ? spawnTable.Get(currentVerdict) : null;
@@ -331,7 +361,8 @@ public class PackageTraceApplier : MonoBehaviour
             for (int s = 0; s < slots.Length; s++)
             {
                 if (!slots[s].alwaysVisible && slots[s].Allows(currentVerdict) && slots[s].traceType == pick.traceType
-                    && !slots[s].gameObject.activeSelf)
+                    && !slots[s].gameObject.activeSelf
+                    && SlotFitsOnBox(slots[s], boxCenter, boxHalf))
                 {
                     candidates.Add(slots[s]);
                 }
@@ -340,11 +371,10 @@ public class PackageTraceApplier : MonoBehaviour
 
             var chosen = candidates[rng.Next(0, candidates.Count)];
             ShowSlot(chosen);
+            ReserveSlotSpace(chosen, boxCenter, boxHalf);
         }
 
-        EnsureMinimumEvidence(slots, currentVerdict, typeCount, rng,
-            boxCollider != null ? boxCollider.center : Vector3.zero,
-            (boxCollider != null ? boxCollider.size : Vector3.one) * 0.5f);
+        EnsureMinimumEvidence(slots, currentVerdict, typeCount, rng, boxCenter, boxHalf);
     }
 
     // ------------------------------------------------------------------
@@ -406,7 +436,7 @@ public class PackageTraceApplier : MonoBehaviour
 
         int visible = CountVisibleSlots(slots);
 
-        // 1) Top up to the rolled clue count.
+        // 1) Top up to the rolled clue count with authored slots that still fit.
         int guard = 0;
         while (targetCount > 0 && visible < targetCount && guard++ < 8)
         {
@@ -416,16 +446,34 @@ public class PackageTraceApplier : MonoBehaviour
                 var s = slots[i];
                 if (s == null || s.gameObject.activeSelf || s.alwaysVisible) continue;
                 if (!s.Allows(verdict)) continue;
+                if (!SlotFitsOnBox(s, boxCenter, boxHalf)) continue;
                 pool.Add(s);
             }
             if (pool.Count == 0) break;
 
-            ShowSlot(pool[rng.Next(0, pool.Count)]);
+            var chosen = pool[rng.Next(0, pool.Count)];
+            ShowSlot(chosen);
+            ReserveSlotSpace(chosen, boxCenter, boxHalf);
             visible++;
         }
 
+        // 1b) Lid is full (small parcels): fill the rest procedurally on the sides.
+        if (targetCount > 0 && visible < targetCount && spawnTable != null)
+        {
+            var rule = spawnTable.Get(verdict);
+            if (rule != null)
+            {
+                for (int i = 0; i < rule.rules.Count && visible < targetCount; i++)
+                {
+                    var r = rule.rules[i];
+                    if (r == null || !r.enabled) continue;
+                    if (SpawnOneInternal(r, rng, 100 + i) != null) visible++;
+                }
+            }
+        }
+
         // 2) Alien parcels always keep one UV clue so the flashlight has a payoff.
-        if (verdict == VerdictType.Alien && visible > 0 && !HasVisibleUvSlot(slots))
+        if (verdict == VerdictType.Alien && visible > 0 && uvProjectors.Count == 0)
         {
             var uv = new List<DecalSlot>();
             for (int i = 0; i < slots.Length; i++)
@@ -434,16 +482,19 @@ public class PackageTraceApplier : MonoBehaviour
                 if (s == null || s.gameObject.activeSelf || s.alwaysVisible) continue;
                 if (!s.Allows(verdict)) continue;
                 if (s.visibility != TraceVisibility.RequiresUV) continue;
+                if (!SlotFitsOnBox(s, boxCenter, boxHalf)) continue;
                 uv.Add(s);
             }
 
             if (uv.Count > 0)
             {
-                ShowSlot(uv[rng.Next(0, uv.Count)]);
+                var chosen = uv[rng.Next(0, uv.Count)];
+                ShowSlot(chosen);
+                ReserveSlotSpace(chosen, boxCenter, boxHalf);
             }
             else
             {
-                // No authored UV slot on this prefab - spawn the clue procedurally instead.
+                // No authored UV slot fits - spawn the clue procedurally instead.
                 var rule = spawnTable != null ? spawnTable.Get(verdict) : null;
                 if (rule != null)
                 {
@@ -478,18 +529,35 @@ public class PackageTraceApplier : MonoBehaviour
         // The player inspects parcels from above, so evidence always goes on the lid.
         // Authored slots were scattered over every face (many on the bottom), which is
         // why most parcels looked clean.
-        Vector3 n = Vector3.up;
-        Vector3 faceLocal = boxCollider.center + new Vector3(0f, half.y, 0f);
-        faceLocal.x += (StableRoll(slot, 11) / 360f - 0.5f) * half.x * 1.15f;
-        faceLocal.z += (StableRoll(slot, 23) / 360f - 0.5f) * half.z * 1.15f;
-        Vector3 faceWorld = boxT.TransformPoint(faceLocal);
-        Vector3 nWorld = boxT.TransformDirection(n).normalized;
-
         var proj = slot.Projector;
-        float depth = proj != null ? Mathf.Max(0.55f, proj.size.z) : 0.55f;
+        float maxDepth = Mathf.Max(0.1f, boxCollider.size.y - 0.08f);
+        float depth = proj != null
+            ? Mathf.Clamp(Mathf.Max(0.55f, proj.size.z), 0.1f, maxDepth)
+            : Mathf.Min(0.55f, maxDepth);
+
+        // อย่าให้ decal ล้นขอบฝากล่อง (ไม่งั้นจะไปฉายพื้น/กล่องข้าง ๆ)
+        float faceMin = Mathf.Max(0.05f, Mathf.Min(boxCollider.size.x, boxCollider.size.z) - 0.02f);
+        float sizeX = proj != null ? Mathf.Min(proj.size.x, faceMin) : faceMin;
+        float sizeY = proj != null ? Mathf.Min(proj.size.y, faceMin) : faceMin;
+
+        // จำกัดจุดวางให้ตัว decal ทั้งก้อนอยู่บนฝากล่อง
+        float allowX = Mathf.Max(0f, half.x - sizeX * 0.5f - 0.01f);
+        float allowZ = Mathf.Max(0f, half.z - sizeY * 0.5f - 0.01f);
+        float offsetX = (StableRoll(slot, 11) / 360f - 0.5f) * half.x * 1.15f;
+        float offsetZ = (StableRoll(slot, 23) / 360f - 0.5f) * half.z * 1.15f;
+
+        Vector3 faceLocal = boxCollider.center + new Vector3(0f, half.y, 0f);
+        faceLocal.x = boxCollider.center.x + Mathf.Clamp(offsetX, -allowX, allowX);
+        faceLocal.z = boxCollider.center.z + Mathf.Clamp(offsetZ, -allowZ, allowZ);
+
+        Vector3 faceWorld = boxT.TransformPoint(faceLocal);
+        Vector3 nWorld = boxT.TransformDirection(Vector3.up).normalized;
+
         if (proj != null)
         {
             var s = proj.size;
+            s.x = sizeX;
+            s.y = sizeY;
             s.z = depth;
             proj.size = s;
         }
@@ -676,10 +744,13 @@ public class PackageTraceApplier : MonoBehaviour
         decalGo.transform.localRotation = localRot;
 
         DecalProjector projector = decalGo.AddComponent<DecalProjector>();
+        projector.renderingLayerMask = PackageDecalLayer;
         // The projection volume starts at pivot.z * size.z from the transform, so a
         // projector sitting exactly on the face starts inside the mesh and never
-        // renders. Deepen the volume and sit it just inside the surface.
-        float projDepth = Mathf.Max(depth, 0.55f);
+        // renders. Deepen the volume, but never past the box's smallest thickness:
+        // a deeper volume leaks the decal onto the floor or a neighbouring parcel.
+        float smallestFull = 2f * Mathf.Min(boxHalf.x, Mathf.Min(boxHalf.y, boxHalf.z));
+        float projDepth = Mathf.Clamp(depth, 0.1f, Mathf.Max(0.1f, smallestFull - 0.06f));
         projector.size = new Vector3(size, size, projDepth);
         decalGo.transform.position -= decalGo.transform.forward * (projDepth * 0.5f - 0.03f);
         projector.fadeFactor = 1f;
@@ -913,6 +984,7 @@ public class PackageTraceApplier : MonoBehaviour
             decalGo.transform.localRotation = localRot;
 
             DecalProjector projector = decalGo.AddComponent<DecalProjector>();
+            projector.renderingLayerMask = PackageDecalLayer;
             projector.size = new Vector3(width, height, projectionDepth);
             projector.startAngleFade = startAngleFade;
             projector.endAngleFade = endAngleFade;

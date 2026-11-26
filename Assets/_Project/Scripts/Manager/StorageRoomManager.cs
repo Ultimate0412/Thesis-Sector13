@@ -32,8 +32,18 @@ public class StorageRoomManager : MonoBehaviour
             return;
         }
 
+        // กันข้อมูลใน Inspector ไม่ตรงกับจำนวนช่องจริง
+        if (slotPositions != null && slotPositions.Length > 0)
+            totalSlots = slotPositions.Length;
+
         slotOccupied = new bool[totalSlots];
         itemsInSlots = new GameObject[totalSlots];
+    }
+
+    private void OnValidate()
+    {
+        if (slotPositions != null && slotPositions.Length > 0)
+            totalSlots = slotPositions.Length;
     }
 
     private void Start()
@@ -97,13 +107,18 @@ public class StorageRoomManager : MonoBehaviour
     // ฟังก์ชันเช็คว่าสามารถวางไอเท็มขนาด size ลงที่ startIndex ได้หรือไม่
     public bool CanPlaceItemAt(int startIndex, int itemSize)
     {
-        // 1. เช็คว่าเกินขอบเขตห้องเก็บของไหม
-        if (startIndex + itemSize > totalSlots) return false;
+        // 0. กัน index/array ผิดพลาด
+        if (startIndex < 0 || itemSize <= 0) return false;
+        if (slotOccupied == null) return false;
+        if (totalSlots <= 0 || startIndex + itemSize > totalSlots) return false;
+        if (slotPositions == null || startIndex + itemSize > slotPositions.Length) return false;
 
-        // 2. เช็คว่า Slot ต่อเนื่องกันว่างหมดไหม
+        // 1. เช็คว่า Slot ต่อเนื่องกันว่างและมี transform จริง
         for (int i = 0; i < itemSize; i++)
         {
-            if (slotOccupied[startIndex + i])
+            int index = startIndex + i;
+            if (slotPositions[index] == null) return false;
+            if (slotOccupied[index])
             {
                 return false; // มีบาง Slot ถูกใช้งานอยู่ วางไม่ได้
             }
@@ -114,6 +129,26 @@ public class StorageRoomManager : MonoBehaviour
     // ฟังก์ชันทำการจองและวางไอเท็มลงใน Slot
     public void PlaceItemToSlots(GameObject itemObj, int startIndex, int itemSize)
     {
+        if (itemObj == null) return;
+        if (slotOccupied == null || itemsInSlots == null) return;
+        if (startIndex < 0 || itemSize <= 0) return;
+        if (totalSlots <= 0 || startIndex + itemSize > totalSlots) return;
+
+        if (slotPositions == null || startIndex + itemSize > slotPositions.Length)
+        {
+            Debug.LogWarning($"[Storage] ไม่มี slot position สำหรับ slot {startIndex} (size {itemSize}) — ยกเลิกการวาง");
+            return;
+        }
+
+        for (int i = 0; i < itemSize; i++)
+        {
+            if (slotPositions[startIndex + i] == null)
+            {
+                Debug.LogWarning($"[Storage] slot position {startIndex + i} เป็น null — ยกเลิกการวาง");
+                return;
+            }
+        }
+
         for (int i = 0; i < itemSize; i++)
         {
             int targetIndex = startIndex + i;
@@ -137,6 +172,8 @@ public class StorageRoomManager : MonoBehaviour
     // ฟังก์ชันเคลียร์พื้นที่เมื่อหยิบของออก
     public void RemoveItemFromSlots(GameObject itemObj)
     {
+        if (itemObj == null || itemsInSlots == null) return;
+
         for (int i = 0; i < totalSlots; i++)
         {
             if (itemsInSlots[i] == itemObj)

@@ -47,7 +47,7 @@ Material:
     - _NormalFlipY: 0
     - _NormalStrength: 0
     - _OcclusionScale: 1
-    - _Opacity: 0.45
+    - _Opacity: 0.395
     - _Saturation: 1.53
     - _SmoothnessScale: 0
     - _Variation: 1

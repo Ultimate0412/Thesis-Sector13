@@ -53,7 +53,7 @@ Material:
     - _Variation: 0.2
     m_Colors:
     - _BaseColor: {r: 0.36, g: 0.06, b: 0.05, a: 1}
-    - _DecalRect: {r: 0, g: 0, b: 1, a: 1}
+    - _DecalRect: {r: 0.5, g: 0.25, b: 0.25, a: 0.25}
     - _EmissionColor: {r: 0.55, g: 0.85, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

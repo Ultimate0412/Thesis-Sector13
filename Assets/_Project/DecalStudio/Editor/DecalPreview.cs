@@ -11,6 +11,7 @@ namespace Sector13.Decals.EditorTools
     public static class DecalPreview
     {
         const string LibraryPath = "Assets/_Project/DecalStudio/Art/DecalLibrary.asset";
+        const string EnvLibraryPath = "Assets/_Project/DecalStudio/Art/EnvDecalLibrary.asset";
         const string LitShaderName = "Hidden/Sector13/DecalPreview";
 
         static readonly Color Background = new Color(0.10f, 0.10f, 0.10f, 1f);
@@ -25,9 +26,18 @@ namespace Sector13.Decals.EditorTools
         {
             if (material == null) return new Rect(0f, 0f, 1f, 1f);
 
-            var library = AssetDatabase.LoadAssetAtPath<DecalLibrary>(LibraryPath);
-            if (library != null)
+            // ค้นทั้ง Package และ Env library — material ฝั่ง Env ไม่ได้อยู่ใน DecalLibrary
+            var libraries = new[]
             {
+                AssetDatabase.LoadAssetAtPath<DecalLibrary>(LibraryPath),
+                AssetDatabase.LoadAssetAtPath<DecalLibrary>(EnvLibraryPath)
+            };
+
+            for (int l = 0; l < libraries.Length; l++)
+            {
+                var library = libraries[l];
+                if (library == null) continue;
+
                 var entries = library.AllEntries();
                 for (int i = 0; i < entries.Count; i++)
                 {

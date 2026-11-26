@@ -6,6 +6,15 @@ public class StorageDropPoint : BaseDropPoint
     public StorageRoomManager roomManager;
     public int targetSlotIndex = 0;
 
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+
+        // prefab ใช้ซ้ำได้โดยไม่ต้องลาก roomManager ใส่ทีละตัว
+        if (roomManager == null) roomManager = StorageRoomManager.Instance;
+        if (roomManager == null) roomManager = FindAnyObjectByType<StorageRoomManager>();
+    }
+
     // เช็คว่า ณ จุดนี้ สามารถวางของที่ผู้เล่นถืออยู่ได้ไหม
     public override bool CanPlaceHere()
     {

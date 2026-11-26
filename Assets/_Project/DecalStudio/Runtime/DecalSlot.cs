@@ -45,7 +45,10 @@ namespace Sector13.Decals
         private void Awake()
         {
             // กันรอยโผล่ก่อนระบบเลือก
-            if (Application.isPlaying) SetVisible(false);
+            // แต่ถ้าอยู่ใต้ PackageTraceApplier ให้ applier เป็นคนเปิด/ปิดเอง
+            // (ไม่เช่นนั้นตอน ShowSlot เปิด GameObject มันจะถูก Awake ซ่อนกลับทันที)
+            if (Application.isPlaying && GetComponentInParent<PackageTraceApplier>() == null)
+                SetVisible(false);
         }
 
         public bool Allows(VerdictType verdict)
