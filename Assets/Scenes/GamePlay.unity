@@ -4328,7 +4328,7 @@ MonoBehaviour:
   maxThievesPerDay: 1
   warningDelay: 4
   warningAudioClip: {fileID: 0}
-  warningVfxPrefab: {fileID: 0}
+  warningVfxPrefab: {fileID: 8788542168735644936, guid: fa3876efb1ea8824fbde3e1f82ea7b17, type: 3}
   spawnPoints:
   - {fileID: 1166222779}
   - {fileID: 916431667}
@@ -36592,9 +36592,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 154740930196575415, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 973615809}
     - targetCorrespondingSourceObject: {fileID: 1412411781029963478, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 833326090}
@@ -58711,11 +58708,6 @@ Transform:
   - {fileID: 1238720281}
   m_Father: {fileID: 506927339}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &973615809 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-  m_PrefabInstance: {fileID: 1474417091}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &975675074
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -85389,63 +85381,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ce4ba43cea67444f8eb049d83df5806, type: 3}
---- !u!1001 &1474417091
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2037690506}
-    m_Modifications:
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790759550707221237, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7725287196571318460, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
-      propertyPath: m_Name
-      value: WoodStick
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 411b0137dc735b24da7a953d831b62f2, type: 3}
 --- !u!1001 &1476510818
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118276,11 +118211,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 964171251132047109, guid: 1089c551f8b032b459ffbffbe9b1ac08, type: 3}
   m_PrefabInstance: {fileID: 2035046342}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &2037690506 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 154740930196575415, guid: af67b2f508823e148ab5930fcfdd775f, type: 3}
-  m_PrefabInstance: {fileID: 602472470}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2039315837
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -120224,7 +120154,7 @@ MonoBehaviour:
     enemyPrefabOverride: {fileID: 7980087161198620101, guid: fc741d860d220c44b819744b6e3650fb, type: 3}
     spawnLocation: 0
     destroyReactingBoxes: 1
-    warningVfxPrefab: {fileID: 0}
+    warningVfxPrefab: {fileID: 8788542168735644936, guid: fa3876efb1ea8824fbde3e1f82ea7b17, type: 3}
     warningAudioClip: {fileID: 0}
     spawnExplosionVfx: {fileID: 0}
     spawnAudioClip: {fileID: 0}
