@@ -139,6 +139,9 @@ MonoBehaviour:
   stunDecayDelay: 2.5
   enemyWeight: 15
   stunVfxObject: {fileID: 0}
+  spawnVfxPrefab: {fileID: 8788542168735644936, guid: fa3876efb1ea8824fbde3e1f82ea7b17, type: 3}
+  spawnVfxScale: 1.1
+  spawnVfxHeightOffset: 0.02
   searchSpeed: 4.2
   fleeSpeed: 5.2
   panicSpeed: 6.2
