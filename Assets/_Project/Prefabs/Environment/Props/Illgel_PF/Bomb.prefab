@@ -91,5 +91,56 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e8625668f3299c347b1903fe776d220f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4558958179802760357}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e8625668f3299c347b1903fe776d220f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 570897982228341534}
   m_SourcePrefab: {fileID: 100100000, guid: e8625668f3299c347b1903fe776d220f, type: 3}
+--- !u!1 &4329467024857749681 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e8625668f3299c347b1903fe776d220f, type: 3}
+  m_PrefabInstance: {fileID: 3518492751255889376}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4558958179802760357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4329467024857749681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
+  itemName: Improvised Bomb
+  itemWeight: 6
+  isWeapon: 1
+  category: 1
+  subCategory: 1
+  allowedTraces: 
+  sizeInSlots: 1
+--- !u!65 &570897982228341534
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4329467024857749681}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.3976694, y: 0.15665266, z: 0.16139136}
+  m_Center: {x: 0, y: 0.07811616, z: 0.002369307}

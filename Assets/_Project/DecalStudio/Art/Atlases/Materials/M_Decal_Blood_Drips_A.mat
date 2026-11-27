@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Decal_BloodStain_Damage_A
+  m_Name: M_Decal_Blood_Drips_A
   m_Shader: {fileID: 4800000, guid: 4771b0d84a466dc48a6fc274c8b54816, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

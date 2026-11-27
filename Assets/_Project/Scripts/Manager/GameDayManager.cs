@@ -87,9 +87,13 @@ public class GameDayManager : MonoBehaviour
 
     private bool summaryPending;
     private bool lastSummaryPassed;
+    private bool lastSummaryCompletesRun;
 
     /// <summary>มีหน้าต่างสรุปผลเปิดค้างรอผู้เล่นยืนยันอยู่หรือไม่</summary>
     public bool IsSummaryPending => summaryPending;
+
+    /// <summary>run นี้จบครบทุกวันที่ตั้งค่าไว้แล้วหรือไม่ (final summary ผ่าน)</summary>
+    public bool IsRunComplete { get; private set; }
 
     private void Awake()
     {
@@ -192,6 +196,13 @@ public class GameDayManager : MonoBehaviour
             return 0;
         }
     }
+
+    /// <summary>
+    /// วันที่กำลังเล่นอยู่เป็นวันสุดท้ายที่ตั้งค่าไว้หรือไม่
+    /// ใช้เปิด summary/จบ run ได้โดยไม่ต้องมี DayConfig ของวันถัดไป
+    /// </summary>
+    public bool IsFinalConfiguredDay =>
+        HasAnyDayConfig && HasDayConfig(currentDay) && currentDay == LastConfiguredDay;
 
     /// <summary>
     /// ตรวจว่าวันถัดไปมี config หรือไม่
@@ -660,11 +671,15 @@ public class GameDayManager : MonoBehaviour
     /// </summary>
     public bool RequestEndDay(bool ignoreMinShipped = false)
     {
-        if (summaryPending) return false;
+        if (IsRunComplete || summaryPending) return false;
         if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsOpen) return false;
         if (EndDayBlockedDialog.Instance != null && EndDayBlockedDialog.Instance.IsOpen) return false;
 
-        if (TryGetMissingNextDayConfigReason(out string failReason))
+        // The last configured day is the end of the run: it needs a summary
+        // (and the station fee) but must not require a Day N+1 config.
+        bool isFinalDay = IsFinalConfiguredDay;
+
+        if (!isFinalDay && TryGetMissingNextDayConfigReason(out string failReason))
         {
             Debug.LogWarning($"[GameDayManager] {failReason}");
             OnDayEndFailed?.Invoke(new DayEndFailure { reason = failReason });
@@ -705,9 +720,11 @@ public class GameDayManager : MonoBehaviour
                          || RequiredShippedToday <= 0
                          || ShippedToday >= RequiredShippedToday;
         bool passed = creditsShortfall == 0 && shippedOk;
+        bool runComplete = isFinalDay && passed;
 
         summaryPending = true;
         lastSummaryPassed = passed;
+        lastSummaryCompletesRun = runComplete;
 
         OnDaySummaryRequested?.Invoke(new DaySummaryResult
         {
@@ -718,7 +735,9 @@ public class GameDayManager : MonoBehaviour
             shippedToday = ShippedToday,
             shortfallPenalty = stats != null ? stats.dailyShortfallPenalty : 0,
             creditsShortfall = creditsShortfall,
-            passed = passed
+            passed = passed,
+            isFinalDay = isFinalDay,
+            runComplete = runComplete
         });
         return true;
     }
@@ -729,9 +748,9 @@ public class GameDayManager : MonoBehaviour
     /// </summary>
     public bool ConfirmEndDayWithPenalty()
     {
-        if (summaryPending) return false;
+        if (IsRunComplete || summaryPending) return false;
 
-        if (TryGetMissingNextDayConfigReason(out string configReason))
+        if (!IsFinalConfiguredDay && TryGetMissingNextDayConfigReason(out string configReason))
         {
             OnDayEndFailed?.Invoke(new DayEndFailure { reason = configReason });
             return false;
@@ -758,9 +777,43 @@ public class GameDayManager : MonoBehaviour
     {
         if (!summaryPending || !lastSummaryPassed) return;
 
+        bool completeRun = lastSummaryCompletesRun;
         summaryPending = false;
         lastSummaryPassed = false;
+        lastSummaryCompletesRun = false;
+
+        if (completeRun)
+        {
+            ExecuteRunComplete();
+            return;
+        }
+
+        // The final configured day ends the run: never increment into a
+        // Day N+1 that has no config. The summary's FINISH RUN button
+        // handles returning to the menu.
+        if (IsFinalConfiguredDay) return;
+
         ExecuteEndDay();
+    }
+
+    /// <summary>
+    /// ปิด run ที่ผ่านวันสุดท้ายแล้ว: ไม่เพิ่ม currentDay, ไม่สร้าง Day 4
+    /// และไม่รีเซ็ตโควต้า/สถิติรายวัน
+    /// </summary>
+    private void ExecuteRunComplete()
+    {
+        if (IsRunComplete) return;
+
+        IsRunComplete = true;
+
+        TrashDropPoint trash = FindFirstObjectByType<TrashDropPoint>();
+        if (trash != null)
+        {
+            trash.ClearTrashAtEndOfDay();
+        }
+
+        Debug.Log($"--- RUN COMPLETE (Day {currentDay}) — SECTOR CLEARED! ---");
+        OnDayEnded?.Invoke(currentDay);
     }
 
     // ฟังก์ชันจบวัน (เรียกจากปุ่มจบวัน หรือระบบกะ)
@@ -774,6 +827,7 @@ public class GameDayManager : MonoBehaviour
     {
         summaryPending = false;
         lastSummaryPassed = false;
+        lastSummaryCompletesRun = false;
         ExecuteEndDay(true);
     }
 
@@ -789,6 +843,7 @@ public class GameDayManager : MonoBehaviour
 
         summaryPending = false;
         lastSummaryPassed = false;
+        lastSummaryCompletesRun = false;
 
         // 1. ล้างขยะที่จุดทิ้งขยะ (TrashDropPoint) หากมี
         TrashDropPoint trash = FindFirstObjectByType<TrashDropPoint>();
@@ -841,4 +896,6 @@ public class DaySummaryResult
     public int shortfallPenalty;
     public int creditsShortfall;
     public bool passed;
+    public bool isFinalDay;
+    public bool runComplete;
 }

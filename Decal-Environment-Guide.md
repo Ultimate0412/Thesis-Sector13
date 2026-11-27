@@ -148,9 +148,10 @@ component จะเซ็ตทั้ง `material` และ `uvScale/uvBias` �
   - พื้น: หมุน X = 90° ให้ +Z ชี้ลง
   - ผนัง: หมุนให้ +Z ชี้เข้าผนัง
 - วาง pivot ให้กล่องฉายคร่อมผิว:
-  - ค่า default `Pivot = (0,0,0.5)` และ `Projection Depth = 0.6`
-  - ถ้าอยู่เหนือพื้น ~0.27 ม. กล่องจะเริ่มที่ใต้พื้นพอดี (เหมือน decal ในซีน)
-  - ถ้า decal หาย/ขาด ให้ขยับเข้าหรือออก หรือเพิ่ม Projection Depth
+  - `pivot.z` ต้องเป็น **ครึ่งหนึ่งของ Projection Depth** (`depth / 2`)
+  - ค่า default `(0,0,0.5)` ใช้ได้กับ depth 1.0 เท่านั้น
+  - ถ้าใช้ depth 0.1 ให้ตั้ง pivot = `(0,0,0.05)`; ถ้าไม่ตั้ง กล่องจะลอยอยู่หน้าผิว 0.45 ม. และ decal จะไม่ขึ้น
+  - วาง transform ไว้ที่ผิว + 0.02 ม. แล้วให้ volume ลึกเข้าไปตาม depth
 
 ### หมุนลายบนผิว
 - หมุนรอบแกน **Z local** (ลูกศรสีน้ำเงิน) = ลายหมุนบนพื้น
@@ -260,3 +261,109 @@ thumbnail ใช้ `_DecalRect` (ซ่อน) เป็นกรอบ crop �
 > `M_Env_Water` → `M_Env_WaterStain`,
 > `M_Env_Scuff` → `M_Env_CardboardScuff`
 > ฉากที่อ้างอิงอยู่จึงไม่ขาด
+
+---
+
+## 8. Runtime decal setup (Screen Space) — สำคัญ
+
+โปรเจกต์นี้ใช้ **Screen Space** ไม่ใช่ DBuffer:
+
+- `PC_Renderer` ▸ DecalRendererFeature: **Technique = Screen Space**, **Decal Layers = Off**
+  - `PC_RPAsset` ยังปิด **Light Layers** อยู่ ถ้าเปิด Decal Layers ทั้งที่ Light Layers ปิด
+    rendering-layer texture จะว่างและ layer mask จะ clip decal ทั้งหมดทิ้ง
+  - shader `DecalAtlas` จึง **ไม่ทำ layer mask** ใน screen-space pass (วางของให้อยู่ใน volume แทน)
+- `Sector13/Decals/DecalAtlas` มี pass `DecalScreenSpaceProjector` (unlit blend)
+- Package `Projection Depth` = **0.1** (clamp 0.08–0.25)
+- **Pivot ต้องเป็น `(0, 0, depth/2)` = `(0, 0, 0.05)` ไม่ใช่ 0.5**
+  - URP เลื่อน volume ไปข้างหน้าตาม `pivot.z` เป็นหน่วยเมตร (ไม่คูณ size)
+  - ถ้า depth = 0.1 แต่ pivot = 0.5 กล่องฉายจะลอยอยู่หน้าผิว **0.45 ม.** → decal ไม่แสดงบนกล่อง
+  - สูตรที่ถูก: transform อยู่ที่ผิว + 0.02 ม., pivot = depth/2 → volume เริ่มที่ผิวและลึกเข้าไป 0.1 ม.
+- Package renderers: Rendering Layer **2**; Package projectors: **2**
+- Environment renderers/projectors: Rendering Layer **1** (ตอนนี้ใช้เป็นข้อมูลอ้างอิง ไม่ได้ถูก clip)
+- Authored `DecalSlot`: `pivot = (0,0,0.05)`, `startAngleFade = 45`, `endAngleFade = 65`
+  - screen-space pass ไม่ได้ใช้ angle fade จริง; การวาง slot ให้อยู่กลางหน้าและอยู่ในขอบจึงสำคัญกว่า
+- `AlignSlotToFace` เคารพหน้าที่วางไว้ (Top/Front/Left/Right) และหลบด้านที่มีใบปะหน้า
+- Slot ถูกเปิดไว้ใน prefab เพื่อดู layout; `PackageTraceApplier.Awake` จะซ่อนตอนเข้า Play
+- Approve spawn chance = 90% (ปรับได้ใน `TraceSpawnTable`)
+
+> ถ้า decal หายทั้งที่ material/UV ถูก ให้เช็ค 2 อย่างนี้ก่อน:
+> 1) `pivot.z` ต้องเท่ากับ `size.z / 2`
+> 2) อย่าเปิด Decal Layers while Light Layers = Off (ดูข้อ 8 ด้านบน)
+
+
+> Screen-space pass นี้เป็นแบบ unlit blend: สี decal จะไม่ถูกแสงมากระทบ เหมาะกับรอยสกปรกบนกล่อง แต่ถ้าต้องการ normal/PBR ให้ย้ายไปใช้ Shader Graph Decal
+
+---
+
+## 9. ของในกล่อง (`PackageBox.possibleInnerItemPrefabs`)
+
+| Prefab กล่อง | หมวด | รายการที่ใส่ |
+|---|---|---|
+| `Box.prefab` | Legal | Items/Legal* + `Props/Legal_PF` ทั้งหมด |
+| `Box (1).prefab` | Illegal | `Items/ilegal` (ยังไม่มี `Illegal_PF`) |
+| `Box (2).prefab` | Alien | `Items/Alien` + `Props/Alien_PF` ทั้งหมด |
+| `Legal_Package.prefab` | Legal | `Items/Legal` + `Props/Legal_PF` ทั้งหมด |
+| `Alien_Package.prefab` | Alien | `Items/Alien` + `Props/Alien_PF` ทั้งหมด |
+| `Mimic_Package.prefab` | Alien | `Items/Alien` + `Props/Alien_PF` ทั้งหมด |
+
+หมายเหตุ:
+- `Props/Alien_PF` ถูกเปลี่ยน `ItemObject.category` จาก Illegal → **Alien** และตั้งชื่อ เช่น Xeno Generator / Xeno Capsule / Embryo Jar
+- `randomizeOnAwake = true` ทุกกล่อง → ตอน Awake จะสุ่มจาก possible list
+- `Box (1)` ยังใช้ได้เฉพาะ `ilegal` เพราะโปรเจกต์ยังไม่มีโฟลเดอร์ `Illegal_PF`
+- ฉาก `GamePlay.unity` ยังไม่ถูก save; ถ้ามี package ที่วางอยู่ในซีนและมี override `possible` เก่า ให้กด Revert หรือตั้งค่าใหม่
+
+---
+
+## 10. `Illegal_Package` (ใหม่)
+
+สร้างเป็น **Prefab Variant ของ `Legal_Package`** เพื่อใช้โมเดล PaperBox / ใบปะหน้า / ItemPos ชุดเดียวกับ package ที่มีชื่ออื่น:
+
+- path: `Assets/_Project/Prefabs/Gameplay/Illegal_Package.prefab`
+- model: `Lid_Group`, `PaperBox` (`BoxAsset_mat01`), `ItemPos`, `ShippingLabelCanvas`, `DecalSlots`
+- root `ItemObject.category` = **Illegal**
+- `PackageBox.innerItemPrefab` = `Items/ilegal.prefab`
+- `possibleInnerItemPrefabs` = `Items/ilegal` + `Props/Illgel_PF` ทั้ง 10 ตัว
+- `randomizeOnAwake = true`, `discrepancyChance = 100`
+- `PackageTraceApplier.currentCategory = Illegal`, `currentVerdict = Illegal`
+- renderer/projector masks = 2, projection depth 0.8
+- เพิ่มเข้า `DayTest` / `Day2` / `Day3`, `Switch_PF.packagePrefabs` และ `SavePrefabDatabase`
+
+### `Props/Illgel_PF`
+เดิม prefab ในโฟลเดอร์นี้ยังไม่มี `ItemObject`; เพิ่มให้ครบ 10 ตัวแล้ว:
+
+| Prefab | ItemObject |
+|---|---|
+| Big_Egg | Illegal Bio Egg (Biological) |
+| Bomb | Improvised Bomb (Industrial, weapon) |
+| Bong | Contraband Bong (Medical) |
+| Drug | Illegal Narcotics (Medical) |
+| Human_Remain | Human Remains (Biological) |
+| Human_Skull | Human Skull (Biological) |
+| Ijector | Illegal Injector (Medical) |
+| Med | Black Market Meds (Medical) |
+| Mid_Egg | Illegal Bio Egg (M) (Biological) |
+| Small_Egg | Illegal Bio Egg (S) (Biological) |
+
+เพิ่ม `BoxCollider` ให้ทุกตัวเพื่อให้หยิบ/ชนได้หลังนำออกจากกล่อง
+
+> `Box (1).prefab` ยังเก็บไว้สำหรับ save เก่า/fallback และอัปเดต possible list ให้เหมือนกันแล้ว
+
+---
+
+## 11. ไม่ให้ Decal ลงหน้า Shipping Label
+
+หน้า label ของ package คือ **local -Z** (`ShippingLabelCanvas`)
+
+สิ่งที่ตั้งไว้:
+- `TracePlacementProfile` ทุกตัว: `avoidLabelFace = true` และ **ตัด `Back` ออกจาก `allowedFaces`**
+- `PackageTraceApplier.GetRandomTraceTransform()`: ไม่สุ่มหน้า Back แล้ว (เหลือ Top / Front / Left / Right)
+- `DecalSlot` authored: ตรวจแล้วไม่มี slot อยู่บนหน้า label; `AlignSlotToFace()` จะ flip กลับถ้า slot ถูกวางบนหน้า label
+- `Projection Depth` ลดเหลือ **0.1** และ `pivot = (0,0,0.05)` (depth/2) — volume เริ่มที่ผิวและลึกเข้าไป 0.1 ม. จึงไม่ทะลุไปหน้าด้านหลัง/label และไม่ลอยออกมาข้างหน้า
+
+> ถ้าเพิ่ม slot ใหม่ ให้วางบน Top / Front / Left / Right เท่านั้น, ตั้ง `pivot = depth/2` และอย่าตั้ง Depth เกิน 0.25
+
+
+
+
+
+

@@ -40,7 +40,7 @@ Material:
     - _AlphaClip: 0
     - _Brightness: 1.64
     - _Cutoff: 0.5
-    - _EmissionIntensity: 2.51
+    - _EmissionIntensity: 0
     - _HeightContrast: 1.5
     - _HeightStrength: 0.25
     - _MetallicScale: 1

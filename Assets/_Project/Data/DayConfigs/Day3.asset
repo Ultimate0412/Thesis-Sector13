@@ -25,6 +25,7 @@ MonoBehaviour:
   packagePrefabs:
   - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
   - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+  - {fileID: 3733836307031222709, guid: 08ed0aeba3851ab4ba2c38f96d308785, type: 3}
   events:
     enableRandomEvents: 0
     minInterval: 60

@@ -38,7 +38,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
-    - _Brightness: 2.16
+    - _Brightness: 0.79
     - _Cutoff: 0.5
     - _EmissionIntensity: 0
     - _HeightContrast: 1.5
@@ -47,10 +47,10 @@ Material:
     - _NormalFlipY: 0
     - _NormalStrength: 0
     - _OcclusionScale: 1
-    - _Opacity: 0.422
+    - _Opacity: 0.46
     - _Saturation: 2.29
     - _SmoothnessScale: 1
-    - _Variation: 0.665
+    - _Variation: 0.618
     m_Colors:
     - _BaseColor: {r: 1, g: 0.99879295, b: 0.36320752, a: 1}
     - _DecalRect: {r: 0.25, g: 0.25, b: 0.25, a: 0.25}

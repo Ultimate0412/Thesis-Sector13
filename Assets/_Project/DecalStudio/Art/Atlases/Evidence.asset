@@ -110,18 +110,3 @@ MonoBehaviour:
     smoothnessScale: 1
     metallicScale: 1
     material: {fileID: 2100000, guid: f0b4a8874eaa57a41ad4140af11cf79b, type: 2}
-  - id: Blood
-    traceType: 6
-    requiresUV: 0
-    cell: {x: 2, y: 1}
-    uvRect:
-      serializedVersion: 2
-      x: 0.5
-      y: 0.25
-      width: 0.25
-      height: 0.25
-    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
-    heightStrength: 0.25
-    smoothnessScale: 1
-    metallicScale: 1
-    material: {fileID: 2100000, guid: b1a7c3d94e2f4f4b8c1d5e6f7a8b9c0d, type: 2}

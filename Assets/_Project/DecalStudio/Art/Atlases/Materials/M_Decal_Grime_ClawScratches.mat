@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Decal_BloodStain_WaterUV_D
+  m_Name: M_Decal_Grime_ClawScratches
   m_Shader: {fileID: 4800000, guid: 4771b0d84a466dc48a6fc274c8b54816, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -24,15 +24,15 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 2588f4444aa4d954280d238690fc8aab, type: 3}
+        m_Texture: {fileID: 2800000, guid: d3ef7c35b451bda45976cf35dc3f7f77, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: a3ee65bb7e7a4dd46bbf32ab267c8fc4, type: 3}
+        m_Texture: {fileID: 2800000, guid: 58bd41d719f5a5e4d898aaa2a8c95fd9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 24e7d32f5168f4542975c85a5cd4dc73, type: 3}
+        m_Texture: {fileID: 2800000, guid: cce358d64f164c742b3e6cb29cf474c1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -40,9 +40,9 @@ Material:
     - _AlphaClip: 0
     - _Brightness: 1.45
     - _Cutoff: 0.5
-    - _EmissionIntensity: 1
+    - _EmissionIntensity: 0
     - _HeightContrast: 1.5
-    - _HeightStrength: 0.25
+    - _HeightStrength: 0.9
     - _MetallicScale: 1
     - _NormalFlipY: 0
     - _NormalStrength: 1
@@ -52,8 +52,8 @@ Material:
     - _SmoothnessScale: 1
     - _Variation: 0.2
     m_Colors:
-    - _BaseColor: {r: 0.4575472, g: 0.7303702, b: 1, a: 1}
-    - _DecalRect: {r: 0.25, g: 0.5, b: 0.25, a: 0.25}
-    - _EmissionColor: {r: 0.08864056, g: 0.04045032, b: 0.9528302, a: 1}
+    - _BaseColor: {r: 0.075, g: 0.055, b: 0.045, a: 1}
+    - _DecalRect: {r: 0, g: 0, b: 0.25, a: 0.25}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

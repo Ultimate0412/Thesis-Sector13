@@ -16,8 +16,8 @@ MonoBehaviour:
   avoidLabelFace: 1
   margin: 0.8
   edgeChance: 0.2
-  gravityFlow: 0.0
+  gravityFlow: 0
   minSpacing: 0.25
   preventOverlap: 1
   spinRange: {x: 0, y: 360}
-  sizeRange: {x: 0.4, y: 0.7}
+  sizeRange: {x: 0.28, y: 0.42}

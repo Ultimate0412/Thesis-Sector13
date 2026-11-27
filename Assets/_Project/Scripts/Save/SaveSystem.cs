@@ -86,6 +86,7 @@ public static class SaveSystem
     public static void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
+        AudioListener.pause = false;
         SceneManager.LoadScene(MainMenuSceneName);
     }
 

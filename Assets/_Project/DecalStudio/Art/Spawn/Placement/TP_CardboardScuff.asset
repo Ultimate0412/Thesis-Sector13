@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef7ec958ca47e1478e04bb3534ca8f7, type: 3}
   m_Name: TP_CardboardScuff
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.TracePlacementProfile
-  allowedFaces: 61
+  allowedFaces: 53
   avoidLabelFace: 1
   margin: 0.85
   edgeChance: 0.35
-  gravityFlow: 0.0
+  gravityFlow: 0
   minSpacing: 0.15
   preventOverlap: 1
   spinRange: {x: 0, y: 360}
-  sizeRange: {x: 0.3, y: 0.6}
+  sizeRange: {x: 0.22, y: 0.42}

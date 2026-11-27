@@ -112,7 +112,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 7f985159c24c4d340a8825b836039af8, type: 2}
   - id: BloodStain_WaterUV_A
     traceType: 6
-    requiresUV: 0
+    requiresUV: 1
     cell: {x: 2, y: 1}
     uvRect:
       serializedVersion: 2
@@ -127,7 +127,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 7f701f96389a7a640bbdd5ca03ae4b74, type: 2}
   - id: BloodStain_WaterUV_B
     traceType: 6
-    requiresUV: 0
+    requiresUV: 1
     cell: {x: 3, y: 1}
     uvRect:
       serializedVersion: 2
@@ -142,7 +142,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 92bd575cc2fed0a40bf07ce5a0b33267, type: 2}
   - id: BloodStain_WaterUV_C
     traceType: 6
-    requiresUV: 0
+    requiresUV: 1
     cell: {x: 0, y: 2}
     uvRect:
       serializedVersion: 2
@@ -157,7 +157,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 2af90ea5c6f582d48adc2ad1370d7df1, type: 2}
   - id: BloodStain_WaterUV_D
     traceType: 6
-    requiresUV: 0
+    requiresUV: 1
     cell: {x: 1, y: 2}
     uvRect:
       serializedVersion: 2
@@ -170,3 +170,18 @@ MonoBehaviour:
     smoothnessScale: 1
     metallicScale: 1
     material: {fileID: 2100000, guid: f028becb0d78d004fa942cf56485e42d, type: 2}
+  - id: Blood
+    traceType: 6
+    requiresUV: 0
+    cell: {x: 2, y: 1}
+    uvRect:
+      serializedVersion: 2
+      x: 0.5
+      y: 0
+      width: 0.25
+      height: 0.25
+    tint: {r: 0.36, g: 0.06, b: 0.05, a: 1}
+    heightStrength: 0.25
+    smoothnessScale: 1
+    metallicScale: 1
+    material: {fileID: 2100000, guid: 7ca594e1dfc91234db121a5fa5d17d01, type: 2}

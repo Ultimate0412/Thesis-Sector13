@@ -234,6 +234,7 @@ MonoBehaviour:
   - {fileID: 3277296079550629395, guid: 5628625bd89738046ae450e297bd55cb, type: 3}
   - {fileID: 6757701642644225650, guid: bab30917150567543a03c7c2350f7ff3, type: 3}
   - {fileID: 2943038968549932672, guid: 0efb6706ce9f1fa4fbe030c637f9933e, type: 3}
+  - {fileID: 3733836307031222709, guid: 08ed0aeba3851ab4ba2c38f96d308785, type: 3}
   alienMimicChance: 0
   mimicPackagePrefab: {fileID: 0}
   legalRate: 70

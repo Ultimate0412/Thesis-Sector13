@@ -209,6 +209,129 @@ Shader "Sector13/Decals/DecalAtlas"
         }
 
         // ------------------------------------------------------------------
+        // Screen-space projector pass (technique: Screen Space)
+        // URP's DBuffer path is not producing visible decals in this project, so
+        // runtime decals use the Screen Space technique. This pass blends an
+        // unlit atlas colour onto the reconstructed surface.
+        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "DecalScreenSpaceProjector"
+            Tags { "LightMode" = "DecalScreenSpaceProjector" }
+
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Front
+            ZTest Greater
+            ZWrite Off
+
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma multi_compile_instancing
+            #pragma shader_feature_local_fragment _ALPHACLIP
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+            UNITY_INSTANCING_BUFFER_START(Decal)
+                UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
+                UNITY_DEFINE_INSTANCED_PROP(float, _DecalLayerMaskFromDecal)
+            UNITY_INSTANCING_BUFFER_END(Decal)
+
+            TEXTURE2D(_BaseMap);    SAMPLER(sampler_BaseMap);
+            TEXTURE2D(_MaskMap);    SAMPLER(sampler_MaskMap);
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _BaseColor;
+                float  _Variation;
+                float  _Brightness;
+                float  _Saturation;
+                float  _Opacity;
+                float  _Cutoff;
+                float  _MetallicScale;
+                float  _SmoothnessScale;
+                float  _OcclusionScale;
+                float4 _EmissionColor;
+                float  _EmissionIntensity;
+            CBUFFER_END
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings Vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                return output;
+            }
+
+            half4 Frag(Varyings input) : SV_Target0
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                // Light Layers are disabled project-wide; skip the layer mask so
+                // screen-space decals never read an empty rendering-layer texture.
+                // (Decal placement/depth already keeps volumes on the package.)
+
+                // --- screen space reconstruction -------------------------
+                float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
+                float depth = LoadSceneDepth(input.positionCS.xy);
+            #if !UNITY_REVERSED_Z
+                depth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0, depth);
+            #endif
+                float3 positionWS = ComputeWorldSpacePosition(positionSS, depth, UNITY_MATRIX_I_VP);
+
+                // --- decal (object) space clipping -----------------------
+                float3 positionDS = TransformWorldToObject(positionWS);
+                positionDS *= float3(1.0, -1.0, 1.0);
+                clip(0.5 - Max3(abs(positionDS.x), abs(positionDS.y), abs(positionDS.z)));
+
+                // --- atlas uv (projector uvScale / uvBias) --------------
+                float2 uv = positionDS.xz + float2(0.5, 0.5);
+
+                float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+                float fadeFactor = saturate(normalToWorld[0][3]);
+                float2 atlasScale  = float2(normalToWorld[3][0], normalToWorld[3][1]);
+                float2 atlasOffset = float2(normalToWorld[3][2], normalToWorld[3][3]);
+                uv = uv * atlasScale + atlasOffset;
+
+                // --- samples --------------------------------------------
+                half4 baseSample = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                half alpha = baseSample.a * _Opacity * fadeFactor;
+
+            #ifdef _ALPHACLIP
+                clip(alpha - _Cutoff);
+            #endif
+
+                // --- tint ------------------------------------------------
+                half lum = saturate(dot(baseSample.rgb, half3(0.299, 0.587, 0.114)));
+                half3 tint = _BaseColor.rgb;
+                half tintGray = dot(tint, half3(0.299, 0.587, 0.114));
+                tint = saturate(lerp(tintGray.xxx, tint, _Saturation));
+
+                half3 color = saturate(tint * lerp(1.0h, lum, _Variation) * _Brightness);
+                color += _EmissionColor.rgb * _EmissionIntensity * baseSample.rgb;
+                return half4(color, alpha);
+            }
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
         // Forward emissive pass (glow under UV light, same as URP decals)
         // ------------------------------------------------------------------
         Pass

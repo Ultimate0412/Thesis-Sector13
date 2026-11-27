@@ -59,5 +59,56 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 111abd5b308ab5a4e965d701d21311f8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6457619947264445012}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 111abd5b308ab5a4e965d701d21311f8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 310975813701141750}
   m_SourcePrefab: {fileID: 100100000, guid: 111abd5b308ab5a4e965d701d21311f8, type: 3}
+--- !u!1 &412740904794289024 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 111abd5b308ab5a4e965d701d21311f8, type: 3}
+  m_PrefabInstance: {fileID: 683193074968710865}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6457619947264445012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 412740904794289024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
+  itemName: Illegal Bio Egg
+  itemWeight: 5
+  isWeapon: 0
+  category: 1
+  subCategory: 5
+  allowedTraces: 
+  sizeInSlots: 1
+--- !u!65 &310975813701141750
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 412740904794289024}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2147553, y: 0.26958507, z: 0.2147551}
+  m_Center: {x: 0, y: 0, z: 0.1347925}

@@ -59,5 +59,56 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f0cf834e4ad077c469e4c9d5ad1226ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 46686061803270851}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f0cf834e4ad077c469e4c9d5ad1226ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3720260341797807517}
   m_SourcePrefab: {fileID: 100100000, guid: f0cf834e4ad077c469e4c9d5ad1226ec, type: 3}
+--- !u!1 &2444593496795667311 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f0cf834e4ad077c469e4c9d5ad1226ec, type: 3}
+  m_PrefabInstance: {fileID: 3255426351082071614}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &46686061803270851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2444593496795667311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemObject
+  itemName: Contraband Bong
+  itemWeight: 3
+  isWeapon: 0
+  category: 1
+  subCategory: 0
+  allowedTraces: 
+  sizeInSlots: 1
+--- !u!65 &3720260341797807517
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2444593496795667311}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.16082144, y: 0.3713926, z: 0.13025703}
+  m_Center: {x: 0.01627167, y: 0, z: 0.18569627}

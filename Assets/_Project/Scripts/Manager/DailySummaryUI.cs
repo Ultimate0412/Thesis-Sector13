@@ -44,6 +44,7 @@ public class DailySummaryUI : MonoBehaviour
     [SerializeField] private Button mainMenuButton;
 
     public bool IsSummaryOpen => summaryPanel != null && summaryPanel.activeSelf;
+    private bool summaryActionHandled;
 
     private void Awake()
     {
@@ -139,6 +140,7 @@ public class DailySummaryUI : MonoBehaviour
     public void ShowSummary(DaySummaryResult result)
     {
         if (result == null) return;
+        summaryActionHandled = false;
 
         DailyStatisticsData stats = result.stats;
         if (stats == null && ScoreManager.Instance != null)
@@ -148,7 +150,9 @@ public class DailySummaryUI : MonoBehaviour
 
         if (dayTitleText != null)
         {
-            dayTitleText.text = $"DAILY WORK SUMMARY - DAY {result.day}";
+            dayTitleText.text = result.isFinalDay
+                ? $"FINAL WORK SUMMARY - DAY {result.day}"
+                : $"DAILY WORK SUMMARY - DAY {result.day}";
         }
 
         if (stats != null)
@@ -229,6 +233,12 @@ public class DailySummaryUI : MonoBehaviour
             {
                 resultText.text = $"<color=#FA4E4E>INSUFFICIENT CREDITS — SHORT {result.creditsShortfall}</color>";
             }
+            else if (result.runComplete)
+            {
+                resultText.text = result.shortfallPenalty > 0
+                    ? "<color=#FFD64E>RUN COMPLETE — PENALTY APPLIED</color>"
+                    : "<color=#4EFA7A>SECTOR CLEARED — RUN COMPLETE</color>";
+            }
             else if (result.shortfallPenalty > 0)
             {
                 // Day was forced through with leftover parcels: be honest about it
@@ -241,9 +251,18 @@ public class DailySummaryUI : MonoBehaviour
             }
         }
 
-        if (nextDayButton != null) nextDayButton.gameObject.SetActive(result.passed);
-        if (restartButton != null) restartButton.gameObject.SetActive(!result.passed);
-        if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(!result.passed);
+        bool showNextDay = result.passed && !result.runComplete;
+        bool showRestart = !result.passed;
+        bool showMainMenu = !result.passed || result.runComplete;
+
+        if (nextDayButton != null) nextDayButton.gameObject.SetActive(showNextDay);
+        if (restartButton != null) restartButton.gameObject.SetActive(showRestart);
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.gameObject.SetActive(showMainMenu);
+            TextMeshProUGUI menuLabel = mainMenuButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (menuLabel != null) menuLabel.text = result.runComplete ? "FINISH RUN" : "MAIN MENU";
+        }
 
         if (summaryPanel != null)
         {
@@ -283,6 +302,9 @@ public class DailySummaryUI : MonoBehaviour
 
     private void OnNextDayClicked()
     {
+        if (summaryActionHandled) return;
+        summaryActionHandled = true;
+
         HideSummary();
 
         if (GameDayManager.Instance != null)
@@ -293,12 +315,25 @@ public class DailySummaryUI : MonoBehaviour
 
     private void OnRestartClicked()
     {
+        if (summaryActionHandled) return;
+        summaryActionHandled = true;
+
         HideSummary();
         SaveSystem.RestartCurrentDay();
     }
 
     private void OnMainMenuClicked()
     {
+        if (summaryActionHandled) return;
+        summaryActionHandled = true;
+
+        // Final successful day: mark the run complete before leaving so
+        // listeners get OnDayEnded once. Failed summaries are a no-op.
+        if (GameDayManager.Instance != null)
+        {
+            GameDayManager.Instance.ConfirmEndDayAndProceed();
+        }
+
         HideSummary();
         SaveSystem.ReturnToMainMenu();
     }

@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &542037294797176845
 Transform:
   m_ObjectHideFlags: 0
@@ -26,8 +26,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 18691300271549119}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7053843, y: -0.04932527, z: 0.04932527, w: -0.7053843}
-  m_LocalPosition: {x: 0.2336286, y: 0.91286796, z: 0.2336286}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5337039}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -50,14 +50,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.004, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.5127432, y: 0.5127432, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -99,7 +99,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6221110955617769390
 Transform:
   m_ObjectHideFlags: 0
@@ -108,8 +108,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 335878934648933984}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.6459742, y: -0.28760618, z: 0.28760618, w: -0.6459742}
-  m_LocalPosition: {x: -0.08784737, y: 0.91286796, z: 0.18687539}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -127,19 +127,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0777d029ed3dffa4692f417d4aba19ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.DecalProjector
-  m_Material: {fileID: 2100000, guid: b1a7c3d94e2f4f4b8c1d5e6f7a8b9c0d, type: 2}
+  m_Material: {fileID: 2100000, guid: 7ca594e1dfc91234db121a5fa5d17d01, type: 2}
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.5, y: 0.25}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.504, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.35390425, y: 0.35390425, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalSlot
   traceType: 6
-  decalId: Blood
+  decalId: BloodStain_Down_A
   visibility: 0
   alwaysVisible: 0
   allowedVerdicts: 03000000
@@ -349,7 +349,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5052323340722276069
 Transform:
   m_ObjectHideFlags: 0
@@ -358,8 +358,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1406012615182237561}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.53768826, y: -0.45922908, z: 0.45922908, w: -0.53768826}
-  m_LocalPosition: {x: 0.23999195, y: 0.91286796, z: -0.21083337}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -388,8 +388,8 @@ MonoBehaviour:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.500016, y: 0.500016, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -621,7 +621,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -683,7 +683,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6925640458937142811
 Transform:
   m_ObjectHideFlags: 0
@@ -692,8 +692,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2110999967959445365}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.043167815, y: -0.7057879, z: 0.7057879, w: 0.043167815}
-  m_LocalPosition: {x: -0.28430554, y: 0.91286796, z: 0.06708313}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5337039}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -716,14 +716,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.5, y: 0.25}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.504, y: 0.254}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.3758512, y: 0.3758512, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -740,7 +740,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82996e0883b0f1746bc9b72efbfd5aa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalSlot
-  traceType: 4
+  traceType: 6
   decalId: BloodStain_WaterUV_A
   visibility: 1
   alwaysVisible: 0
@@ -810,6 +810,20 @@ MonoBehaviour:
   - {fileID: 3818189603958988417, guid: 6fea48d0a255664459821651e6cf9c6e, type: 3}
   - {fileID: 1644982942162988508, guid: 210953c804fd0554482763a488f21f1e, type: 3}
   - {fileID: 8092772800044081048, guid: 52f25786863add44ebffc181eaa6341c, type: 3}
+  - {fileID: 795387018164725331, guid: 999d8c1bdd920c04b95d0d1a38f73e0f, type: 3}
+  - {fileID: 4988073065499023524, guid: 0e1ae08627fd3444d9292a72ac431c6f, type: 3}
+  - {fileID: 264225533117624122, guid: c3eb30284f4a9f946a6af95ac4ad9f2f, type: 3}
+  - {fileID: 1056422604160196244, guid: d66366a3fc49b0242b332bf0cc82d1d1, type: 3}
+  - {fileID: 6336276675665460937, guid: 85ac443e5a683fa40a49b1e577bde2bc, type: 3}
+  - {fileID: 769614672587333460, guid: 92af07ed6fd45734ba8bce2e73e500f4, type: 3}
+  - {fileID: 3499342784117873941, guid: 0c32728b50281ea41adbaabb2939f79e, type: 3}
+  - {fileID: 7106010269699422632, guid: 762171bbd4ef8884fb824a97910de277, type: 3}
+  - {fileID: 2026956397565372379, guid: b265a1ef7b3b65f4c87ab8e8a41eeb89, type: 3}
+  - {fileID: 2691548866656077986, guid: e2edcb9d61c53a24985c6f20090097b0, type: 3}
+  - {fileID: 5881645016146759424, guid: e26e148a7f1838247b3e76ad437643ed, type: 3}
+  - {fileID: 4765214981306309728, guid: 0fb0a7698e1f7f041a53fbd87cea6121, type: 3}
+  - {fileID: 6978115288683003261, guid: e58aad0b9f9be7a4ea0c565314c9161a, type: 3}
+  - {fileID: 1853259083635182486, guid: 1f45de9374c079247bf4e54891fa9420, type: 3}
   innerItemPrefab: {fileID: 3818189603958988417, guid: 6fea48d0a255664459821651e6cf9c6e, type: 3}
   openSlot: {fileID: 2915670524164984969}
   Hath: {fileID: 5022531644831454278}
@@ -958,7 +972,7 @@ MonoBehaviour:
   chemicalResidueUVMat: {fileID: 2100000, guid: b29dea490383f0b47a666fe29cd72f64, type: 2}
   minTraceSize: {x: 0.38, y: 0.38}
   maxTraceSize: {x: 0.6, y: 0.6}
-  projectionDepth: 0.35
+  projectionDepth: 0.1
   floorMargin: 0.04
   startAngleFade: 45
   endAngleFade: 65
@@ -1188,7 +1202,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1331,7 +1345,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3707060226416646883
 Transform:
   m_ObjectHideFlags: 0
@@ -1340,8 +1354,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3781960088217294518}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.06777317, y: -0.70385146, z: 0.70385146, w: -0.06777317}
-  m_LocalPosition: {x: -0.20873971, y: 0.91286796, z: 0.095833495}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 0.99999994, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1364,14 +1378,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.75, y: 0.25}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.754, y: 0.254}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.56252086, y: 0.56252086, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -1388,7 +1402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82996e0883b0f1746bc9b72efbfd5aa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalSlot
-  traceType: 4
+  traceType: 6
   decalId: BloodStain_WaterUV_B
   visibility: 1
   alwaysVisible: 0
@@ -1916,7 +1930,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2076,7 +2090,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2138,7 +2152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2752018464291303899
 Transform:
   m_ObjectHideFlags: 0
@@ -2147,8 +2161,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7002558432987148654}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.012340677, y: -0.7069991, z: 0.7069991, w: -0.012340677}
-  m_LocalPosition: {x: 0.113402806, y: 0.91286796, z: -0.14854184}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2171,14 +2185,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.25, y: 0.25}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.254, y: 0.254}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.55525374, y: 0.55525374, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2270,7 +2284,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2332,7 +2346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6216587626580868514
 Transform:
   m_ObjectHideFlags: 0
@@ -2341,8 +2355,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7349373455447810377}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.18301274, y: -0.6830127, z: 0.6830127, w: 0.18301274}
-  m_LocalPosition: {x: 0.2411804, y: 0.91286796, z: 0.15812503}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2371,8 +2385,8 @@ MonoBehaviour:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.37128165, y: 0.37128165, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2414,7 +2428,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1836251973151635981
 Transform:
   m_ObjectHideFlags: 0
@@ -2423,8 +2437,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7528905186102483224}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.40557984, y: -0.579228, z: 0.579228, w: -0.40557984}
-  m_LocalPosition: {x: 0.055902872, y: 0.91286796, z: 0.08784697}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: -0.09999993, y: 0, z: 0.5337039}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2447,14 +2461,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.5, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.504, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.5394715, y: 0.5394715, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2496,7 +2510,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5718342827815691978
 Transform:
   m_ObjectHideFlags: 0
@@ -2505,8 +2519,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7612875063674791110}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.44018432, y: -0.5533875, z: 0.5533875, w: 0.44018432}
-  m_LocalPosition: {x: -0.0031945303, y: 0.91286796, z: -0.22680561}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.53370357, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2529,14 +2543,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.004, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.5258303, y: 0.5258303, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2578,7 +2592,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2092516380763913729
 Transform:
   m_ObjectHideFlags: 0
@@ -2587,8 +2601,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7626548777005433868}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7044161, y: -0.061628416, z: 0.061628416, w: 0.7044161}
-  m_LocalPosition: {x: 0.13256958, y: 0.91286796, z: 0.26673585}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2606,19 +2620,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0777d029ed3dffa4692f417d4aba19ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.DecalProjector
-  m_Material: {fileID: 2100000, guid: b1a7c3d94e2f4f4b8c1d5e6f7a8b9c0d, type: 2}
+  m_Material: {fileID: 2100000, guid: 7ca594e1dfc91234db121a5fa5d17d01, type: 2}
   m_DrawDistance: 1000
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.5, y: 0.25}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.504, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.36187595, y: 0.36187595, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2636,7 +2650,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sector13.Decals.DecalSlot
   traceType: 6
-  decalId: Blood
+  decalId: BloodStain_Down_A
   visibility: 0
   alwaysVisible: 0
   allowedVerdicts: 02000000
@@ -2660,7 +2674,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &8591194612332973255
 Transform:
   m_ObjectHideFlags: 0
@@ -2669,8 +2683,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7804150150472047090}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.31550947, y: -0.6328142, z: 0.6328142, w: -0.31550947}
-  m_LocalPosition: {x: 0, y: 0.91286796, z: 0.19805525}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5337039}
   m_LocalScale: {x: 1, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2693,14 +2707,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.004, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.5221747, y: 0.5221747, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2879,7 +2893,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1568038660703035574
 Transform:
   m_ObjectHideFlags: 0
@@ -2888,8 +2902,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7869701609358068479}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.56841266, y: -0.4206032, z: 0.4206032, w: 0.56841266}
-  m_LocalPosition: {x: 0.114999875, y: 0.91286796, z: 0.1724998}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.5337035, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2912,14 +2926,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.75, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.754, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.61075026, y: 0.61075026, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -2961,7 +2975,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1491130372221103005
 Transform:
   m_ObjectHideFlags: 0
@@ -2970,8 +2984,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8155639080476492197}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.35888386, y: -0.60926384, z: 0.60926384, w: 0.35888386}
-  m_LocalPosition: {x: 0.02236131, y: 0.91286796, z: -0.20125018}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.5337035, y: 0, z: -0.09999993}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2994,14 +3008,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.25, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.254, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.3179601, y: 0.3179601, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -3093,7 +3107,7 @@ MeshRenderer:
   m_RenderingLayerMask: 2
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f93ea33d54d492541a124b3afbd794e2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3155,7 +3169,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5673813834038651548
 Transform:
   m_ObjectHideFlags: 0
@@ -3164,8 +3178,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8639079227833450819}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41061896, y: -0.5756666, z: 0.5756666, w: 0.41061896}
-  m_LocalPosition: {x: 0.19805565, y: 0.91286796, z: 0.24277787}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.53370357, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3188,14 +3202,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.5, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.504, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.38788936, y: 0.38788936, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -3237,7 +3251,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3413250086662987336
 Transform:
   m_ObjectHideFlags: 0
@@ -3246,8 +3260,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9096933586162393775}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.677988, y: -0.2008292, z: 0.2008292, w: 0.677988}
-  m_LocalPosition: {x: -0.12777759, y: 0.91286796, z: 0.13416706}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.09999993, y: 0.53370357, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3270,14 +3284,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0, y: 0.5}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.004, y: 0.504}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.48340824, y: 0.48340824, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -3319,7 +3333,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7398967496065426130
 Transform:
   m_ObjectHideFlags: 0
@@ -3328,8 +3342,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9173245294243673504}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.43533844, y: -0.55720776, z: 0.55720776, w: 0.43533844}
-  m_LocalPosition: {x: 0.036736093, y: 0.91286796, z: 0.18368046}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.5337035, y: 0, z: -0.09999993}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3358,8 +3372,8 @@ MonoBehaviour:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.34576353, y: 0.34576353, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1
@@ -3401,7 +3415,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4614331484322167053
 Transform:
   m_ObjectHideFlags: 0
@@ -3410,8 +3424,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9216433397131706438}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.69291145, y: -0.14097442, z: 0.14097442, w: 0.69291145}
-  m_LocalPosition: {x: 0.17569433, y: 0.91286796, z: -0.07347219}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.53370357, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3434,14 +3448,14 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 45
   m_EndAngleFade: 65
-  m_UVScale: {x: 0.25, y: 0.25}
-  m_UVBias: {x: 0.75, y: 0}
+  m_UVScale: {x: 0.242, y: 0.242}
+  m_UVBias: {x: 0.754, y: 0.004}
   m_RenderingLayerMask:
     serializedVersion: 0
     m_Bits: 2
   m_ScaleMode: 0
-  m_Offset: {x: 0, y: 0, z: 0.5}
-  m_Size: {x: 0.4909861, y: 0.4909861, z: 0.55}
+  m_Offset: {x: 0, y: 0, z: 0.05}
+  m_Size: {x: 0.3, y: 0.3, z: 0.1}
   m_FadeFactor: 1
   m_VisibleInScene: 1
   version: 1

@@ -81,9 +81,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd168bd7c4a973f45bd3a8b61cdfd283, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemObject
-  itemName: Illegal Synthetic Stims
+  itemName: Xeno Stone
   itemWeight: 5
-  category: 1
+  isWeapon: 0
+  category: 2
   subCategory: 0
   allowedTraces: 010000000500000003000000
   sizeInSlots: 1
