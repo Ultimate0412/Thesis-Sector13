@@ -1,22 +1,18 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// ระบบการโจมตีระยะประชิดของผู้เล่น
-/// ผู้เล่นจะต้องชักอาวุธ (MeleeWeapon ที่ติดตัวผ่าน PlayerEquipment) อยู่จึงจะกดคลิกซ้ายโจมตีได้
-/// </summary>
 public class PlayerCombatSystem : MonoBehaviour
 {
     [Header("Combat Settings")]
-    [Tooltip("รัศมีการตรวจสอบการโดนเป้าหมาย (SphereCast radius)")]
     public float hitCheckRadius = 0.35f;
-
-    [Tooltip("เลเยอร์ของศัตรู")]
     public LayerMask hitLayers = ~0;
 
     [Header("Animation Settings")]
-    [Tooltip("ชื่อ Trigger สำหรับท่าโจมตี (Attack)")]
-    public string attackTriggerName = "Attack";
+    public string attackTriggerName = "BatonAttack";
+
+    [Header("Debug")]
+    public bool enableCombatLogs = true;
 
     private PlayerEquipment equipment;
     private PlayerStats playerStats;
@@ -31,13 +27,28 @@ public class PlayerCombatSystem : MonoBehaviour
         equipment = GetComponent<PlayerEquipment>();
         playerStats = GetComponent<PlayerStats>();
         playerCam = GetComponentInChildren<Camera>();
+        if (playerCam == null) playerCam = Camera.main;
+
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 0f; // 2D sound สำหรับผู้เล่น
+            audioSource.spatialBlend = 0f;
         }
-        attackTriggerValid = HasParameter(playerStats != null ? playerStats.playerAnimator : null, attackTriggerName);
+    }
+
+    private void Start()
+    {
+        Animator targetAnimator = GetActiveAnimator();
+        attackTriggerValid = HasParameter(targetAnimator, attackTriggerName);
+    }
+
+    private Animator GetActiveAnimator()
+    {
+        if (equipment != null && equipment.playerAnimator != null)
+            return equipment.playerAnimator;
+
+        return playerStats != null ? playerStats.playerAnimator : null;
     }
 
     private static bool HasParameter(Animator animator, string paramName)
@@ -51,30 +62,19 @@ public class PlayerCombatSystem : MonoBehaviour
 
     private void Update()
     {
-        // หากผู้เล่นตายแล้ว จะโจมตีไม่ได้
-        if (playerStats != null && playerStats.IsDead)
-        {
-            return;
-        }
+        if (playerStats != null && playerStats.IsDead) return;
+        if (InspectionTablet.Instance != null && InspectionTablet.Instance.IsTabletHeld) return;
 
-        // หากผู้เล่นกำลังเปิดแท็บเล็ตอยู่ จะโจมตีไม่ได้
-        if (InspectionTablet.Instance != null && InspectionTablet.Instance.IsTabletHeld)
-        {
-            return;
-        }
-
-        // หากกำลังเปิดเมนู Stamp หรือ Daily Summary หรือเคอร์เซอร์อยู่บน UI จะไม่โจมตี
         bool isMenuOpen = (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen) ||
                           (DailySummaryUI.Instance != null && DailySummaryUI.Instance.IsSummaryOpen);
         if (isMenuOpen) return;
 
-        if (UnityEngine.EventSystems.EventSystem.current != null && 
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
             UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
             return;
         }
 
-        // ตรวจสอบการคลิกซ้ายโจมตี (LMB)
         if (Input.GetMouseButtonDown(0))
         {
             TryAttack();
@@ -85,13 +85,11 @@ public class PlayerCombatSystem : MonoBehaviour
     {
         if (Time.time < nextAttackTime || isSwinging) return;
 
-        // ต้องชักอาวุธที่ติดตัวอยู่ก่อนจึงจะโจมตีได้
         if (equipment == null || !equipment.IsDrawn || equipment.EquippedWeapon == null)
         {
             return;
         }
 
-        // ทำการโจมตี
         ExecuteAttack(equipment.EquippedWeapon);
     }
 
@@ -99,55 +97,129 @@ public class PlayerCombatSystem : MonoBehaviour
     {
         nextAttackTime = Time.time + weapon.attackCooldown;
 
-        // สั่งเล่นแอนิเมชันโจมตีหากมีการกำหนด Animator และ controller มี trigger นี้จริง
-        if (attackTriggerValid && playerStats.playerAnimator != null)
+        if (equipment != null)
         {
-            playerStats.playerAnimator.SetTrigger(attackTriggerName);
+            equipment.PlayAttackAnimation();
+        }
+        else
+        {
+            Animator targetAnimator = GetActiveAnimator();
+            if (attackTriggerValid && targetAnimator != null)
+            {
+                targetAnimator.SetTrigger(attackTriggerName);
+            }
         }
 
-        // เล่นเสียงเหวี่ยงอาวุธ
         if (weapon.swingSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(weapon.swingSound, 0.7f);
         }
 
-        // เล่น Procedural Swing Animation ของอาวุธ
-        StartCoroutine(SwingWeaponRoutine(weapon));
-
-        // ตรวจจับการโจมตีโดนเป้าหมาย (SphereCast ข้างหน้ากล้อง)
-        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
-        RaycastHit hit;
-
-        if (Physics.SphereCast(ray, hitCheckRadius, out hit, weapon.attackRange, hitLayers))
+        if (equipment == null || !equipment.useRigAnimationPose)
         {
-            // ตรวจสอบว่าโดนศัตรูหรือไม่
-            EnemyBase enemy = hit.collider.GetComponentInParent<EnemyBase>();
-            if (enemy == null) enemy = hit.collider.GetComponent<EnemyBase>();
+            StartCoroutine(SwingWeaponRoutine(weapon));
+        }
 
-            if (enemy != null && !enemy.IsDead)
+        if (playerCam == null)
+        {
+            if (enableCombatLogs)
+                Debug.LogWarning("[PlayerCombat] ไม่พบ Camera สำหรับยิงระยะตี");
+            return;
+        }
+
+        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        RaycastHit[] hits = Physics.SphereCastAll(
+            ray,
+            hitCheckRadius,
+            weapon.attackRange,
+            hitLayers,
+            QueryTriggerInteraction.Collide
+        );
+
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        RaycastHit validHit = default;
+        bool hasValidHit = false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i].collider == null) continue;
+            if (hits[i].collider.transform.IsChildOf(transform)) continue;
+
+            validHit = hits[i];
+            hasValidHit = true;
+            break;
+        }
+
+        if (!hasValidHit)
+        {
+            if (enableCombatLogs)
             {
-                enemy.TakeStunDamage(weapon.stunDamagePerHit, hit.point, playerCam.transform.forward);
-
-                if (weapon.hitEnemySound != null && audioSource != null)
-                {
-                    audioSource.PlayOneShot(weapon.hitEnemySound, 0.9f);
-                }
+                Debug.Log($"<color=#AAAAAA>[PlayerCombat]</color> ตีวืด (ระยะ {weapon.attackRange:F2}m, รัศมี {hitCheckRadius:F2}m)");
             }
-            else
+            return;
+        }
+
+        EnemyBase enemy = validHit.collider.GetComponentInParent<EnemyBase>();
+        if (enemy == null) enemy = validHit.collider.GetComponent<EnemyBase>();
+
+        if (enemy != null)
+        {
+            if (enemy.IsDead)
             {
-                // ตรวจสอบว่าตีโดนกล่องที่เป็น Mimic ปลอมตัวอยู่หรือไม่
-                MimicPackage mimic = hit.collider.GetComponentInParent<MimicPackage>();
-                if (mimic != null && mimic.enabled)
-                {
-                    mimic.OnAttackedByWeapon(weapon);
-                }
-
-                // ตีโดนกำแพงหรือสิ่งของทั่วไป
-                if (weapon.hitWallSound != null && audioSource != null)
-                {
-                    audioSource.PlayOneShot(weapon.hitWallSound, 0.6f);
-                }
+                if (enableCombatLogs)
+                    Debug.Log($"<color=#FFAA00>[PlayerCombat]</color> ตีโดนศัตรู <b>{enemy.name}</b> แต่ตายไปแล้ว");
+                return;
             }
+
+            if (enemy.IsStunned)
+            {
+                if (enableCombatLogs)
+                    Debug.Log($"<color=#FFAA00>[PlayerCombat]</color> ตีโดนศัตรู <b>{enemy.name}</b> แต่ติดสตั๊นอยู่แล้ว (Stun: {enemy.CurrentStunGauge:F0}/{enemy.maxStunGauge:F0})");
+                return;
+            }
+
+            float beforeStun = enemy.CurrentStunGauge;
+            enemy.TakeStunDamage(weapon.stunDamagePerHit, validHit.point, playerCam.transform.forward);
+
+            if (enableCombatLogs)
+            {
+                Debug.Log(
+                    $"<color=#00FF88>[PlayerCombat]</color> ผู้เล่นตีโดนศัตรู <b>{enemy.name}</b> ด้วย {weapon.name} | " +
+                    $"Stun +{weapon.stunDamagePerHit:F0} ({beforeStun:F0} -> {enemy.CurrentStunGauge:F0}/{enemy.maxStunGauge:F0}) | " +
+                    $"ระยะ {validHit.distance:F2}m"
+                );
+            }
+
+            if (weapon.hitEnemySound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(weapon.hitEnemySound, 0.9f);
+            }
+            return;
+        }
+
+        MimicPackage mimic = validHit.collider.GetComponentInParent<MimicPackage>();
+        if (mimic != null && mimic.enabled)
+        {
+            mimic.OnAttackedByWeapon(weapon);
+
+            if (enableCombatLogs)
+            {
+                Debug.Log($"<color=#FF66FF>[PlayerCombat]</color> ผู้เล่นตีโดน Mimic <b>{mimic.name}</b> (ระยะ {validHit.distance:F2}m)");
+            }
+        }
+        else if (enableCombatLogs)
+        {
+            string hitLayerName = LayerMask.LayerToName(validHit.collider.gameObject.layer);
+            Debug.Log(
+                $"<color=#FFDD55>[PlayerCombat]</color> ตีโดนวัตถุอื่น: <b>{validHit.collider.name}</b> " +
+                $"(Layer: {hitLayerName}, ระยะ {validHit.distance:F2}m)"
+            );
+        }
+
+        if (weapon.hitWallSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(weapon.hitWallSound, 0.6f);
         }
     }
 
@@ -162,7 +234,6 @@ public class PlayerCombatSystem : MonoBehaviour
             yield break;
         }
 
-        // ระหว่างแกว่ง ให้ระบบ equipment หยุดจัดท่า ไม่งั้นจะถูกดึงกลับที่เดิมทุกเฟรม
         if (equipment != null) equipment.PoseControlSuspended = true;
 
         Vector3 startPos = equipment != null ? equipment.drawnLocalPosition : Vector3.zero;
@@ -176,7 +247,6 @@ public class PlayerCombatSystem : MonoBehaviour
         float halfDuration = weapon.attackCooldown * 0.35f;
         float elapsed = 0f;
 
-        // ฟาดออกไปข้างหน้า
         while (elapsed < halfDuration && equipment != null && equipment.IsDrawn)
         {
             elapsed += Time.deltaTime;
@@ -187,7 +257,6 @@ public class PlayerCombatSystem : MonoBehaviour
         }
 
         elapsed = 0f;
-        // ดึงกลับตำแหน่งเดิม
         while (elapsed < halfDuration && equipment != null && equipment.IsDrawn)
         {
             elapsed += Time.deltaTime;
@@ -205,3 +274,9 @@ public class PlayerCombatSystem : MonoBehaviour
         isSwinging = false;
     }
 }
+
+// --- สรุปการทำงานของโค้ด ---
+// 1. เพิ่มตัวแปร enableCombatLogs ใน Inspector เพื่อเปิดหรือปิดการแสดง Log การโจมตีทั้งหมดใน Console
+// 2. เปลี่ยนจากการใช้ Physics.SphereCast เป็น Physics.SphereCastAll แล้วเรียงตามระยะใกล้สุดพร้อมข้าม Collider ที่เป็นลูกของ Player เพื่อไม่ให้ฟาดไปติด Collider ของตัวผู้เล่นหรืออาวุธเอง
+// 3. เมื่อตีโดนศัตรู (EnemyBase) จะพิมพ์ Log สีเขียวแสดงชื่อศัตรู อาวุธ ค่า Stun Damage เกจสตั๊นก่อน-หลังตี และระยะห่าง รวมถึงแยก Log สีส้มกรณีศัตรูติดสตั๊นหรือตายอยู่แล้ว
+// 4. กรณีตีโดน Mimic วัตถุทั่วไป หรือตีวืด จะพิมพ์ Log พร้อมชื่อ Collider, Layer และระยะห่าง เพื่อให้ไล่เช็กได้ทันทีหากตีศัตรูไม่เข้า

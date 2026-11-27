@@ -1,60 +1,46 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyMimic : EnemyBase
 {
     public enum MimicState
     {
-        Spawning,       // เพิ่งแปลงร่างออกมา กำลังคำรามตั้งตัว (0.5s)
-        Chasing,        // วิ่งตรงเข้าหาผู้เล่น
-        Windup,         // ง้างเตือนก่อนกัด (Telegraph)
-        Attacking,      // พุ่งกัดผู้เล่น
-        AttackCooldown, // พักชั่วครู่ก่อนวิ่งไล่ต่อ
-        Stunned,        // ติดสตั๊น (จาก EnemyBase)
-        Carried         // กำลังถูกผู้เล่นยกถือ
+        Spawning,
+        Chasing,
+        Windup,
+        Attacking,
+        AttackCooldown,
+        Stunned,
+        Carried
     }
 
     [Header("Mimic Chase Settings")]
-    [Tooltip("ความเร็วในการวิ่งไล่ผู้เล่น")]
     public float chaseSpeed = 4.8f;
-
-    [Tooltip("ความเร็วในการหันหน้าเข้าหาผู้เล่น")]
     public float rotationSpeed = 8.0f;
-
-    [Tooltip("ระยะการตรวจจับสายตา (ถ้าอยู่นอกระยะจะเดินสแกนหา)")]
     public float detectionRadius = 30f;
 
     [Header("Bite Attack Settings")]
-    [Tooltip("ระยะประชิดที่เริ่มง้างกัด (เมตร)")]
     public float attackRange = 1.8f;
-
-    [Tooltip("ความเสียหายที่ทำต่อผู้เล่นเมื่อกัดโดน")]
     public float attackDamage = 18f;
-
-    [Tooltip("เวลาง้างก่อนพุ่งกัด (วินาที)")]
     public float windupDuration = 0.35f;
-
-    [Tooltip("เวลารอหลังโจมตีก่อนจะเริ่มไล่ใหม่ (วินาที)")]
     public float attackCooldown = 1.2f;
-
-    [Tooltip("ความเร็วพุ่งตัวไปข้างหน้าสั้นๆ ตอนกัด")]
     public float lungeSpeed = 3.5f;
 
-    [Header("Visual Indicators & Animator")]
-    [Tooltip("Renderer ส่วนดวงตาหรือปากของ Mimic ที่จะเปลี่ยนสีเวลาเล็งหรือกัด")]
+    [Header("Visual Indicators")]
     public Renderer indicatorRenderer;
-    public Color normalEyeColor = new Color(0.8f, 0.2f, 1.0f); // ม่วงเข้ม Alien
+    public Color normalEyeColor = new Color(0.8f, 0.2f, 1.0f);
     public Color attackEyeColor = Color.red;
 
-    [Tooltip("Animator ของตัว Mimic (ถ้ามี)")]
+    [Header("Playable Animation (Single Clip)")]
     public Animator mimicAnimator;
-    public string speedParamName = "Speed";
-    public string attackTriggerName = "Attack";
-    public string hurtTriggerName = "Hurt";
-    public string isStunnedBoolName = "IsStunned";
-    public string dieTriggerName = "Die";
+    public AnimationClip mimicClip;
+    public float idleAnimSpeed = 0.6f;
+    public float chaseAnimSpeed = 1.2f;
+    public float attackAnimSpeed = 1.8f;
+    public bool pauseWhenStunned = true;
 
     [Header("Audio Feedback")]
     public AudioClip spawnScreechSound;
@@ -71,6 +57,10 @@ public class EnemyMimic : EnemyBase
     private AudioSource audioSource;
     private Material indicatorMaterialInstance;
 
+    private PlayableGraph animGraph;
+    private AnimationClipPlayable clipPlayable;
+    private bool animReady;
+
     protected override void Awake()
     {
         base.Awake();
@@ -79,14 +69,15 @@ public class EnemyMimic : EnemyBase
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 1.0f; // 3D sound
+            audioSource.spatialBlend = 1.0f;
             audioSource.minDistance = 2.0f;
             audioSource.maxDistance = 18.0f;
         }
 
         if (mimicAnimator == null)
         {
-            mimicAnimator = GetComponentInChildren<Animator>();
+            mimicAnimator = GetComponent<Animator>();
+            if (mimicAnimator == null) mimicAnimator = GetComponentInChildren<Animator>();
         }
 
         if (indicatorRenderer != null)
@@ -107,9 +98,9 @@ public class EnemyMimic : EnemyBase
     private void Start()
     {
         FindPlayerReference();
+        InitPlayableAnimation();
         SetIndicatorColor(normalEyeColor);
 
-        // เริ่มต้นในสถานะ Spawning สั้นๆ เพื่อให้เอฟเฟกต์แปลงร่างและเสียงร้องทำงาน
         currentState = MimicState.Spawning;
         stateTimer = 0.5f;
 
@@ -117,6 +108,41 @@ public class EnemyMimic : EnemyBase
         {
             audioSource.PlayOneShot(spawnScreechSound, 1.0f);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (animGraph.IsValid())
+        {
+            animGraph.Destroy();
+        }
+    }
+
+    private void InitPlayableAnimation()
+    {
+        if (animReady || mimicClip == null) return;
+
+        if (mimicAnimator == null)
+            mimicAnimator = GetComponent<Animator>();
+        if (mimicAnimator == null)
+            mimicAnimator = GetComponentInChildren<Animator>();
+        if (mimicAnimator == null)
+            mimicAnimator = gameObject.AddComponent<Animator>();
+
+        mimicAnimator.applyRootMotion = false;
+        mimicAnimator.runtimeAnimatorController = null;
+
+        animGraph = PlayableGraph.Create("EnemyMimic_SingleClip");
+        animGraph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+
+        clipPlayable = AnimationClipPlayable.Create(animGraph, mimicClip);
+        clipPlayable.SetApplyFootIK(false);
+
+        AnimationPlayableOutput output = AnimationPlayableOutput.Create(animGraph, "MimicAnim", mimicAnimator);
+        output.SetSourcePlayable(clipPlayable);
+
+        animGraph.Play();
+        animReady = true;
     }
 
     private void FindPlayerReference()
@@ -141,27 +167,33 @@ public class EnemyMimic : EnemyBase
     {
         base.Update();
 
-        if (isDead) return;
+        if (isDead)
+        {
+            UpdatePlayableAnimation();
+            return;
+        }
 
-        // หากติดสตั๊นหรือถูกผู้เล่นยกถืออยู่ ให้หยุดการทำงานของ AI
         if (isStunned || isBeingCarried)
         {
             currentState = isBeingCarried ? MimicState.Carried : MimicState.Stunned;
-            UpdateAnimator();
+            UpdatePlayableAnimation();
             return;
         }
 
         if (playerTarget == null)
         {
             FindPlayerReference();
-            if (playerTarget == null) return;
+            if (playerTarget == null)
+            {
+                UpdatePlayableAnimation();
+                return;
+            }
         }
 
-        // ป้องกันศัตรูโจมตีผู้เล่นที่ตายแล้ว
         if (playerStats != null && playerStats.IsDead)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-            UpdateAnimator();
+            UpdatePlayableAnimation();
             return;
         }
 
@@ -180,7 +212,6 @@ public class EnemyMimic : EnemyBase
                 break;
 
             case MimicState.Attacking:
-                // จัดการใน Coroutine หรือหลังพุ่งกัด
                 break;
 
             case MimicState.AttackCooldown:
@@ -188,15 +219,13 @@ public class EnemyMimic : EnemyBase
                 break;
         }
 
-        UpdateAnimator();
+        UpdatePlayableAnimation();
     }
 
     private void HandleSpawning()
     {
         StopMovement();
         stateTimer -= Time.deltaTime;
-
-        // หันหน้าหาผู้เล่นตั้งแต่ตอนเกิด
         RotateTowardsPlayer();
 
         if (stateTimer <= 0f)
@@ -208,16 +237,11 @@ public class EnemyMimic : EnemyBase
     private void HandleChasing()
     {
         float distance = Vector3.Distance(transform.position, playerTarget.position);
-
-        // หันหน้าเข้าหาผู้เล่น
         RotateTowardsPlayer();
 
-        // ตรวจสอบว่าเข้าถึงระยะกัดหรือยัง
         if (distance <= attackRange)
         {
             StopMovement();
-
-            // เริ่มต้นจังหวะง้างกัด
             currentState = MimicState.Windup;
             stateTimer = windupDuration;
             SetIndicatorColor(attackEyeColor);
@@ -229,7 +253,6 @@ public class EnemyMimic : EnemyBase
             return;
         }
 
-        // วิ่งเข้าหาผู้เล่นด้วย NavMeshAgent
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
             navAgent.isStopped = false;
@@ -240,7 +263,6 @@ public class EnemyMimic : EnemyBase
 
     private void HandleWindup()
     {
-        // หยุดเดินขณะง้างกัด
         StopMovement();
         RotateTowardsPlayer();
 
@@ -255,8 +277,7 @@ public class EnemyMimic : EnemyBase
     {
         currentState = MimicState.Attacking;
 
-        // สั่งพุ่งตัวไปข้างหน้าสั้นๆ
-        Vector3 attackDir = (playerTarget.position - transform.position);
+        Vector3 attackDir = playerTarget.position - transform.position;
         attackDir.y = 0f;
         if (attackDir.sqrMagnitude > 0.001f) attackDir.Normalize();
         else attackDir = transform.forward;
@@ -271,19 +292,11 @@ public class EnemyMimic : EnemyBase
             rb.linearVelocity = attackDir * lungeSpeed + Vector3.up * 1.5f;
         }
 
-        // สั่งเล่นแอนิเมชันโจมตี
-        if (mimicAnimator != null && !string.IsNullOrEmpty(attackTriggerName))
-        {
-            mimicAnimator.SetTrigger(attackTriggerName);
-        }
-
-        // เล่นเสียงกัด
         if (biteSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(biteSound, 1.0f);
         }
 
-        // ตรวจสอบการทำดาเมจต่อผู้เล่น
         float hitDistance = Vector3.Distance(transform.position, playerTarget.position);
         if (hitDistance <= attackRange + 0.8f)
         {
@@ -295,7 +308,6 @@ public class EnemyMimic : EnemyBase
             }
         }
 
-        // เข้าสู่ช่วงคูลดาวน์
         currentState = MimicState.AttackCooldown;
         stateTimer = attackCooldown;
     }
@@ -325,7 +337,7 @@ public class EnemyMimic : EnemyBase
     {
         if (playerTarget == null) return;
 
-        Vector3 targetDir = (playerTarget.position - transform.position);
+        Vector3 targetDir = playerTarget.position - transform.position;
         targetDir.y = 0f;
         if (targetDir.sqrMagnitude > 0.001f)
         {
@@ -346,22 +358,50 @@ public class EnemyMimic : EnemyBase
         }
     }
 
-    private void UpdateAnimator()
+    private void UpdatePlayableAnimation()
     {
-        if (mimicAnimator == null) return;
+        if (!animReady || !clipPlayable.IsValid()) return;
 
-        if (!string.IsNullOrEmpty(speedParamName))
+        if (!mimicClip.isLooping && mimicClip.length > 0f && clipPlayable.GetTime() >= mimicClip.length)
         {
-            float horizSpeed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
-                ? navAgent.velocity.magnitude
-                : 0f;
-            mimicAnimator.SetFloat(speedParamName, horizSpeed);
+            clipPlayable.SetTime(0d);
         }
 
-        if (!string.IsNullOrEmpty(isStunnedBoolName))
+        float targetSpeed;
+        if (isDead)
         {
-            mimicAnimator.SetBool(isStunnedBoolName, isStunned);
+            targetSpeed = 0f;
         }
+        else if (isStunned || isBeingCarried)
+        {
+            targetSpeed = pauseWhenStunned ? 0f : 0.25f;
+        }
+        else
+        {
+            switch (currentState)
+            {
+                case MimicState.Spawning:
+                    targetSpeed = idleAnimSpeed;
+                    break;
+                case MimicState.Chasing:
+                    targetSpeed = chaseAnimSpeed;
+                    break;
+                case MimicState.Windup:
+                    targetSpeed = idleAnimSpeed * 0.5f;
+                    break;
+                case MimicState.Attacking:
+                    targetSpeed = attackAnimSpeed;
+                    break;
+                case MimicState.AttackCooldown:
+                    targetSpeed = idleAnimSpeed;
+                    break;
+                default:
+                    targetSpeed = 1f;
+                    break;
+            }
+        }
+
+        clipPlayable.SetSpeed(targetSpeed);
     }
 
     public override void TakeStunDamage(float stunAmount, Vector3 hitPoint, Vector3 hitDirection)
@@ -371,11 +411,6 @@ public class EnemyMimic : EnemyBase
         if (hurtSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(hurtSound, 0.8f);
-        }
-
-        if (mimicAnimator != null && !string.IsNullOrEmpty(hurtTriggerName))
-        {
-            mimicAnimator.SetTrigger(hurtTriggerName);
         }
     }
 
@@ -397,9 +432,15 @@ public class EnemyMimic : EnemyBase
     protected override void Die()
     {
         base.Die();
-        if (mimicAnimator != null && !string.IsNullOrEmpty(dieTriggerName))
+        if (animReady && clipPlayable.IsValid())
         {
-            mimicAnimator.SetTrigger(dieTriggerName);
+            clipPlayable.SetSpeed(0f);
         }
     }
 }
+
+// --- สรุปการทำงานของโค้ด ---
+// 1. แทนที่ระบบ Animator Controller เดิมด้วย PlayableGraph ("EnemyMimic_SingleClip") ที่ต่อ AnimationClipPlayable เข้ากับ AnimationPlayableOutput โดยตรงโดยไม่ต้องใช้ Mixer
+// 2. InitPlayableAnimation() ค้นหาหรือสร้าง Component Animator บนตัว Mimic พร้อมล้าง runtimeAnimatorController และปิด applyRootMotion เพื่อไม่ให้ชนกับ NavMeshAgent
+// 3. UpdatePlayableAnimation() ปรับความเร็วการเล่นของคลิป (SetSpeed) ตามสถานะปัจจุบัน (วิ่งไล่เร็วขึ้น, พุ่งกัดเร่งสปีด, หยุดนิ่งเมื่อติดสตั๊นหรือตาย) และวนลูปเวลาให้อัตโนมัติแม้ไม่ได้ติ๊ก Loop Time ในไฟล์ FBX
+// 4. คืนหน่วยความจำของ PlayableGraph ใน OnDestroy() เมื่อวัตถุถูกทำลาย

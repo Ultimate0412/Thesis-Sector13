@@ -99,6 +99,20 @@ public class EnemyHammer : EnemyBase
     [Tooltip("ระยะเวลา crossfade ตอนสลับท่า (วินาที) — 0 = สลับทันที")]
     [Min(0f)] public float stageAnimationFade = 0.15f;
 
+    [Header("Movement VFX")]
+    [Tooltip("Particle system ฝุ่นที่พื้น (ต้องตั้ง Simulation Space = World)")]
+    public ParticleSystem dustTrail;
+    [Tooltip("Particle system ควันจากส่วนหัว")]
+    public ParticleSystem headSmoke;
+    [Tooltip("Prefab เอฟเฟกต์ตอนพุ่งชน (กำแพง/ผู้เล่น)")]
+    public GameObject impactVfxPrefab;
+    [Tooltip("สเกลเอฟเฟกต์ตอนชนผู้เล่น เทียบกับตอนชนกำแพง")]
+    [Range(0.1f, 1f)] public float playerHitVfxScale = 0.6f;
+    [Tooltip("ความแรงการปล่อยฝุ่นตอนเดินค้นหา (0 = ปิด)")]
+    [Range(0f, 1f)] public float searchEmission = 0f;
+
+    private float lastTrailMultiplier = -1f;
+
     public HammerState CurrentState => currentState;
     [SerializeField] private HammerState currentState = HammerState.No_Animation;
 
@@ -161,6 +175,11 @@ public class EnemyHammer : EnemyBase
             obstacleLayer = LayerMask.GetMask("Default");
         }
 
+        ResolveVfxReferences();
+
+        // เตรียม pool ไว้ล่วงหน้า -> ตอนชนไม่มี Instantiate เลย (เปิด/ปิดอย่างเดียว)
+        VfxPool.EnsureExists().Prewarm(impactVfxPrefab);
+
         if (syncDurationWithClip)
         {
             SyncDurationsFromClips();
@@ -184,6 +203,8 @@ public class EnemyHammer : EnemyBase
         {
             SetState(HammerState.No_Animation);
         }
+
+        UpdateTrailForState(currentState);
     }
 
     private void LateUpdate()
@@ -401,8 +422,11 @@ public class EnemyHammer : EnemyBase
             yield return null;
         }
 
+        // 2. ขั้นตอนพุ่งชน (Run_Loop) — ปล่อยฝุ่นเต็มกำลัง
         SetState(HammerState.Run_Loop);
         isCharging = true;
+        SetTrailEmission(1f);
+        EmitChargePuff();
         float elapsedLoop = 0f;
 
         while (elapsedLoop < runLoopMaxDuration && isCharging)
@@ -530,11 +554,12 @@ public class EnemyHammer : EnemyBase
 
         if (player != null)
         {
+            Vector3 hitPoint = collision.contactCount > 0 ? collision.contacts[0].point : transform.position;
+            Vector3 hitDir = (player.transform.position - transform.position).normalized;
+
             LivingEntity targetLiving = player.GetComponent<LivingEntity>();
             if (targetLiving != null)
             {
-                Vector3 hitPoint = collision.contactCount > 0 ? collision.contacts[0].point : transform.position;
-                Vector3 hitDir = (player.transform.position - transform.position).normalized;
                 targetLiving.TakeDamage(chargeDamage, hitPoint, hitDir);
             }
 
@@ -543,6 +568,9 @@ public class EnemyHammer : EnemyBase
             {
                 playerRb.AddForce(lockedChargeDirection * knockbackForce + Vector3.up * 2f, ForceMode.Impulse);
             }
+
+            // เอฟเฟกต์กระแทกที่ตัวผู้เล่น (ย่อส่วน)
+            SpawnImpactVfx(hitPoint, -hitDir, playerHitVfxScale);
 
             Debug.Log($"[{gameObject.name}] พุ่งชนโดนผู้เล่น! ทำดาเมจ {chargeDamage} และเข้าสู่ Stunt_Start -> Stunt_Idle -> Stunt_End");
             StartWallStuntSequence();
@@ -555,6 +583,7 @@ public class EnemyHammer : EnemyBase
             Vector3 normal = collision.contacts[0].normal;
             if (Vector3.Dot(normal, Vector3.up) < 0.5f)
             {
+                SpawnImpactVfx(collision.contacts[0].point, normal, 1f);
                 Debug.Log($"[{gameObject.name}] พุ่งชนกำแพง! เข้าสู่ Stunt_Start -> Stunt_Idle -> Stunt_End");
                 StartWallStuntSequence();
             }
@@ -585,6 +614,87 @@ public class EnemyHammer : EnemyBase
         }
     }
 
+    protected override void Die()
+    {
+        base.Die();
+        SetTrailEmission(0f);
+    }
+
+    // ---------------------------------------------------------------- Movement VFX
+
+    /// <summary>หาอ้างอิง ParticleSystem ในลูกๆ อัตโนมัติถ้ายังไม่ได้ผูกใน Inspector</summary>
+    private void ResolveVfxReferences()
+    {
+        if (dustTrail != null && headSmoke != null) return;
+
+        ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>(true);
+        foreach (ParticleSystem ps in systems)
+        {
+            if (dustTrail == null && ps.name == "Dust") dustTrail = ps;
+            else if (headSmoke == null && ps.name == "HeadSmoke") headSmoke = ps;
+        }
+    }
+
+    /// <summary>ปรับความแรงการปล่อยฝุ่นตามสถานะ (0 = หยุดปล่อย แต่ให้หางเดิมจางหายเอง)</summary>
+    private void UpdateTrailForState(HammerState state)
+    {
+        float multiplier;
+        switch (state)
+        {
+            // ยืนนิ่ง/คูลดาวน์/เดินหาผู้เล่น (Run_Loop ตอนเดินถูก override เป็น 1f ตอนพุ่งจริง)
+            case HammerState.No_Animation:
+            case HammerState.Run_Loop:
+                multiplier = searchEmission;
+                break;
+            case HammerState.Roar:
+                multiplier = 0.15f;
+                break;
+            case HammerState.Run_Start:
+                multiplier = 1f;
+                break;
+            default:
+                multiplier = 0f;
+                break;
+        }
+
+        SetTrailEmission(multiplier);
+    }
+
+    private void SetTrailEmission(float multiplier)
+    {
+        if (Mathf.Approximately(lastTrailMultiplier, multiplier)) return;
+        lastTrailMultiplier = multiplier;
+
+        SetEmissionMultiplier(dustTrail, multiplier);
+        SetEmissionMultiplier(headSmoke, multiplier);
+    }
+
+    private static void SetEmissionMultiplier(ParticleSystem ps, float multiplier)
+    {
+        if (ps == null) return;
+        ParticleSystem.EmissionModule emission = ps.emission;
+        emission.rateOverDistanceMultiplier = multiplier;
+    }
+
+    /// <summary>พ่นฝุ่นก้อนแรกตอนเริ่มพุ่ง (กันหางขาดตอนออกตัว)</summary>
+    private void EmitChargePuff()
+    {
+        if (dustTrail != null) dustTrail.Emit(10);
+        if (headSmoke != null) headSmoke.Emit(4);
+    }
+
+    /// <summary>เสกเอฟเฟกต์กระแทกที่จุดชน (หยิบจาก pool: เปิด/ปิด ไม่สร้าง/ทำลาย)</summary>
+    private void SpawnImpactVfx(Vector3 position, Vector3 normal, float scale)
+    {
+        if (impactVfxPrefab == null) return;
+
+        Quaternion rotation = normal.sqrMagnitude > 0.0001f
+            ? Quaternion.LookRotation(normal)
+            : Quaternion.identity;
+
+        VfxPool.EnsureExists().Spawn(impactVfxPrefab, position, rotation, scale);
+    }
+
     // ---------------------------------------------------------------- Movement Helpers
 
     private void SetHorizontalVelocity(Vector3 horizontalVelocity)
@@ -607,6 +717,7 @@ public class EnemyHammer : EnemyBase
     {
         currentState = nextState;
         PlayStageAnimation(nextState);
+        UpdateTrailForState(nextState);
     }
 
     private bool HasAnyStageClip()
