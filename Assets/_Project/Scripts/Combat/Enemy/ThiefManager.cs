@@ -302,12 +302,9 @@ public class ThiefManager : MonoBehaviour
             thiefComp = spawnedThief.AddComponent<EnemyThief>();
         }
 
-        // มอบหมาย Escape Point ให้ Thief
-        if (escapePoints != null && escapePoints.Length > 0)
-        {
-            thiefComp.designatedEscapePoint = escapePoints[Random.Range(0, escapePoints.Length)];
-        }
-        else if (spawnPoint != null)
+        // Let EnemyThief choose the nearest escape point from ThiefManager.escapePoints
+        // at flee time. Only use the spawn point as a fallback when no escape list exists.
+        if ((escapePoints == null || escapePoints.Length == 0) && spawnPoint != null)
         {
             thiefComp.designatedEscapePoint = spawnPoint;
         }

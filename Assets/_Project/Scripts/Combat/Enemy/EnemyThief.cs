@@ -450,13 +450,8 @@ public class EnemyThief : EnemyBase
 
     private void ChooseEscapePoint()
     {
-        if (designatedEscapePoint != null)
-        {
-            chosenEscapePoint = designatedEscapePoint;
-            return;
-        }
-
-        // ค้นหา Escape Point จาก ThiefManager
+        // Prefer the nearest point from ThiefManager's escape list.
+        // A designated point is only a fallback (e.g. no vent list assigned).
         if (ThiefManager.Instance != null && ThiefManager.Instance.escapePoints != null && ThiefManager.Instance.escapePoints.Length > 0)
         {
             float closestDist = float.MaxValue;
@@ -478,6 +473,12 @@ public class EnemyThief : EnemyBase
                 chosenEscapePoint = bestPoint;
                 return;
             }
+        }
+
+        if (designatedEscapePoint != null)
+        {
+            chosenEscapePoint = designatedEscapePoint;
+            return;
         }
 
         // Fallback: ใช้จุดเกิดเดิม

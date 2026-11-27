@@ -14,6 +14,22 @@ The blocker was that Day 3 had no Day 4 `DayConfig`, so the normal End Day flow 
 
 ## Full 3-Day Run
 
+Two runs were performed: one starting directly in GamePlay, and one from the real Main Menu flow.
+
+### From Main Menu (real player flow)
+
+`MainMenu → New Game → Slot 1 → GamePlay → Day 1 → Day 2 → Day 3 → FINISH`.
+
+| Day | Boxes processed | Shipped / required | Score before fee | Station fee | Score after fee | Result |
+|---|---:|---:|---:|---:|---:|---|
+| 1 | 5 | 5 / 0 | 400 | 0 | 400 | Day 2 |
+| 2 | 10 | 10 / 6 | 1,200 | 400 | 800 | Day 3 |
+| 3 | 10 | 10 / 8 | 1,600 | 600 | **1,000** | **RUN COMPLETE** |
+
+Test slot 1 was deleted afterward; the existing `slot_3.json` was preserved.
+
+### Direct GamePlay smoke run
+
 Test-only settings for the fast full-loop run: thief disabled and auto-save disabled. The thief was tested separately with normal settings.
 
 | Day | Boxes processed | Shipped / required | Score before fee | Station fee | Score after fee | Result |
@@ -23,6 +39,43 @@ Test-only settings for the fast full-loop run: thief disabled and auto-save disa
 | 3 | 10 | 10 / 8 | 1700 | 600 | 1100 | **RUN COMPLETE** |
 
 Final state: `currentDay = 3`, `IsRunComplete = true`, score `1100`. No Day 4 is created.
+
+## Independent AI Playtests (blind, separate save slots)
+
+Two independent agents were each told only “start from the Main Menu and play as far as you can”; no controls, mechanics, or prior reports were given. They ran sequentially on separate save slots.
+
+| | Agent A (slot 1) | Agent B (slot 2) |
+|---|---|---|
+| Start | Main Menu → New Game → Slot 1 | Main Menu → New Game → Slot 2 |
+| Day 1 | 5 spawned, 3 opened, 4 shipped, 1 stolen → 250 | 5 spawned, 3 opened, 4 shipped, 1 stolen → 250 |
+| Day 2 | 9 shipped / 6, 1 stolen → 600 total | 9 shipped / 6 → 1,650 total* |
+| Day 3 | 9 shipped / 8, 1 stolen → 750 total | 9 shipped / 8 → 2,650 total* |
+| Final | RUN COMPLETE → Main Menu | RUN COMPLETE → Main Menu |
+| Enemies | Thief once/day, 3 packages stolen, no mimic/death | Thief once, Mimic killed player, Respawn + Disposal |
+| Bugs found | Final save not updated; `IsInjured` warning; thief escape logged as Error | `PipeSuck` queue/ghost parcels; mimic VFX missing material; animator params; menu typo; wrong blocked-dialog title |
+
+\* Agent B’s 2,650 is inflated by an automation artifact: its batch lookup included deactivated/queued shipped boxes from Day 1, so Day 2 reported `19 / 6` shipped. A normal player cannot ship inactive boxes. Agent A’s 750 is the more representative normal-player result.
+
+Both agents used runtime public actions (`spawner.Interact`, `ToggleOpenBox`, `Inspect/Scan`, stamp buttons, `PlaceItem`, `ProcessShipping`, End Day) because the MCP harness cannot inject raw OS keyboard/mouse input into Unity’s legacy Input.
+
+### Confirmed issues from both playtests
+
+1. **Final Day 3 result is not persisted.** Slot 1 showed Day 3 / 600 PTS after a 750 run; Slot 2 showed Day 3 / 1,650 PTS after a 2,650 run. The last autosave is the start of Day 3. The final summary says RUN COMPLETE but does not write a completed-run save.
+2. **Animator parameters missing.** `IsInjured`, `TakeDamage`, `IsDead`, `Die`, `Respawn` warnings on the player Animator.
+3. **Thief escape is logged at Error level** even though it is a normal gameplay outcome.
+
+### Issues reported by Agent B (with code check)
+
+- `PipeSuck` does `SetActive(false)` after 0.45 s and `Destroy` only after the full ~1.53 s animation. If End Day is pressed while boxes are still queued, the blocked dialog sets `Time.timeScale = 0`, freezing the pipe coroutine and making active/queued boxes look like “parcels left on the floor.” Dismissing the dialog and waiting resolves it; it is not a permanent softlock. The claim “never calls Destroy” is not correct — line 309 destroys the package after the animation.
+- `MimicPackage` procedural transform VFX creates a ParticleSystem while it is already playing and without a valid URP material, producing pink squares and a `ParticleSystem` assert.
+- Main Menu title is `STAION 13` instead of `STATION 13`.
+- The blocked-day dialog title always says `BELOW SHIPPING QUOTA`, even when the block reason is parcels on the floor.
+
+### Test Cleanup
+
+- Test slots 1 and 2 were deleted after the runs.
+- Existing `slot_3.json` was preserved byte-for-byte.
+- `GameSession.CurrentSlot` restored to 3.
 
 ## Enemies
 
