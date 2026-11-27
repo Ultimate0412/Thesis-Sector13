@@ -1581,7 +1581,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: STAION 13
+  m_text: STATION 13
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a1ed9323128a96b4b851ddd81dafac92, type: 2}
   m_sharedMaterial: {fileID: 1083582006804614412, guid: a1ed9323128a96b4b851ddd81dafac92, type: 2}

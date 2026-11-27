@@ -1,3 +1,13 @@
 # Generated playtest screenshots and Unity recovery files
 Screenshots/
 Assets/_Recovery/
+Assets/_Archive/
+Assets/_Archive.meta
+
+# Test output
+TestResults/
+*.trx
+
+# AI agent logs and scratch
+/brain/
+.agents/
