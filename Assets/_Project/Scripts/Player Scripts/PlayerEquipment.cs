@@ -1,27 +1,23 @@
 using UnityEngine;
 
-/// <summary>
-/// ระบบอุปกรณ์ติดตัวผู้เล่น
-/// อาวุธถูกติดตั้งไว้กับตัวผู้เล่นตั้งแต่เริ่มเกม (ไม่ต้องเดินไปหยิบในฉาก)
-/// กดปุ่มเพื่อชัก/เก็บ โดยใช้ pattern เดียวกับ InspectionTablet:
-/// - ถือได้ทีละอย่าง: กดปุ่มขณะถือของอยู่ จะวางของที่ถือลงพื้นแล้วชักอาวุธแทน
-/// - กดปุ่มขณะถือแท็บเล็ตอยู่ จะเก็บแท็บเล็ตแล้วชักอาวุธแทน
-/// - หยิบของขึ้นมือขณะชักอาวุธอยู่ จะเก็บอาวุธให้อัตโนมัติ
-/// </summary>
 public class PlayerEquipment : MonoBehaviour
 {
     public static PlayerEquipment Instance { get; private set; }
 
     [Header("Input")]
-    [Tooltip("ปุ่มชัก/เก็บอาวุธ")]
-    public KeyCode toggleKey = KeyCode.Alpha2;
+    public KeyCode toggleKey = KeyCode.Alpha1;
+    public bool triggerAttackOnLeftClick = true;
+    public float attackAnimCooldown = 0.5f;
 
     [Header("Weapon Setup")]
-    [Tooltip("Prefab อาวุธที่จะติดตั้งให้ผู้เล่นตั้งแต่เริ่มเกม")]
     public GameObject weaponPrefab;
-
-    [Tooltip("จุดยึดอาวุธ (ถ้าไม่ใส่จะใช้ holdPosition ของ PlayerPickupSystem)")]
     public Transform weaponSlot;
+
+    [Header("Animator Settings")]
+    public Animator playerAnimator;
+    public string batonEquippedBoolParam = "IsBatonEquipped";
+    public string batonAttackTriggerParam = "BatonAttack";
+    public bool useRigAnimationPose = true;
 
     [Header("Draw / Holster Pose (local to slot)")]
     public Vector3 drawnLocalPosition = Vector3.zero;
@@ -34,13 +30,14 @@ public class PlayerEquipment : MonoBehaviour
     private GameObject weaponInstance;
     private MeleeWeapon equippedWeapon;
     private bool isDrawn = false;
+    private bool equippedParamValid = false;
+    private bool attackParamValid = false;
+    private float nextAttackAnimTime = 0f;
 
     public MeleeWeapon EquippedWeapon => equippedWeapon;
     public Transform WeaponTransform => weaponInstance != null ? weaponInstance.transform : null;
     public bool IsDrawn => isDrawn;
     public bool HasWeapon => equippedWeapon != null;
-
-    /// <summary>ให้ระบบอื่น (เช่น แอนิเมชันแกว่งอาวุธ) ควบคุม transform ชั่วคราว</summary>
     public bool PoseControlSuspended { get; set; } = false;
 
     private void Awake()
@@ -50,7 +47,13 @@ public class PlayerEquipment : MonoBehaviour
         if (pickupSystem == null) pickupSystem = GetComponent<PlayerPickupSystem>();
         if (weaponSlot == null && pickupSystem != null) weaponSlot = pickupSystem.holdPosition;
 
+        ResolveAnimator();
         EnsureWeapon();
+    }
+
+    private void Start()
+    {
+        ValidateAnimatorParameters();
     }
 
     private void OnDestroy()
@@ -64,11 +67,52 @@ public class PlayerEquipment : MonoBehaviour
         UpdateWeaponTransform();
     }
 
+    private void ResolveAnimator()
+    {
+        if (playerAnimator != null) return;
+
+        PlayerStats stats = GetComponent<PlayerStats>();
+        if (stats != null && stats.playerAnimator != null)
+        {
+            playerAnimator = stats.playerAnimator;
+            return;
+        }
+
+        playerAnimator = GetComponentInChildren<Animator>();
+    }
+
+    private void ValidateAnimatorParameters()
+    {
+        equippedParamValid = HasParameter(playerAnimator, batonEquippedBoolParam);
+        attackParamValid = HasParameter(playerAnimator, batonAttackTriggerParam);
+    }
+
+    private static bool HasParameter(Animator animator, string paramName)
+    {
+        if (animator == null || string.IsNullOrEmpty(paramName)) return false;
+        var parameters = animator.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].name == paramName) return true;
+        }
+        return false;
+    }
+
     private void HandleInput()
     {
+        if (Time.timeScale <= 0f) return;
+
         if (Input.GetKeyDown(toggleKey)) ToggleWeapon();
 
-        // หยิบของขึ้นมือขณะชักอาวุธอยู่ → เก็บอาวุธอัตโนมัติ (แบบเดียวกับแท็บเล็ต)
+        if (isDrawn && triggerAttackOnLeftClick && Cursor.lockState == CursorLockMode.Locked && Input.GetMouseButtonDown(0))
+        {
+            if (Time.time >= nextAttackAnimTime)
+            {
+                nextAttackAnimTime = Time.time + attackAnimCooldown;
+                PlayAttackAnimation();
+            }
+        }
+
         if (isDrawn && pickupSystem != null && pickupSystem.heldObject != null)
             ForceHolster();
     }
@@ -77,10 +121,8 @@ public class PlayerEquipment : MonoBehaviour
     {
         if (!isDrawn)
         {
-            // ถือได้ทีละอย่าง: เก็บแท็บเล็ตก่อน (ถ้าถืออยู่)
             if (InspectionTablet.Instance != null) InspectionTablet.Instance.ForceHolster();
 
-            // ถ้ามือถือของอยู่ ให้วางของลงพื้นก่อนแล้วชักอาวุธแทน
             if (pickupSystem != null && pickupSystem.heldObject != null)
             {
                 if (!pickupSystem.PutAwayHeldObject())
@@ -104,11 +146,30 @@ public class PlayerEquipment : MonoBehaviour
 
         isDrawn = true;
         weaponInstance.SetActive(true);
+
+        if (useRigAnimationPose)
+        {
+            weaponInstance.transform.localPosition = drawnLocalPosition;
+            weaponInstance.transform.localRotation = Quaternion.Euler(drawnLocalRotation);
+        }
+
+        SetBatonEquippedAnim(true);
     }
 
     public void HolsterWeapon()
     {
         isDrawn = false;
+        SetBatonEquippedAnim(false);
+
+        if (playerAnimator != null && attackParamValid)
+        {
+            playerAnimator.ResetTrigger(batonAttackTriggerParam);
+        }
+
+        if (useRigAnimationPose && weaponInstance != null)
+        {
+            weaponInstance.SetActive(false);
+        }
     }
 
     public void ForceHolster()
@@ -116,7 +177,33 @@ public class PlayerEquipment : MonoBehaviour
         if (isDrawn) HolsterWeapon();
     }
 
-    /// <summary>สร้าง/ผูกอาวุธเข้ากับจุดยึดให้พร้อมใช้ (เรียกซ้ำได้ ปลอดภัย)</summary>
+    public void PlayAttackAnimation()
+    {
+        if (!isDrawn || playerAnimator == null) return;
+
+        if (!attackParamValid)
+        {
+            ValidateAnimatorParameters();
+            if (!attackParamValid) return;
+        }
+
+        playerAnimator.ResetTrigger(batonAttackTriggerParam);
+        playerAnimator.SetTrigger(batonAttackTriggerParam);
+    }
+
+    private void SetBatonEquippedAnim(bool equipped)
+    {
+        if (playerAnimator == null) return;
+
+        if (!equippedParamValid)
+        {
+            ValidateAnimatorParameters();
+            if (!equippedParamValid) return;
+        }
+
+        playerAnimator.SetBool(batonEquippedBoolParam, equipped);
+    }
+
     private bool EnsureWeapon()
     {
         if (weaponInstance != null) return true;
@@ -127,7 +214,6 @@ public class PlayerEquipment : MonoBehaviour
             return false;
         }
 
-        // ใช้ของที่มีอยู่แล้วใน slot ก่อน (เช่น วางไว้ใน prefab ผู้เล่น)
         MeleeWeapon existing = weaponSlot.GetComponentInChildren<MeleeWeapon>(true);
         if (existing != null)
         {
@@ -163,7 +249,7 @@ public class PlayerEquipment : MonoBehaviour
 
     private void UpdateWeaponTransform()
     {
-        if (PoseControlSuspended) return;
+        if (useRigAnimationPose || PoseControlSuspended) return;
         if (weaponInstance == null || !weaponInstance.activeSelf) return;
 
         Vector3 targetPos = isDrawn ? drawnLocalPosition : holsteredLocalPosition;
@@ -173,8 +259,12 @@ public class PlayerEquipment : MonoBehaviour
         t.localPosition = Vector3.Lerp(t.localPosition, targetPos, Time.deltaTime * transitionSpeed);
         t.localRotation = Quaternion.Slerp(t.localRotation, targetRot, Time.deltaTime * transitionSpeed);
 
-        // เก็บจนสุดทางแล้วค่อยปิด object
         if (!isDrawn && Vector3.Distance(t.localPosition, holsteredLocalPosition) < 0.02f)
             weaponInstance.SetActive(false);
     }
 }
+
+// --- สรุปการทำงานของโค้ด ---
+// 1. เพิ่มการรับคลิกซ้ายใน HandleInput() ผ่าน triggerAttackOnLeftClick และ attackAnimCooldown โดยตรวจ Cursor.lockState == CursorLockMode.Locked เพื่อไม่ให้เล่นท่าตีตอนคลิกเมนู UI
+// 2. เพิ่มการสั่ง ResetTrigger ก่อน SetTrigger ใน PlayAttackAnimation() และตอนเก็บอาวุธใน HolsterWeapon() เพื่อกันอาการ Trigger ค้างแล้วตีเบิ้ลเอง
+// 3. เพิ่มการ re-validate พารามิเตอร์ใน PlayAttackAnimation() และ SetBatonEquippedAnim() เผื่อกรณี Animator ถูกเปิดใช้งานหลัง Start()

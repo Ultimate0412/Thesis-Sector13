@@ -2,67 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
-/// <summary>
-/// ศัตรูประเภทใหม่: Thief (หัวขโมยพัสดุ)
-/// พฤติกรรม:
-/// 1. ไม่โจมตีผู้เล่น (Non-Hostile)
-/// 2. ตีให้ตายได้โดยตรง (HP = 70, ฟาด 2 ครั้งตาย)
-/// 3. เกิดออกมาแล้วจะมองหาพัสดุที่ใกล้ที่สุด (PackageBox) แล้ววิ่งเข้าไปขโมย
-/// 4. เมื่ออุ้มพัสดุแล้ว จะวิ่งหนีไปยังจุดหลบหนี (Escape Point)
-/// 5. หากหนีรอดไปได้สำเร็จ พัสดุจะถูกทำลายและผู้เล่นจะถูกหักคะแนน
-/// 6. เมื่อถูกตีจะปล่อยพัสดุตกพื้น และแตกตื่นวิ่งมั่วๆ 3 วินาทีก่อนกลับมาขโมยต่อ
-/// 7. หากผู้เล่นตีจนตาย จะดรอปพัสดุคืนลงบนพื้นให้เก็บกลับมาได้
-/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyThief : EnemyBase
 {
     public enum ThiefState
     {
-        Spawning,       // เพิ่งเกิด กำลังมองหาพัสดุ
-        Approaching,    // กำลังวิ่งเข้าหาพัสดุเป้าหมาย
-        Stealing,       // กำลังหยิบพัสดุขึ้นมาถือ
-        Fleeing,        // กำลังวิ่งหนีไปยังจุด Escape Point
-        Panicking,      // โดนตี ตื่นตระหนกปล่อยพัสดุแล้ววิ่งมั่วๆ 3 วินาที
-        Escaped,        // หลบหนีสำเร็จ
-        Dead            // ถูกผู้เล่นกำจัด
+        Spawning,
+        Approaching,
+        Stealing,
+        Fleeing,
+        Panicking,
+        Escaped,
+        Dead
     }
 
     [Header("Thief Movement Settings")]
-    [Tooltip("ความเร็วในการวิ่งเข้าหาพัสดุ")]
     public float searchSpeed = 4.2f;
-
-    [Tooltip("ความเร็วในการวิ่งหนีไปยังจุด Escape Point")]
     public float fleeSpeed = 5.2f;
-
-    [Tooltip("ความเร็วตื่นตระหนกเมื่อถูกผู้เล่นตี (Panic Sprint)")]
     public float panicSpeed = 6.2f;
-
-    [Tooltip("ความเร็วในการหันหน้า (หมุนตัว)")]
     public float rotationSpeed = 10f;
-
-    [Tooltip("ระยะที่ถือว่าเข้าถึงพัสดุแล้วเพื่อขโมย")]
     public float stealDistance = 1.4f;
-
-    [Tooltip("ระยะที่ถือว่าถึงจุดหลบหนีแล้ว")]
     public float escapeDistance = 1.2f;
 
     [Header("Panic Settings")]
-    [Tooltip("ระยะเวลาตื่นตระหนกหลังถูกตี (วินาที)")]
     public float panicDuration = 3f;
-
-    [Tooltip("หลังทำพัสดุตก จะไม่เลือกกล่องเดิมซ้ำภายในเวลานี้ (วินาที)")]
     public float droppedPackageIgnoreDuration = 1.5f;
 
     [Header("Carried Package Slot")]
-    [Tooltip("ตำแหน่งหน้าอก/มือของ Thief สำหรับยึดกล่องพัสดุที่ขโมยมา")]
     public Transform holdPosition;
 
     [Header("Visual & Feedback")]
-    [Tooltip("Renderer ส่วนดวงตา/หน้ากาก สำหรับเปลี่ยนสีตามสถานะ")]
     public Renderer indicatorRenderer;
-    public Color searchEyeColor = new Color(1.0f, 0.7f, 0.0f); // ส้ม
-    public Color fleeEyeColor = new Color(0.9f, 0.1f, 0.1f);   // แดง
+    public Color searchEyeColor = new Color(1.0f, 0.7f, 0.0f);
+    public Color fleeEyeColor = new Color(0.9f, 0.1f, 0.1f);
     public GameObject escapeVfxPrefab;
 
     [Header("Audio Feedback")]
@@ -71,12 +46,21 @@ public class EnemyThief : EnemyBase
     public AudioClip deathSound;
     public AudioClip escapeSound;
 
-    [Header("Animator Settings")]
+    [Header("PlayableGraph Animation Clips")]
     public Animator thiefAnimator;
-    public string speedParamName = "Speed";
-    public string hurtTriggerName = "Hurt";
-    public string dieTriggerName = "Die";
-    public string stealTriggerName = "Steal";
+    public AnimationClip spawnClip;
+    public AnimationClip walkLoopClip;
+    public AnimationClip walkHoldLoopClip;
+    public AnimationClip stuntClip;
+    public AnimationClip stuntEndClip;
+    public AnimationClip carryClip;
+
+    [Header("PlayableGraph Animation Speeds")]
+    [Min(0.1f)] public float walkAnimSpeed = 1.0f;
+    [Min(0.1f)] public float fleeAnimSpeed = 1.4f;
+    [Min(0.1f)] public float panicAnimSpeed = 1.8f;
+
+    [Min(0f)] public float animationFadeDuration = 0.15f;
 
     [Header("Status (Read-Only)")]
     [SerializeField] private ThiefState currentState = ThiefState.Spawning;
@@ -84,6 +68,14 @@ public class EnemyThief : EnemyBase
 
     [HideInInspector] public Transform designatedEscapePoint;
     public PackageBox StolenPackage => stolenPackage;
+
+    private PlayableGraph animGraph;
+    private AnimationMixerPlayable rootMixer;
+    private AnimationMixerPlayable locomotionMixer;
+    private AnimationClipPlayable actionPlayable;
+    private bool isGraphReady;
+    private float currentHoldBlend;
+    private Coroutine actionAnimCoroutine;
 
     private PackageBox targetPackage;
     private PackageBox stolenPackage;
@@ -94,6 +86,7 @@ public class EnemyThief : EnemyBase
     private float panicTimer = 0f;
     private float panicRetargetTimer = 0f;
     private Vector3 panicDestination;
+    private Coroutine spawnCoroutine;
     private Coroutine stealCoroutine;
     private AudioSource audioSource;
     private Material indicatorMaterialInstance;
@@ -101,7 +94,6 @@ public class EnemyThief : EnemyBase
 
     protected override void Awake()
     {
-        // กำหนดเลือด Thief = 70 (โดนไม้ 35 ดาเมจ ตี 2 ครั้งตาย)
         maxHealth = 70f;
         base.Awake();
 
@@ -112,7 +104,7 @@ public class EnemyThief : EnemyBase
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 1.0f; // 3D Sound
+            audioSource.spatialBlend = 1.0f;
             audioSource.minDistance = 2f;
             audioSource.maxDistance = 18f;
         }
@@ -123,11 +115,6 @@ public class EnemyThief : EnemyBase
             slot.transform.SetParent(transform);
             slot.transform.localPosition = new Vector3(0f, 0.5f, 0.55f);
             holdPosition = slot.transform;
-        }
-
-        if (thiefAnimator == null)
-        {
-            thiefAnimator = GetComponentInChildren<Animator>();
         }
 
         if (indicatorRenderer != null)
@@ -143,36 +130,224 @@ public class EnemyThief : EnemyBase
             navAgent.stoppingDistance = 0.5f;
             navAgent.autoBraking = false;
         }
+
+        if (stunVfxObject != null)
+        {
+            stunVfxObject.SetActive(false);
+        }
     }
 
     private void Start()
     {
+        InitPlayableGraph();
         SetIndicatorColor(searchEyeColor);
         currentState = ThiefState.Spawning;
-        StartCoroutine(SpawningRoutine());
+        spawnCoroutine = StartCoroutine(SpawningRoutine());
     }
 
-    private IEnumerator SpawningRoutine()
+    private void OnDestroy()
     {
-        yield return new WaitForSeconds(0.4f);
-        FindNearestPackage();
-
-        if (targetPackage != null)
+        if (animGraph.IsValid())
         {
-            currentState = ThiefState.Approaching;
+            animGraph.Destroy();
         }
-        else
+    }
+
+    private void InitPlayableGraph()
+    {
+        if (isGraphReady) return;
+
+        if (thiefAnimator == null) thiefAnimator = GetComponent<Animator>();
+        if (thiefAnimator == null) thiefAnimator = GetComponentInChildren<Animator>();
+        if (thiefAnimator == null) thiefAnimator = gameObject.AddComponent<Animator>();
+
+        thiefAnimator.applyRootMotion = false;
+        thiefAnimator.runtimeAnimatorController = null;
+
+        animGraph = PlayableGraph.Create($"{gameObject.name}_ThiefAnimGraph");
+        animGraph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+
+        AnimationPlayableOutput output = AnimationPlayableOutput.Create(animGraph, "ThiefAnim", thiefAnimator);
+
+        rootMixer = AnimationMixerPlayable.Create(animGraph, 2);
+        output.SetSourcePlayable(rootMixer);
+
+        locomotionMixer = AnimationMixerPlayable.Create(animGraph, 2);
+
+        if (walkLoopClip != null)
         {
-            // หากไม่มีพัสดุในฉากเลย ให้วิ่งหนีกลับทันที
-            ChooseEscapePoint();
-            currentState = ThiefState.Fleeing;
+            AnimationClipPlayable walkPlayable = AnimationClipPlayable.Create(animGraph, walkLoopClip);
+            walkPlayable.SetApplyFootIK(false);
+            animGraph.Connect(walkPlayable, 0, locomotionMixer, 0);
+        }
+
+        if (walkHoldLoopClip != null)
+        {
+            AnimationClipPlayable walkHoldPlayable = AnimationClipPlayable.Create(animGraph, walkHoldLoopClip);
+            walkHoldPlayable.SetApplyFootIK(false);
+            animGraph.Connect(walkHoldPlayable, 0, locomotionMixer, 1);
+        }
+
+        animGraph.Connect(locomotionMixer, 0, rootMixer, 0);
+        rootMixer.SetInputWeight(0, 1f);
+        rootMixer.SetInputWeight(1, 0f);
+
+        locomotionMixer.SetInputWeight(0, 1f);
+        locomotionMixer.SetInputWeight(1, 0f);
+
+        animGraph.Play();
+        isGraphReady = true;
+    }
+
+    private void UpdateLocomotionBlend()
+    {
+        if (!isGraphReady || !animGraph.IsValid()) return;
+
+        float speed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
+            ? navAgent.velocity.magnitude
+            : 0f;
+
+        float targetAnimSpeed = walkAnimSpeed;
+        if (currentState == ThiefState.Fleeing)
+        {
+            targetAnimSpeed = fleeAnimSpeed;
+        }
+        else if (currentState == ThiefState.Panicking)
+        {
+            targetAnimSpeed = panicAnimSpeed;
+        }
+
+        locomotionMixer.SetSpeed(speed > 0.1f ? targetAnimSpeed : 0f);
+
+        float targetHoldBlend = (stolenPackage != null && walkHoldLoopClip != null) ? 1f : 0f;
+        currentHoldBlend = Mathf.MoveTowards(currentHoldBlend, targetHoldBlend, Time.deltaTime * 8f);
+
+        locomotionMixer.SetInputWeight(0, 1f - currentHoldBlend);
+        locomotionMixer.SetInputWeight(1, currentHoldBlend);
+    }
+
+    private void ClearActionClip()
+    {
+        if (actionAnimCoroutine != null)
+        {
+            StopCoroutine(actionAnimCoroutine);
+            actionAnimCoroutine = null;
+        }
+
+        if (isGraphReady && animGraph.IsValid())
+        {
+            rootMixer.SetInputWeight(0, 1f);
+            rootMixer.SetInputWeight(1, 0f);
+
+            if (rootMixer.GetInput(1).IsValid())
+            {
+                animGraph.Disconnect(rootMixer, 1);
+                actionPlayable.Destroy();
+            }
+        }
+    }
+
+    private void PlayActionClip(AnimationClip clip, bool lockOnFinish = false, AnimationClip followUpClip = null)
+    {
+        if (!isGraphReady || clip == null || !animGraph.IsValid()) return;
+
+        if (actionAnimCoroutine != null)
+        {
+            StopCoroutine(actionAnimCoroutine);
+        }
+
+        actionAnimCoroutine = StartCoroutine(ActionClipRoutine(clip, lockOnFinish, followUpClip));
+    }
+
+    private IEnumerator ActionClipRoutine(AnimationClip clip, bool lockOnFinish, AnimationClip followUpClip)
+    {
+        yield return PlaySingleActionSegment(clip, lockOnFinish && followUpClip == null, fadeIn: true, fadeOut: followUpClip == null && !lockOnFinish);
+
+        if (followUpClip != null && !isDead)
+        {
+            yield return PlaySingleActionSegment(followUpClip, lockOnFinish, fadeIn: false, fadeOut: !lockOnFinish);
+        }
+
+        actionAnimCoroutine = null;
+    }
+
+    private IEnumerator PlaySingleActionSegment(AnimationClip clip, bool lockOnFinish, bool fadeIn, bool fadeOut)
+    {
+        if (rootMixer.GetInput(1).IsValid())
+        {
+            animGraph.Disconnect(rootMixer, 1);
+            actionPlayable.Destroy();
+        }
+
+        actionPlayable = AnimationClipPlayable.Create(animGraph, clip);
+        actionPlayable.SetApplyFootIK(false);
+        actionPlayable.SetTime(0);
+        actionPlayable.SetSpeed(1);
+
+        animGraph.Connect(actionPlayable, 0, rootMixer, 1);
+
+        float fadeTime = Mathf.Max(0.01f, animationFadeDuration);
+
+        if (fadeIn)
+        {
+            float timer = 0f;
+            while (timer < fadeTime)
+            {
+                timer += Time.deltaTime;
+                float w = Mathf.Clamp01(timer / fadeTime);
+                rootMixer.SetInputWeight(0, 1f - w);
+                rootMixer.SetInputWeight(1, w);
+                yield return null;
+            }
+        }
+
+        rootMixer.SetInputWeight(0, 0f);
+        rootMixer.SetInputWeight(1, 1f);
+
+        float waitTime = Mathf.Max(0.05f, clip.length - (fadeOut ? fadeTime : 0f));
+        yield return new WaitForSeconds(waitTime);
+
+        if (fadeOut)
+        {
+            float timer = 0f;
+            while (timer < fadeTime)
+            {
+                timer += Time.deltaTime;
+                float w = Mathf.Clamp01(timer / fadeTime);
+                rootMixer.SetInputWeight(0, w);
+                rootMixer.SetInputWeight(1, 1f - w);
+                yield return null;
+            }
+
+            rootMixer.SetInputWeight(0, 1f);
+            rootMixer.SetInputWeight(1, 0f);
+
+            if (rootMixer.GetInput(1).IsValid())
+            {
+                animGraph.Disconnect(rootMixer, 1);
+                actionPlayable.Destroy();
+            }
+        }
+        else if (lockOnFinish)
+        {
+            actionPlayable.SetSpeed(0);
+        }
+    }
+
+    public override void EnterStunState() { }
+    public override void ExitStunState() { }
+
+    public override void OnPickedUpByPlayer(PlayerPickupSystem carrier)
+    {
+        base.OnPickedUpByPlayer(carrier);
+        if (carryClip != null)
+        {
+            PlayActionClip(carryClip, lockOnFinish: true);
         }
     }
 
     protected override void Update()
     {
-        base.Update();
-
         if (isDead) return;
 
         if (currentState != ThiefState.Panicking)
@@ -195,12 +370,39 @@ public class EnemyThief : EnemyBase
                 break;
         }
 
-        UpdateAnimator();
+        UpdateLocomotionBlend();
     }
 
-    /// <summary>
-    /// ค้นหา PackageBox ที่ใกล้ที่สุดในฉาก (ไม่รวมกล่องที่ผู้เล่นกำลังถืออยู่)
-    /// </summary>
+    private IEnumerator SpawningRoutine()
+    {
+        StopMovement();
+
+        if (spawnClip != null)
+        {
+            PlayActionClip(spawnClip, lockOnFinish: false);
+            yield return new WaitForSeconds(spawnClip.length);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.4f);
+        }
+
+        spawnCoroutine = null;
+        if (isDead) yield break;
+
+        FindNearestPackage();
+
+        if (targetPackage != null)
+        {
+            currentState = ThiefState.Approaching;
+        }
+        else
+        {
+            ChooseEscapePoint();
+            currentState = ThiefState.Fleeing;
+        }
+    }
+
     public void FindNearestPackage()
     {
         PackageBox[] allBoxes = FindObjectsByType<PackageBox>(FindObjectsSortMode.None);
@@ -214,13 +416,11 @@ public class EnemyThief : EnemyBase
             PackageBox box = allBoxes[i];
             if (box == null || box.gameObject == null) continue;
 
-            // ไม่เลือกกล่องที่ผู้เล่นกำลังถืออยู่
             if (playerHeld != null && (playerHeld == box.gameObject || playerHeld.transform.IsChildOf(box.transform)))
             {
                 continue;
             }
 
-            // ไม่เลือกกล่องที่เพิ่งทำตกจากอาการตื่นตระหนกทันที (กันการขโมยกล่องเดิมซ้ำ)
             if (lastDroppedPackage == box && Time.time - lastDropTime < droppedPackageIgnoreDuration)
             {
                 continue;
@@ -255,7 +455,6 @@ public class EnemyThief : EnemyBase
 
         if (distance <= stealDistance)
         {
-            // ถึงตัวกล่องแล้ว ทำการขโมย!
             if (stealCoroutine != null) StopCoroutine(stealCoroutine);
             stealCoroutine = StartCoroutine(StealPackageRoutine(targetPackage));
             return;
@@ -269,33 +468,24 @@ public class EnemyThief : EnemyBase
         currentState = ThiefState.Stealing;
         StopMovement();
 
-        if (thiefAnimator != null && !string.IsNullOrEmpty(stealTriggerName))
-        {
-            thiefAnimator.SetTrigger(stealTriggerName);
-        }
-
-        // หน่วงเวลาหยิบของสั้นๆ (0.25 วินาที)
         yield return new WaitForSeconds(0.25f);
 
         if (box != null && box.gameObject != null && !isDead)
         {
             stolenPackage = box;
 
-            // 1. ปลดล็อกออกจาก BaseDropPoint (เช่น ชั้นวางของใน Storage หรือ Shipping)
             BaseDropPoint dp = BaseDropPoint.GetDropPointHolding(box.gameObject);
             if (dp != null)
             {
                 dp.currentPlacedItem = null;
             }
 
-            // 2. ปลดล็อกออกจาก StorageRoomManager
             StorageRoomManager storage = FindFirstObjectByType<StorageRoomManager>();
             if (storage != null)
             {
                 storage.RemoveItemFromSlots(box.gameObject);
             }
 
-            // 3. อุ้มกล่องพัสดุขึ้นมาไว้ที่ holdPosition
             Rigidbody boxRb = box.GetComponent<Rigidbody>();
             if (boxRb != null)
             {
@@ -305,14 +495,13 @@ public class EnemyThief : EnemyBase
             Collider boxCol = box.GetComponent<Collider>();
             if (boxCol != null)
             {
-                boxCol.enabled = false; // ปิด Collider ชั่วคราวเพื่อไม่ให้เบียดกับ Thief
+                boxCol.enabled = false;
             }
 
             box.transform.SetParent(holdPosition);
             box.transform.localPosition = Vector3.zero;
             box.transform.localRotation = Quaternion.identity;
 
-            // 4. เล่นเสียงขโมยของ
             if (snatchSound != null && audioSource != null)
             {
                 audioSource.PlayOneShot(snatchSound, 1.0f);
@@ -350,15 +539,11 @@ public class EnemyThief : EnemyBase
         MoveTowards(escapePos, currentMoveSpeed);
     }
 
-    /// <summary>
-    /// พฤติกรรมเมื่อโดนตี: วิ่งแตกตื่นมั่วๆ ตามระยะเวลา panicDuration หลบหลีกผู้เล่น
-    /// </summary>
     private void HandlePanicking()
     {
         panicTimer -= Time.deltaTime;
         panicRetargetTimer -= Time.deltaTime;
 
-        // เมื่อครบกำหนด ให้หยุดแตกตื่นและกลับไปมองหาพัสดุใหม่
         if (panicTimer <= 0f)
         {
             panicTimer = 0f;
@@ -366,7 +551,6 @@ public class EnemyThief : EnemyBase
             return;
         }
 
-        // สุ่มทิศทางวิ่งมั่วๆ ทุกๆ 0.8 - 1.2 วินาที หรือเมื่อใกล้ถึงจุดหมายเดิม
         if (panicRetargetTimer <= 0f || Vector3.Distance(transform.position, panicDestination) < 1.2f)
         {
             panicRetargetTimer = Random.Range(0.8f, 1.2f);
@@ -376,9 +560,6 @@ public class EnemyThief : EnemyBase
         MoveTowards(panicDestination, panicSpeed);
     }
 
-    /// <summary>
-    /// ออกจากอาการตื่นตระหนก กลับสู่โหมดปกติและค้นหาพัสดุใหม่
-    /// </summary>
     private void ResumeSearching()
     {
         SetIndicatorColor(searchEyeColor);
@@ -410,13 +591,11 @@ public class EnemyThief : EnemyBase
             }
         }
 
-        // สุ่มมุมกระจายตัว -75 ถึง +75 องศาเพื่อวิ่งแตกตื่น
         float randomAngle = Random.Range(-75f, 75f);
         Vector3 scatterDir = Quaternion.Euler(0f, randomAngle, 0f) * fleeDir;
         float randomDist = Random.Range(4f, 8f);
         Vector3 candidatePos = transform.position + scatterDir * randomDist;
 
-        // หากมี NavMesh ให้คำนวณตำแหน่งที่ถูกต้องบน NavMesh
         NavMeshHit hit;
         if (NavMesh.SamplePosition(candidatePos, out hit, 4f, NavMesh.AllAreas))
         {
@@ -426,9 +605,6 @@ public class EnemyThief : EnemyBase
         return candidatePos;
     }
 
-    /// <summary>
-    /// การเคลื่อนที่ด้วย NavMeshAgent 100%
-    /// </summary>
     private void MoveTowards(Vector3 destination, float speed)
     {
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
@@ -456,7 +632,6 @@ public class EnemyThief : EnemyBase
             return;
         }
 
-        // ค้นหา Escape Point จาก ThiefManager
         if (ThiefManager.Instance != null && ThiefManager.Instance.escapePoints != null && ThiefManager.Instance.escapePoints.Length > 0)
         {
             float closestDist = float.MaxValue;
@@ -480,15 +655,11 @@ public class EnemyThief : EnemyBase
             }
         }
 
-        // Fallback: ใช้จุดเกิดเดิม
         GameObject fallbackObj = new GameObject("ThiefFallbackEscape");
         fallbackObj.transform.position = spawnOriginPosition;
         chosenEscapePoint = fallbackObj.transform;
     }
 
-    /// <summary>
-    /// หนีรอดไปได้สำเร็จ: ทำลายพัสดุ, หักคะแนนผู้เล่น, และ Despawn
-    /// </summary>
     private void EscapeSuccessfully()
     {
         if (currentState == ThiefState.Escaped || isDead) return;
@@ -496,7 +667,6 @@ public class EnemyThief : EnemyBase
 
         if (stolenPackage != null)
         {
-            // หักคะแนนผู้เล่นและแจ้งเตือน
             stolenPackage.NotifyPackageDestroyed("Stolen by Thief");
             Destroy(stolenPackage.gameObject);
             stolenPackage = null;
@@ -517,22 +687,22 @@ public class EnemyThief : EnemyBase
         Destroy(gameObject);
     }
 
-    /// <summary>
-    /// ถูกผู้เล่นใช้อาวุธโจมตี: ลดเลือด (HP) โดยตรง และไม่โจมตีกลับ!
-    /// ปล่อยพัสดุทันที และเข้าสู่โหมดแตกตื่นวิ่งมั่วๆ ตาม panicDuration
-    /// </summary>
     public override void TakeStunDamage(float stunAmount, Vector3 hitPoint, Vector3 hitDirection)
     {
         if (isDead) return;
 
-        // 1. ยกเลิกการหยิบของที่อาจกำลังทำอยู่
+        if (spawnCoroutine != null)
+        {
+            StopCoroutine(spawnCoroutine);
+            spawnCoroutine = null;
+        }
+
         if (stealCoroutine != null)
         {
             StopCoroutine(stealCoroutine);
             stealCoroutine = null;
         }
 
-        // 2. หักพลังชีวิตโดยตรง
         TakeDamage(stunAmount, hitPoint, hitDirection);
 
         if (hurtSound != null && audioSource != null)
@@ -544,18 +714,10 @@ public class EnemyThief : EnemyBase
             PlayProceduralHurtSound();
         }
 
-        if (thiefAnimator != null && !string.IsNullOrEmpty(hurtTriggerName))
-        {
-            thiefAnimator.SetTrigger(hurtTriggerName);
-        }
-
-        // หากผู้เล่นฟาดจน HP หมด (Die() จะถูกเรียกจาก TakeDamage) ให้หยุดทำงานตรงนี้
         if (isDead) return;
 
-        // 3. ปล่อยพัสดุ + เข้าสู่โหมดตื่นตระหนก (Panicking) วิ่งมั่วๆ ตาม panicDuration
         EnterPanic(panicDuration);
 
-        // 4. แรงกระแทกถอยหลังชั่วขณะ
         if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
         {
             navAgent.velocity = hitDirection * 3.5f;
@@ -566,18 +728,12 @@ public class EnemyThief : EnemyBase
         }
     }
 
-    /// <summary>
-    /// เข้าสู่โหมดตื่นตระหนก: ปล่อยพัสดุที่ถืออยู่ แล้ววิ่งมั่วเป็นเวลา <paramref name="duration"/> วินาที
-    /// เมื่อครบเวลาจะกลับไปค้นหาพัสดุตามปกติโดยอัตโนมัติ (ดู ResumeSearching)
-    /// </summary>
     public void EnterPanic(float duration = 3f)
     {
         if (isDead) return;
 
-        // หยุดการเคลื่อนที่เดิมก่อน เพื่อให้แรงกระแทกและทิศวิ่งใหม่ทำงานถูกต้อง
+        ClearActionClip();
         StopMovement();
-
-        // ปล่อยพัสดุที่กำลังถืออยู่ทันที
         DropStolenPackage();
 
         currentState = ThiefState.Panicking;
@@ -590,13 +746,16 @@ public class EnemyThief : EnemyBase
         Debug.Log($"<color=#FFAA00>[EnemyThief]</color> Thief โดนตี! ปล่อยพัสดุและกำลังแตกตื่นวิ่งหนี {panicTimer:0.#} วินาที!");
     }
 
-    /// <summary>
-    /// เมื่อพลังชีวิตหมด (ตาย): ดรอปพัสดุคืนลงบนพื้น และ Despawn
-    /// </summary>
     protected override void Die()
     {
         base.Die();
         currentState = ThiefState.Dead;
+
+        if (spawnCoroutine != null)
+        {
+            StopCoroutine(spawnCoroutine);
+            spawnCoroutine = null;
+        }
 
         if (stealCoroutine != null)
         {
@@ -605,8 +764,6 @@ public class EnemyThief : EnemyBase
         }
 
         StopMovement();
-
-        // ดรอปพัสดุที่ขโมยมาคืนสู่พื้นทันที!
         DropStolenPackage();
 
         if (deathSound != null && audioSource != null)
@@ -618,12 +775,8 @@ public class EnemyThief : EnemyBase
             PlayProceduralDeathSound();
         }
 
-        if (thiefAnimator != null && !string.IsNullOrEmpty(dieTriggerName))
-        {
-            thiefAnimator.SetTrigger(dieTriggerName);
-        }
+        PlayActionClip(stuntClip, lockOnFinish: true);
 
-        // ปิด Collider และฟิสิกส์ เพื่อให้ผู้เล่นเดินผ่านได้สะดวก
         if (mainCollider != null) mainCollider.enabled = false;
         if (rb != null) { rb.isKinematic = true; }
 
@@ -631,9 +784,6 @@ public class EnemyThief : EnemyBase
         Destroy(gameObject, 1.5f);
     }
 
-    /// <summary>
-    /// ดรอปพัสดุที่ถืออยู่ลงบนพื้น
-    /// </summary>
     public void DropStolenPackage()
     {
         if (stolenPackage != null && stolenPackage.gameObject != null)
@@ -674,20 +824,6 @@ public class EnemyThief : EnemyBase
         }
     }
 
-    private void UpdateAnimator()
-    {
-        if (thiefAnimator == null) return;
-
-        if (!string.IsNullOrEmpty(speedParamName))
-        {
-            float speed = (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
-                ? navAgent.velocity.magnitude
-                : 0f;
-            thiefAnimator.SetFloat(speedParamName, speed);
-        }
-    }
-
-    // --- Procedural Sound Helpers (ป้องกันเกมเงียบเมื่อยังไม่ได้ใส่ AudioClip ใน Inspector) ---
     private void PlayProceduralChuckle()
     {
         StartCoroutine(ProceduralSoundRoutine(700f, 0.08f, 2));
@@ -727,3 +863,8 @@ public class EnemyThief : EnemyBase
         }
     }
 }
+
+// --- สรุปการทำงานของโค้ด ---
+// 1. เพิ่มตัวแปรปรับความเร็วอนิเมชันใน Inspector: walkAnimSpeed (ปกติ), fleeAnimSpeed (ตอนหนี), panicAnimSpeed (ตอนแตกตื่น)
+// 2. ใน UpdateLocomotionBlend() จะเช็ก currentState เพื่อจ่ายค่าความเร็วให้ locomotionMixer.SetSpeed() ทำให้ walkLoopClip และ walkHoldLoopClip เล่นเร็วขึ้นตามสถานะ Fleeing และ Panicking
+// 3. เพิ่ม ClearActionClip() และเรียกใช้ใน EnterPanic() พร้อมเอา PlayActionClip(stuntClip) ออกจาก TakeStunDamage() เพื่อให้ตอนโดนตีแล้วเข้าสู่สถานะ Panicking กลับมาเล่นท่า walkLoopClip แบบเร่งความเร็วทันทีโดยไม่ถูกท่า Stunt ทับ

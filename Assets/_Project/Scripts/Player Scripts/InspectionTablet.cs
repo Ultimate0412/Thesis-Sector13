@@ -8,33 +8,19 @@ public class InspectionTablet : MonoBehaviour
     public static InspectionTablet Instance { get; private set; }
 
     [Header("Keybindings")]
-    [Tooltip("ปุ่มหยิบ/เก็บแท็บเล็ต")]
     public KeyCode toggleKey = KeyCode.Alpha1;
 
     [Header("Tablet Held States")]
-    [Tooltip("สถานะว่ากำลังถือแท็บเล็ตอยู่หรือไม่")]
     public bool isHeld = false;
-
-    [Tooltip("สถานะว่าอยู่ในโหมด Close-up ส่องใกล้ชิดหรือไม่ (คลิกขวา RMB เพื่อ Toggle)")]
     public bool isCloseUp = false;
 
     public bool IsTabletHeld => isHeld;
     public bool IsCloseUp => isCloseUp;
 
-    [Header("Positions Relative to Camera")]
-    [Tooltip("ตำแหน่งขณะซ่อน (Holstered)")]
-    public Vector3 holsteredLocalPosition = new Vector3(0.25f, -0.85f, 0.45f);
-    public Vector3 holsteredLocalRotation = new Vector3(55f, -10f, 0f);
-
-    [Tooltip("ตำแหน่งขณะถือปกติ (Lowered) - หงายขึ้นเล็กน้อย ก้มมองได้ขณะเดิน")]
-    public Vector3 loweredLocalPosition = new Vector3(0.24f, -0.27f, 0.50f);
-    public Vector3 loweredLocalRotation = new Vector3(22f, -12f, 2f);
-
-    [Tooltip("ตำแหน่งโหมด Close-up (ยกสูงและใกล้ขึ้น เยื้องขวาเล็กน้อยเพื่อให้เห็นกล่องข้างหน้าด้วย)")]
-    public Vector3 closeUpLocalPosition = new Vector3(0.18f, -0.09f, 0.38f);
-    public Vector3 closeUpLocalRotation = new Vector3(8f, -6f, 0f);
-
-    [Tooltip("ความเร็วในการสลับท่าทาง")]
+    [Header("Pose Anchors Under Camera")]
+    public Transform holsteredAnchor;
+    public Transform loweredAnchor;
+    public Transform closeUpAnchor;
     public float transitionSpeed = 12f;
 
     [Header("Procedural Visual References")]
@@ -42,7 +28,7 @@ public class InspectionTablet : MonoBehaviour
     public GameObject tabletContainer;
     public Image screenGlowImage;
 
-    [Header("Modular Screen UI Elements (ปรับแต่งตำแหน่งใน Editor ได้อิสระ)")]
+    [Header("Modular Screen UI Elements")]
     public TextMeshProUGUI headerText;
     public TextMeshProUGUI statusText;
     public TextMeshProUGUI recipientText;
@@ -58,7 +44,6 @@ public class InspectionTablet : MonoBehaviour
     private Camera playerCam;
     private PlayerPickupSystem pickupSystem;
     private AudioSource audioSource;
-    private AudioClip scanBeepClip;
 
     private PackageManifestData lastScannedData;
 
@@ -81,16 +66,13 @@ public class InspectionTablet : MonoBehaviour
         if (playerCam == null) playerCam = Camera.main;
 
         CreateProceduralTabletIfNeeded();
+        EnsurePoseAnchors();
         CreateBeepAudioClip();
     }
 
     private void Start()
     {
-        if (tabletTransform != null)
-        {
-            tabletTransform.localPosition = holsteredLocalPosition;
-            tabletTransform.localRotation = Quaternion.Euler(holsteredLocalRotation);
-        }
+        SnapToAnchorImmediate(holsteredAnchor);
 
         if (tabletContainer != null)
         {
@@ -108,20 +90,17 @@ public class InspectionTablet : MonoBehaviour
 
     private void HandleInput()
     {
-        // กดปุ่ม 1 เพื่อเปิด/เก็บแท็บเล็ต
         if (Input.GetKeyDown(toggleKey))
         {
             ToggleTablet();
         }
 
-        // หากกำลังถือแท็บเล็ตอยู่ ให้กดคลิกขวา (RMB) เพื่อสลับ Close-up
         if (isHeld && Input.GetMouseButtonDown(1))
         {
             isCloseUp = !isCloseUp;
             PlayBeepSound(1400f, 0.04f);
         }
 
-        // หากผู้เล่นหยิบของขึ้นมือขณะถือแท็บเล็ต ให้เก็บแท็บเล็ตอัตโนมัติ
         if (isHeld && pickupSystem != null && pickupSystem.heldObject != null)
         {
             ForceHolster();
@@ -132,10 +111,8 @@ public class InspectionTablet : MonoBehaviour
     {
         if (!isHeld)
         {
-            // ถือได้ทีละอย่าง: เก็บอาวุธก่อน (ถ้าชักอยู่)
             if (PlayerEquipment.Instance != null) PlayerEquipment.Instance.ForceHolster();
 
-            // ถ้ามือถือของอยู่ ให้วางของลงพื้นก่อนแล้วหยิบแท็บเล็ตแทน
             if (pickupSystem != null && pickupSystem.heldObject != null)
             {
                 if (!pickupSystem.PutAwayHeldObject())
@@ -181,42 +158,113 @@ public class InspectionTablet : MonoBehaviour
         }
     }
 
+    [ContextMenu("Create Pose Anchors Under Camera")]
+    public void EnsurePoseAnchors()
+    {
+        if (playerCam == null)
+        {
+            playerCam = GetComponentInChildren<Camera>();
+            if (playerCam == null) playerCam = Camera.main;
+        }
+
+        if (playerCam == null) return;
+
+        Transform camRoot = playerCam.transform;
+
+        if (holsteredAnchor == null)
+        {
+            holsteredAnchor = FindOrCreateAnchor(
+                camRoot,
+                "Tablet_HolsteredAnchor",
+                new Vector3(0.25f, -0.85f, 0.45f),
+                new Vector3(55f, -10f, 0f)
+            );
+        }
+
+        if (loweredAnchor == null)
+        {
+            loweredAnchor = FindOrCreateAnchor(
+                camRoot,
+                "Tablet_LoweredAnchor",
+                new Vector3(-0.24f, -0.27f, 0.50f),
+                new Vector3(-22f, -12f, 2f)
+            );
+        }
+
+        if (closeUpAnchor == null)
+        {
+            closeUpAnchor = FindOrCreateAnchor(
+                camRoot,
+                "Tablet_CloseUpAnchor",
+                new Vector3(-0.18f, -0.09f, 0.38f),
+                new Vector3(-8f, -6f, 0f)
+            );
+        }
+    }
+
+    private static Transform FindOrCreateAnchor(Transform parent, string anchorName, Vector3 defaultLocalPos, Vector3 defaultLocalEuler)
+    {
+        Transform existing = parent.Find(anchorName);
+        if (existing != null) return existing;
+
+        GameObject go = new GameObject(anchorName);
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = defaultLocalPos;
+        go.transform.localRotation = Quaternion.Euler(defaultLocalEuler);
+        return go.transform;
+    }
+
+    private void SnapToAnchorImmediate(Transform anchor)
+    {
+        if (tabletTransform == null || anchor == null) return;
+
+        GetLocalPoseFromAnchor(anchor, out Vector3 targetLocalPos, out Quaternion targetLocalRot);
+        tabletTransform.localPosition = targetLocalPos;
+        tabletTransform.localRotation = targetLocalRot;
+    }
+
+    private void GetLocalPoseFromAnchor(Transform anchor, out Vector3 localPos, out Quaternion localRot)
+    {
+        Transform parent = tabletTransform.parent;
+        if (parent != null)
+        {
+            localPos = parent.InverseTransformPoint(anchor.position);
+            localRot = Quaternion.Inverse(parent.rotation) * anchor.rotation;
+        }
+        else
+        {
+            localPos = anchor.position;
+            localRot = anchor.rotation;
+        }
+    }
+
     private void UpdateTabletTransform()
     {
         if (tabletTransform == null) return;
 
-        Vector3 targetPos = holsteredLocalPosition;
-        Vector3 targetRot = holsteredLocalRotation;
-
+        Transform activeAnchor = holsteredAnchor;
         if (isHeld)
         {
-            if (isCloseUp)
-            {
-                targetPos = closeUpLocalPosition;
-                targetRot = closeUpLocalRotation;
-            }
-            else
-            {
-                targetPos = loweredLocalPosition;
-                targetRot = loweredLocalRotation;
-            }
+            activeAnchor = isCloseUp ? closeUpAnchor : loweredAnchor;
         }
 
-        // นุ่มนวลด้วย Lerp / Slerp
-        tabletTransform.localPosition = Vector3.Lerp(tabletTransform.localPosition, targetPos, Time.deltaTime * transitionSpeed);
-        tabletTransform.localRotation = Quaternion.Slerp(tabletTransform.localRotation, Quaternion.Euler(targetRot), Time.deltaTime * transitionSpeed);
+        if (activeAnchor == null) return;
 
-        // หากเก็บแท็บเล็ตและเคลื่อนที่ใกล้ตำแหน่งที่ซ่อนแล้ว ให้ปิด GameObject เพื่อประหยัด Render
-        if (!isHeld && tabletContainer != null && tabletContainer.activeSelf)
+        GetLocalPoseFromAnchor(activeAnchor, out Vector3 targetPos, out Quaternion targetRot);
+
+        tabletTransform.localPosition = Vector3.Lerp(tabletTransform.localPosition, targetPos, Time.deltaTime * transitionSpeed);
+        tabletTransform.localRotation = Quaternion.Slerp(tabletTransform.localRotation, targetRot, Time.deltaTime * transitionSpeed);
+
+        if (!isHeld && tabletContainer != null && tabletContainer.activeSelf && holsteredAnchor != null)
         {
-            if (Vector3.Distance(tabletTransform.localPosition, holsteredLocalPosition) < 0.05f)
+            GetLocalPoseFromAnchor(holsteredAnchor, out Vector3 holsteredPos, out _);
+            if (Vector3.Distance(tabletTransform.localPosition, holsteredPos) < 0.05f)
             {
                 tabletContainer.SetActive(false);
             }
         }
     }
 
-    // --- ฟังก์ชันสแกนพัสดุ ---
     public void ScanPackage(PackageBox box)
     {
         if (box == null) return;
@@ -229,7 +277,6 @@ public class InspectionTablet : MonoBehaviour
         lastScannedData = box.officialDatabaseData;
         UpdateScreenDisplay(lastScannedData);
 
-        // เอฟเฟกต์เสียงและแสงสแกน
         PlayBeepSound(1250f, 0.09f);
         StartCoroutine(FlashScreenGlow());
 
@@ -245,7 +292,6 @@ public class InspectionTablet : MonoBehaviour
                 statusText.text = "<color=#ffaa00>● STANDBY</color> // READY TO SCAN";
             }
 
-            // ซ่อนฟิลด์ข้อมูลเมื่อยังไม่ได้สแกนกล่อง
             if (recipientText != null) recipientText.gameObject.SetActive(false);
             if (destinationText != null) destinationText.gameObject.SetActive(false);
             if (subCategoryText != null) subCategoryText.gameObject.SetActive(false);
@@ -273,7 +319,6 @@ public class InspectionTablet : MonoBehaviour
 
             string subName = ItemObject.GetSubCategoryDisplayName(data.declaredSubCategory);
 
-            // หากมีฟิลด์แยกส่วน (Modular) ให้แสดงผลแยกชิ้น เพื่อให้ผู้ใช้ปรับตำแหน่งใน Unity Editor ได้อิสระ
             if (recipientText != null && destinationText != null && serialText != null && weightText != null)
             {
                 if (manifestContentText != null) manifestContentText.gameObject.SetActive(false);
@@ -307,7 +352,6 @@ public class InspectionTablet : MonoBehaviour
             }
             else if (manifestContentText != null)
             {
-                // Fallback กรณีใช้ Text ก้อนเดียว (แสดง SubCategory และ Weight บนแท็บเล็ต)
                 manifestContentText.gameObject.SetActive(true);
                 manifestContentText.text =
                     $"<b>RECIPIENT  :</b> <color=#ffffff>{data.recipientName}</color>\n" +
@@ -376,7 +420,6 @@ public class InspectionTablet : MonoBehaviour
 
         if (playerCam == null) return;
 
-        // ค้นหาว่ามีอยู่แล้วหรือยัง
         Transform existing = playerCam.transform.Find("InspectionTabletRoot");
         if (existing != null)
         {
@@ -386,13 +429,11 @@ public class InspectionTablet : MonoBehaviour
             return;
         }
 
-        // สร้าง Root ของแท็บเล็ต
         GameObject tabletRoot = new GameObject("InspectionTabletRoot");
         tabletRoot.transform.SetParent(playerCam.transform, false);
         tabletTransform = tabletRoot.transform;
         tabletContainer = tabletRoot;
 
-        // ตัวบอดี้เครื่องแท็บเล็ต (Body Mesh)
         GameObject bodyObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
         bodyObj.name = "TabletBody";
         bodyObj.transform.SetParent(tabletRoot.transform, false);
@@ -404,7 +445,6 @@ public class InspectionTablet : MonoBehaviour
             else DestroyImmediate(bodyCol);
         }
 
-        // Material สีดำเข้มด้านสไตล์ฮาร์ดแวร์อุตสาหกรรมอวกาศ
         Renderer bodyRend = bodyObj.GetComponent<Renderer>();
         if (bodyRend != null)
         {
@@ -414,10 +454,9 @@ public class InspectionTablet : MonoBehaviour
             bodyRend.material = mat;
         }
 
-        // หน้าจอ World-Space Canvas
         GameObject canvasObj = new GameObject("TabletScreenCanvas");
         canvasObj.transform.SetParent(tabletRoot.transform, false);
-        canvasObj.transform.localPosition = new Vector3(0f, 0f, 0.007f); // ยื่นออกมาข้างหน้าบอดี้เล็กน้อย
+        canvasObj.transform.localPosition = new Vector3(0f, 0f, 0.007f);
         canvasObj.transform.localRotation = Quaternion.identity;
         canvasObj.transform.localScale = Vector3.one * 0.00045f;
 
@@ -426,12 +465,10 @@ public class InspectionTablet : MonoBehaviour
         RectTransform canvasRt = canvasObj.GetComponent<RectTransform>();
         canvasRt.sizeDelta = new Vector2(510f, 355f);
 
-        // หน้าจอด้านหลัง (Screen Background)
         Image bgImg = canvasObj.AddComponent<Image>();
-        bgImg.color = new Color(0.06666667f, 0.06666667f, 0.06666667f, 0.98f); // #111111
+        bgImg.color = new Color(0.06666667f, 0.06666667f, 0.06666667f, 0.98f);
         bgImg.raycastTarget = false;
 
-        // ขอบแสงเรืองหน้าจอ (Screen Border Glow)
         GameObject borderObj = new GameObject("ScreenBorder");
         borderObj.transform.SetParent(canvasObj.transform, false);
         RectTransform borderRt = borderObj.AddComponent<RectTransform>();
@@ -440,10 +477,9 @@ public class InspectionTablet : MonoBehaviour
         borderRt.offsetMin = new Vector2(4, 4);
         borderRt.offsetMax = new Vector2(-4, -4);
         Image borderImg = borderObj.AddComponent<Image>();
-        borderImg.color = new Color(1f, 0.827451f, 0.3019608f, 0.25f); // #FFD34D
+        borderImg.color = new Color(1f, 0.827451f, 0.3019608f, 0.25f);
         borderImg.raycastTarget = false;
 
-        // หัวกระดาษ Header Bar
         GameObject headerObj = new GameObject("HeaderBar");
         headerObj.transform.SetParent(canvasObj.transform, false);
         RectTransform headerRt = headerObj.AddComponent<RectTransform>();
@@ -460,7 +496,6 @@ public class InspectionTablet : MonoBehaviour
         headerText.color = Color.white;
         headerText.raycastTarget = false;
 
-        // แถบสถานะ Status Bar
         GameObject statusObj = new GameObject("StatusBar");
         statusObj.transform.SetParent(canvasObj.transform, false);
         RectTransform statusRt = statusObj.AddComponent<RectTransform>();
@@ -477,7 +512,6 @@ public class InspectionTablet : MonoBehaviour
         statusText.color = Color.white;
         statusText.raycastTarget = false;
 
-        // ฟิลด์แยกชิ้น (Modular Elements) - ผู้ใช้สามารถคลิกขยับตำแหน่งและปรับแก้ได้ใน Unity Inspector/Scene
         recipientText = CreateScreenTextField(canvasObj.transform, "RecipientText", new Vector2(0f, -80f), new Vector2(-40f, 26f), 16f,
             "<b>RECIPIENT :</b> <color=#ffffff>Unknown</color>");
 
@@ -497,7 +531,6 @@ public class InspectionTablet : MonoBehaviour
             "──────────────────────────────\n<size=75%><color=#88aabb>CHECK FOR MISMATCHES ON PHYSICAL BOX LABEL\nPRESS <b>[R]</b> TO STAMP APPROVE OR REJECT</color></size>");
         hintText.lineSpacing = -8f;
 
-        // ข้อความเนื้อหาข้อมูลพัสดุสำหรับ Standby หรือกรณีสำรอง
         GameObject contentObj = new GameObject("ManifestContent");
         contentObj.transform.SetParent(canvasObj.transform, false);
         RectTransform contentRt = contentObj.AddComponent<RectTransform>();
@@ -514,7 +547,6 @@ public class InspectionTablet : MonoBehaviour
         manifestContentText.enableWordWrapping = true;
         manifestContentText.raycastTarget = false;
 
-        // แผ่นเอฟเฟกต์แฟลชตอนสแกน
         GameObject glowObj = new GameObject("ScanGlow");
         glowObj.transform.SetParent(canvasObj.transform, false);
         RectTransform glowRt = glowObj.AddComponent<RectTransform>();
@@ -573,7 +605,7 @@ public class InspectionTablet : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f; // 2D Sound ให้ผู้เล่นได้ยินชัดเจน
+            audioSource.spatialBlend = 0f;
         }
     }
 
@@ -589,7 +621,7 @@ public class InspectionTablet : MonoBehaviour
         for (int i = 0; i < sampleCount; i++)
         {
             float t = (float)i / sampleRate;
-            float envelope = 1f - ((float)i / sampleCount); // Fade out ป้องกันเสียงคลิก
+            float envelope = 1f - ((float)i / sampleCount);
             samples[i] = Mathf.Sin(2f * Mathf.PI * frequency * t) * envelope * 0.25f;
         }
 
@@ -599,3 +631,8 @@ public class InspectionTablet : MonoBehaviour
 
     #endregion
 }
+
+// --- สรุปการทำงานของโค้ด ---
+// 1. เปลี่ยนการกำหนดตำแหน่งจาก Vector3 ทั้ง 6 ช่องใน Inspector มาเป็นช่อง Transform 3 จุด ได้แก่ holsteredAnchor, loweredAnchor และ closeUpAnchor
+// 2. เพิ่มคำสั่ง ContextMenu "Create Pose Anchors Under Camera" และฟังก์ชัน EnsurePoseAnchors() เพื่อสร้าง Empty 3 ตัวใต้ Main Camera ให้อัตโนมัติโดยดึงค่าพิกัดล่าสุดที่คุณตั้งไว้มาเป็นค่าเริ่มต้น
+// 3. ใน UpdateTabletTransform() จะแปลงพิกัดของ Empty เป้าหมายเทียบกับ Parent ของแท็บเล็ตผ่าน InverseTransformPoint ทำให้ขยับ/หมุน Empty ใต้กล้องในหน้า Scene View เพื่อปรับท่าถือแบบเรียลไทม์ได้ทันที

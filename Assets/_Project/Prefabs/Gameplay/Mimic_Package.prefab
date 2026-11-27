@@ -246,6 +246,37 @@ MonoBehaviour:
   weight: 8
   uvOffset: {x: 0, y: 0}
   uvScaleMul: {x: 1, y: 1}
+--- !u!1 &2545351750997378835
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1231903670022962187}
+  m_Layer: 0
+  m_Name: RAGrip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1231903670022962187
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2545351750997378835}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0.7071068, w: 0}
+  m_LocalPosition: {x: 0.33000004, y: 0.42, z: -0.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6220772707885064561}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1 &3764212574562629458
 GameObject:
   m_ObjectHideFlags: 0
@@ -701,6 +732,37 @@ MonoBehaviour:
   weight: 6
   uvOffset: {x: 0, y: 0}
   uvScaleMul: {x: 1, y: 1}
+--- !u!1 &6732330949171362165
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8843261139782008799}
+  m_Layer: 0
+  m_Name: LAGrip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8843261139782008799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6732330949171362165}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0.7071068, w: 0}
+  m_LocalPosition: {x: -0.33000004, y: 0.42, z: -0.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6220772707885064561}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: -180}
 --- !u!1 &7455996573081774588
 GameObject:
   m_ObjectHideFlags: 0
@@ -1207,15 +1269,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.8432257
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.00000052254444
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -13.947352
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1249,6 +1311,10 @@ PrefabInstance:
       propertyPath: spawnMode
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8954921357282117400, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.35
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 3687305435114105084, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
@@ -1258,7 +1324,15 @@ PrefabInstance:
     - {fileID: 4098132631053562225, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
     - {fileID: 3260386744381737801, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
     - {fileID: 1708343752671780008, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+    - {fileID: 5504982443231208542, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+    - {fileID: 5680863716611105374, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 1231903670022962187}
+    - targetCorrespondingSourceObject: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: 8843261139782008799}
     - targetCorrespondingSourceObject: {fileID: 810741428326020565, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1632353206196886332}
