@@ -1365,6 +1365,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MimicPackage
   enemyMimicPrefab: {fileID: 8684886434140746938, guid: 62ef8cc60316c354fb3900611c9a0da6, type: 3}
   transformVfxPrefab: {fileID: 0}
+  transformVfxMaterial: {fileID: 2100000, guid: 17ae87aaf8c57424d9e9ad9af3f47786, type: 2}
   transformSound: {fileID: 0}
   spawnHeightOffset: 0.2
   packageWeight: 5

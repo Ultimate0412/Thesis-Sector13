@@ -25,6 +25,9 @@ public class MimicPackage : MonoBehaviour, ICarryable
     [Tooltip("Prefab เอฟเฟกต์ควัน/การระเบิดแปลงร่าง (ถ้าไม่ใส่ ระบบจะสร้าง Procedural VFX ให้เอง)")]
     public GameObject transformVfxPrefab;
 
+    [Tooltip("Material ของ Particle ตอนแปลงร่าง (ต้องเป็น material ที่รองรับ URP)")]
+    public Material transformVfxMaterial;
+
     [Tooltip("เสียงเอฟเฟกต์ตอนแปลงร่าง")]
     public AudioClip transformSound;
 
@@ -274,6 +277,14 @@ public class MimicPackage : MonoBehaviour, ICarryable
 
         // 2. ระบบ Particle ควันระเบิด
         ParticleSystem ps = vfxObj.AddComponent<ParticleSystem>();
+
+        // ใส่ material URP ให้ particle (ไม่ใส่จะกลายเป็นสี่เหลี่ยมชมพู)
+        ParticleSystemRenderer psr = vfxObj.GetComponent<ParticleSystemRenderer>();
+        if (psr != null && transformVfxMaterial != null)
+        {
+            psr.sharedMaterial = transformVfxMaterial;
+        }
+
         var main = ps.main;
         main.duration = 1.0f;
         main.loop = false;
