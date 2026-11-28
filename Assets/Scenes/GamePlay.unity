@@ -34460,7 +34460,7 @@ MonoBehaviour:
   defaultIllegalRate: 20
   defaultAlienRate: 10
   dayConfigs:
-  - {fileID: 11400000, guid: 4db4e0cefba291140a8dd950326e5591, type: 2}
+  - {fileID: 11400000, guid: ef3eb545f3687f247a2563b8ee384430, type: 2}
   - {fileID: 11400000, guid: 834053f55001299468f4f99b0bac347c, type: 2}
   - {fileID: 11400000, guid: 19b57b97f60d3e54589e0adc428726d0, type: 2}
   debugEndDayKey: 257
