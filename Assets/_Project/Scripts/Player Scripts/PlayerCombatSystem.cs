@@ -7,6 +7,7 @@ public class PlayerCombatSystem : MonoBehaviour
     [Header("Combat Settings")]
     public float hitCheckRadius = 0.35f;
     public LayerMask hitLayers = ~0;
+    public AudioClip attackSound;
 
     [Header("Animation Settings")]
     public string attackTriggerName = "BatonAttack";
@@ -113,6 +114,10 @@ public class PlayerCombatSystem : MonoBehaviour
         if (weapon.swingSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(weapon.swingSound, 0.7f);
+        }
+        else if (attackSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(attackSound, 0.7f);
         }
 
         if (equipment == null || !equipment.useRigAnimationPose)
@@ -274,9 +279,3 @@ public class PlayerCombatSystem : MonoBehaviour
         isSwinging = false;
     }
 }
-
-// --- สรุปการทำงานของโค้ด ---
-// 1. เพิ่มตัวแปร enableCombatLogs ใน Inspector เพื่อเปิดหรือปิดการแสดง Log การโจมตีทั้งหมดใน Console
-// 2. เปลี่ยนจากการใช้ Physics.SphereCast เป็น Physics.SphereCastAll แล้วเรียงตามระยะใกล้สุดพร้อมข้าม Collider ที่เป็นลูกของ Player เพื่อไม่ให้ฟาดไปติด Collider ของตัวผู้เล่นหรืออาวุธเอง
-// 3. เมื่อตีโดนศัตรู (EnemyBase) จะพิมพ์ Log สีเขียวแสดงชื่อศัตรู อาวุธ ค่า Stun Damage เกจสตั๊นก่อน-หลังตี และระยะห่าง รวมถึงแยก Log สีส้มกรณีศัตรูติดสตั๊นหรือตายอยู่แล้ว
-// 4. กรณีตีโดน Mimic วัตถุทั่วไป หรือตีวืด จะพิมพ์ Log พร้อมชื่อ Collider, Layer และระยะห่าง เพื่อให้ไล่เช็กได้ทันทีหากตีศัตรูไม่เข้า

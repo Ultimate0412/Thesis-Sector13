@@ -29,6 +29,15 @@ public class PlayerController : MonoBehaviour
     [Tooltip("ชื่อ Trigger สำหรับท่ากระโดด (Jump)")]
     public string jumpTriggerName = "Jump";
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip walkStepSound;
+    public AudioClip runStepSound;
+    public AudioClip jumpSound;
+    public AudioClip landSound;
+    public float walkStepInterval = 0.5f;
+    public float runStepInterval = 0.32f;
+
     [HideInInspector] public Rigidbody rb;
     [HideInInspector] public CapsuleCollider capsuleCollider;
     [HideInInspector] public PlayerStats stats;
@@ -38,6 +47,10 @@ public class PlayerController : MonoBehaviour
     // Movement vectors
     private Vector3 targetMoveDirection = Vector3.zero;
     private bool jumpRequested = false;
+
+    // Audio states
+    private float stepTimer = 0f;
+    private bool wasGrounded = true;
 
     // Animator parameter ที่มีจริงใน controller (กัน error "Parameter does not exist" ทุกเฟรม)
     private bool speedParamValid;
@@ -55,6 +68,13 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
         stats = GetComponent<PlayerStats>();
+
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.spatialBlend = 0f;
+        }
 
         if (GetComponent<PlayerCombatSystem>() == null)
         {
@@ -122,10 +142,10 @@ public class PlayerController : MonoBehaviour
         // ล็อกเคอร์เซอร์กลับมาเมื่อคลิกในจอเล่นเกม (หากไม่ได้เปิดเมนูปั๊มตราหรือหน้าต่างสรุปผล)
         if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)
         {
-            bool isMenuOpen = (StampUIController.Instance != null && 
-                               StampUIController.Instance.stampMenuPanel != null && 
+            bool isMenuOpen = (StampUIController.Instance != null &&
+                               StampUIController.Instance.stampMenuPanel != null &&
                                StampUIController.Instance.stampMenuPanel.activeSelf) ||
-                              (DailySummaryUI.Instance != null && 
+                              (DailySummaryUI.Instance != null &&
                                DailySummaryUI.Instance.IsSummaryOpen);
             if (!isMenuOpen)
             {
@@ -153,6 +173,10 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
         {
             jumpRequested = true;
+            if (jumpSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(jumpSound);
+            }
             if (jumpTriggerValid && stats != null && stats.playerAnimator != null)
             {
                 stats.playerAnimator.SetTrigger(jumpTriggerName);
@@ -161,6 +185,7 @@ public class PlayerController : MonoBehaviour
 
         currentState?.UpdateState();
         UpdateMovementAnimations();
+        HandleFootstepAudio();
     }
 
     private void FixedUpdate()
@@ -199,7 +224,7 @@ public class PlayerController : MonoBehaviour
     private void HandleCameraLook()
     {
         if (playerCamera == null) return;
-        if (Time.timeScale <= 0f) return; // ไม่หมุนกล้องขณะเปิดหน้าต่างสรุปผล/หยุดเวลา
+        if (Time.timeScale <= 0f) return;
 
         bool isMenuOpen = (StampUIController.Instance != null && StampUIController.Instance.IsMenuOpen) ||
                           (DailySummaryUI.Instance != null && DailySummaryUI.Instance.IsSummaryOpen);
@@ -237,6 +262,35 @@ public class PlayerController : MonoBehaviour
                 _isGrounded = true;
                 break;
             }
+        }
+
+        if (!wasGrounded && _isGrounded && landSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(landSound);
+        }
+        wasGrounded = _isGrounded;
+    }
+
+    private void HandleFootstepAudio()
+    {
+        if (!_isGrounded || audioSource == null) return;
+
+        float moveSpeed = new Vector3(targetMoveDirection.x, 0f, targetMoveDirection.z).magnitude;
+        if (moveSpeed < 0.1f)
+        {
+            stepTimer = 0f;
+            return;
+        }
+
+        bool isRunningNow = currentState == runState || moveSpeed > walkSpeed + 0.5f;
+        AudioClip clip = isRunningNow && runStepSound != null ? runStepSound : walkStepSound;
+        float interval = isRunningNow ? runStepInterval : walkStepInterval;
+
+        stepTimer -= Time.deltaTime;
+        if (stepTimer <= 0f)
+        {
+            if (clip != null) audioSource.PlayOneShot(clip);
+            stepTimer = interval;
         }
     }
 

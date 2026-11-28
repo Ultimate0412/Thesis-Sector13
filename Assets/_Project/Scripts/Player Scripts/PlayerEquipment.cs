@@ -6,12 +6,14 @@ public class PlayerEquipment : MonoBehaviour
 
     [Header("Input")]
     public KeyCode toggleKey = KeyCode.Alpha1;
-    public bool triggerAttackOnLeftClick = true;
-    public float attackAnimCooldown = 0.5f;
 
     [Header("Weapon Setup")]
     public GameObject weaponPrefab;
     public Transform weaponSlot;
+
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip drawWeaponSound;
 
     [Header("Animator Settings")]
     public Animator playerAnimator;
@@ -32,7 +34,6 @@ public class PlayerEquipment : MonoBehaviour
     private bool isDrawn = false;
     private bool equippedParamValid = false;
     private bool attackParamValid = false;
-    private float nextAttackAnimTime = 0f;
 
     public MeleeWeapon EquippedWeapon => equippedWeapon;
     public Transform WeaponTransform => weaponInstance != null ? weaponInstance.transform : null;
@@ -48,6 +49,14 @@ public class PlayerEquipment : MonoBehaviour
         if (weaponSlot == null && pickupSystem != null) weaponSlot = pickupSystem.holdPosition;
 
         ResolveAnimator();
+
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.spatialBlend = 0f;
+        }
+
         EnsureWeapon();
     }
 
@@ -104,15 +113,6 @@ public class PlayerEquipment : MonoBehaviour
 
         if (Input.GetKeyDown(toggleKey)) ToggleWeapon();
 
-        if (isDrawn && triggerAttackOnLeftClick && Cursor.lockState == CursorLockMode.Locked && Input.GetMouseButtonDown(0))
-        {
-            if (Time.time >= nextAttackAnimTime)
-            {
-                nextAttackAnimTime = Time.time + attackAnimCooldown;
-                PlayAttackAnimation();
-            }
-        }
-
         if (isDrawn && pickupSystem != null && pickupSystem.heldObject != null)
             ForceHolster();
     }
@@ -154,17 +154,17 @@ public class PlayerEquipment : MonoBehaviour
         }
 
         SetBatonEquippedAnim(true);
+
+        if (drawWeaponSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(drawWeaponSound);
+        }
     }
 
     public void HolsterWeapon()
     {
         isDrawn = false;
         SetBatonEquippedAnim(false);
-
-        if (playerAnimator != null && attackParamValid)
-        {
-            playerAnimator.ResetTrigger(batonAttackTriggerParam);
-        }
 
         if (useRigAnimationPose && weaponInstance != null)
         {
@@ -179,28 +179,13 @@ public class PlayerEquipment : MonoBehaviour
 
     public void PlayAttackAnimation()
     {
-        if (!isDrawn || playerAnimator == null) return;
-
-        if (!attackParamValid)
-        {
-            ValidateAnimatorParameters();
-            if (!attackParamValid) return;
-        }
-
-        playerAnimator.ResetTrigger(batonAttackTriggerParam);
+        if (!isDrawn || playerAnimator == null || !attackParamValid) return;
         playerAnimator.SetTrigger(batonAttackTriggerParam);
     }
 
     private void SetBatonEquippedAnim(bool equipped)
     {
-        if (playerAnimator == null) return;
-
-        if (!equippedParamValid)
-        {
-            ValidateAnimatorParameters();
-            if (!equippedParamValid) return;
-        }
-
+        if (playerAnimator == null || !equippedParamValid) return;
         playerAnimator.SetBool(batonEquippedBoolParam, equipped);
     }
 
@@ -263,8 +248,3 @@ public class PlayerEquipment : MonoBehaviour
             weaponInstance.SetActive(false);
     }
 }
-
-// --- สรุปการทำงานของโค้ด ---
-// 1. เพิ่มการรับคลิกซ้ายใน HandleInput() ผ่าน triggerAttackOnLeftClick และ attackAnimCooldown โดยตรวจ Cursor.lockState == CursorLockMode.Locked เพื่อไม่ให้เล่นท่าตีตอนคลิกเมนู UI
-// 2. เพิ่มการสั่ง ResetTrigger ก่อน SetTrigger ใน PlayAttackAnimation() และตอนเก็บอาวุธใน HolsterWeapon() เพื่อกันอาการ Trigger ค้างแล้วตีเบิ้ลเอง
-// 3. เพิ่มการ re-validate พารามิเตอร์ใน PlayAttackAnimation() และ SetBatonEquippedAnim() เผื่อกรณี Animator ถูกเปิดใช้งานหลัง Start()
