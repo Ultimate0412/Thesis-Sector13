@@ -121003,7 +121003,8 @@ MonoBehaviour:
   subtitleText: {fileID: 0}
   infoText: {fileID: 165611034}
   restartDayButton: {fileID: 188443913}
-  respawnButton: {fileID: 305533918}
+  respawnButton: {fileID: 1507597171}
+  mainMenuButton: {fileID: 305533918}
 --- !u!114 &2099499961
 MonoBehaviour:
   m_ObjectHideFlags: 0

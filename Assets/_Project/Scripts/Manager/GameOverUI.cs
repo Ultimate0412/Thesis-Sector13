@@ -22,6 +22,7 @@ public class GameOverUI : MonoBehaviour
     public TextMeshProUGUI infoText;
     public Button restartDayButton;
     public Button respawnButton;
+    public Button mainMenuButton;
 
     public bool IsGameOverOpen => gameOverPanel != null && gameOverPanel.activeSelf;
 
@@ -50,11 +51,54 @@ public class GameOverUI : MonoBehaviour
             playerStats.OnPlayerRespawned += HandlePlayerRespawned;
         }
 
+        // Panel ที่อยู่ใน scene ถูกผูกไว้แล้ว จึงไม่ได้ผ่าน EnsureUIElements()
+        // ต้องหาปุ่มและผูก onClick เองทุกครั้ง ไม่งั้นปุ่มจะกดแล้วไม่เกิดอะไรขึ้น
+        ResolvePanelButtons();
+        WireButtons();
+
         // ซ่อนหน้าต่างเป็นค่าเริ่มต้น
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
         }
+    }
+
+    private void ResolvePanelButtons()
+    {
+        if (gameOverPanel == null) return;
+
+        Button[] buttons = gameOverPanel.GetComponentsInChildren<Button>(true);
+        foreach (Button button in buttons)
+        {
+            switch (button.name)
+            {
+                case "RestartButton":
+                case "RestartDayButton":
+                    restartDayButton = button;
+                    break;
+                case "RespawnButton":
+                    respawnButton = button;
+                    break;
+                case "ReturnButton":
+                case "MainMenuButton":
+                    mainMenuButton = button;
+                    break;
+            }
+        }
+    }
+
+    private void WireButtons()
+    {
+        BindButton(restartDayButton, OnClickRestartDay);
+        BindButton(respawnButton, OnClickRespawn);
+        BindButton(mainMenuButton, OnClickReturnToMainMenu);
+    }
+
+    private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null) return;
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
     }
 
     private void OnDestroy()
@@ -111,6 +155,7 @@ public class GameOverUI : MonoBehaviour
     {
         Debug.Log("<color=#FFCC00>[GameOverUI]</color> ผู้เล่นเลือกเริ่มวันใหม่ (Restart Day)");
         HideGameOver();
+        Time.timeScale = 1f;
 
         // 1. ล้างศัตรูทั้งหมดที่อาจค้างอยู่ในฉาก
         if (EnemySpawner.Instance != null)
@@ -135,11 +180,24 @@ public class GameOverUI : MonoBehaviour
     {
         Debug.Log("<color=#55FF88>[GameOverUI]</color> ผู้เล่นเลือกเกิดใหม่ (Respawn)");
         HideGameOver();
+        Time.timeScale = 1f;
 
         if (playerStats != null)
         {
             playerStats.Respawn();
         }
+    }
+
+    public void OnClickReturnToMainMenu()
+    {
+        Debug.Log("<color=#FFCC00>[GameOverUI]</color> ผู้เล่นเลือกกลับสู่ Main Menu");
+        HideGameOver();
+
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        SceneManager.LoadScene("MainMenu");
     }
 
     /// <summary>
@@ -213,6 +271,10 @@ public class GameOverUI : MonoBehaviour
                 // ปุ่ม Respawn
                 respawnButton = CreateButton(gameOverPanel.transform, "RespawnButton", "RESPAWN", new Vector2(110f, -65f), new Color(0.2f, 0.5f, 0.7f));
                 respawnButton.onClick.AddListener(OnClickRespawn);
+
+                // ปุ่มกลับ Main Menu
+                mainMenuButton = CreateButton(gameOverPanel.transform, "ReturnButton", "MAIN MENU", new Vector2(0f, -125f), new Color(0.25f, 0.25f, 0.3f));
+                mainMenuButton.onClick.AddListener(OnClickReturnToMainMenu);
 
                 gameOverPanel.SetActive(false);
             }
