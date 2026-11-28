@@ -95,6 +95,18 @@ public class GameDayManager : MonoBehaviour
     /// <summary>run นี้จบครบทุกวันที่ตั้งค่าไว้แล้วหรือไม่ (final summary ผ่าน)</summary>
     public bool IsRunComplete { get; private set; }
 
+    // วันที่รอใช้หลังโหลด scene ใหม่ (เช่น กด Restart Day ตอนไม่มีเซฟ)
+    private static int pendingStartDay = -1;
+
+    /// <summary>
+    /// กำหนดเลขวันที่จะใช้เมื่อ GameDayManager ถูกสร้างใน scene ถัดไป
+    /// ใช้กับการ reload ฉากเพื่อเริ่มวันเดิมใหม่โดยไม่กลับไป Day 1
+    /// </summary>
+    public static void SetPendingStartDay(int day)
+    {
+        pendingStartDay = Mathf.Max(1, day);
+    }
+
     private void Awake()
     {
         if (Instance == null)
@@ -104,6 +116,13 @@ public class GameDayManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
+        }
+
+        if (pendingStartDay > 0)
+        {
+            currentDay = pendingStartDay;
+            pendingStartDay = -1;
         }
     }
 

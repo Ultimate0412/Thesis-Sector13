@@ -155,25 +155,10 @@ public class GameOverUI : MonoBehaviour
     {
         Debug.Log("<color=#FFCC00>[GameOverUI]</color> ผู้เล่นเลือกเริ่มวันใหม่ (Restart Day)");
         HideGameOver();
-        Time.timeScale = 1f;
 
-        // 1. ล้างศัตรูทั้งหมดที่อาจค้างอยู่ในฉาก
-        if (EnemySpawner.Instance != null)
-        {
-            EnemySpawner.Instance.ClearAllEnemies();
-        }
-
-        // 2. ฟื้นคืนชีพผู้เล่น
-        if (playerStats != null)
-        {
-            playerStats.Respawn();
-        }
-
-        // 3. รีเซ็ตโควต้าและสถานะวัน
-        if (GameDayManager.Instance != null)
-        {
-            GameDayManager.Instance.ResetDailyQuota();
-        }
+        // โหลดวันปัจจุบันใหม่ตั้งแต่ต้น (ใช้ autosave ต้นวันถ้ามี)
+        // เพื่อให้ของใน Storage/คะแนน/โควต้า กลับไปสถานะเริ่มวัน
+        SaveSystem.RestartCurrentDay();
     }
 
     public void OnClickRespawn()

@@ -105,6 +105,11 @@ public static class SaveSystem
             return;
         }
 
+        // ไม่มีเซฟ (เช่นกด Play ตรง ๆ ใน GamePlay) ให้ reload ฉาก
+        // แต่คงเลขวันปัจจุบันไว้ ไม่ให้กลับไป Day 1
+        int day = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
+        GameDayManager.SetPendingStartDay(day);
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
