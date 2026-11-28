@@ -98,16 +98,25 @@ public static class SaveSystem
         Time.timeScale = 1f;
         AudioListener.pause = false;
 
+        int day = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
         int slot = GameSession.CurrentSlot;
+
         if (GameSession.SessionActive && HasSlot(slot))
         {
-            RequestLoad(slot);
-            return;
+            // ใช้เซฟต้นวันได้เฉพาะเมื่อเซฟเป็นวันเดียวกับวันที่กำลังเล่นอยู่
+            // ไม่งั้น Day จะเด้งกลับไปวันที่เซฟไว้
+            SaveSlotInfo info = GetSlotInfo(slot);
+            if (!info.corrupted && info.day == day)
+            {
+                RequestLoad(slot);
+                return;
+            }
+
+            Debug.LogWarning($"[SaveSystem] เซฟช่อง {slot} เป็น Day {info.day} แต่ปัจจุบัน Day {day} — จะ reload ฉากและคง Day {day}");
         }
 
-        // ไม่มีเซฟ (เช่นกด Play ตรง ๆ ใน GamePlay) ให้ reload ฉาก
+        // ไม่มีเซฟที่ตรงวัน (เช่นกด Play ตรง ๆ ใน GamePlay) ให้ reload ฉาก
         // แต่คงเลขวันปัจจุบันไว้ ไม่ให้กลับไป Day 1
-        int day = GameDayManager.Instance != null ? GameDayManager.Instance.currentDay : 1;
         GameDayManager.SetPendingStartDay(day);
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
