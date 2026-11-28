@@ -139,7 +139,8 @@ public static class MenuReferenceAssigner
         SerializedObject so = new SerializedObject(summary);
 
         Set(so, "summaryPanel", panel.gameObject);
-        Set(so, "endDayHUDButton", Find<Button>(panel.parent, "EndDayHUDButton"));
+        // endDayHUDButton ไม่ต้องผูกแล้ว — ปุ่มจบวันบน HUD ถูกยกเลิกใช้
+        // (ปัจจุบันจบวันผ่าน EndDayInteractable ในฉาก)
         Set(so, "dayTitleText", Find<TextMeshProUGUI>(panel, "HeaderBar/TitleText"));
         Set(so, "dailyScoreText", Find<TextMeshProUGUI>(panel, "DailyScoreValue"));
         Set(so, "totalScoreText", Find<TextMeshProUGUI>(panel, "TotalScoreValue"));
@@ -241,6 +242,9 @@ public static class MenuReferenceAssigner
             return;
         }
 
+        // ไม่เขียนทับ reference ที่ผูกไว้แล้วด้วยค่าว่าง
+        if (value == null && property.objectReferenceValue != null) return;
+
         property.objectReferenceValue = value;
     }
 
@@ -252,6 +256,8 @@ public static class MenuReferenceAssigner
             Debug.LogWarning($"[MenuReferenceAssigner] ไม่พบ field '{propertyName}'");
             return;
         }
+
+        if (value == null && property.objectReferenceValue != null) return;
 
         property.objectReferenceValue = value;
     }

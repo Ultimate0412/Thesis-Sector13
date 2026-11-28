@@ -58,10 +58,13 @@ public class DailySummaryUI : MonoBehaviour
             return;
         }
 
-        if (ValidateReferences())
-        {
-            WireButtons();
-        }
+        // UI ถูกย้าย/เปลี่ยนชื่อบ่อยหลัง merge — เติม ref ที่ว่างจากชื่อใน panel ก่อน
+        ResolveReferences();
+
+        // ผูกปุ่มทุกตัวเสมอ: ปุ่มหนึ่งอ้างอิงหาย ไม่ควรทำให้ปุ่มอื่นกดไม่ได้
+        WireButtons();
+
+        LogMissingReferences();
 
         if (summaryPanel != null)
         {
@@ -103,12 +106,51 @@ public class DailySummaryUI : MonoBehaviour
         button.onClick.AddListener(action);
     }
 
-    private bool ValidateReferences()
+    /// <summary>
+    /// เติม reference ที่ยังว่างอยู่โดยค้นหาจากชื่อใน panel
+    /// (ชื่อเดียวกับที่ MenuReferenceAssigner ใช้) เพื่อให้ UI ยังทำงานได้
+    /// แม้ลำดับชั้น/ชื่อ object จะถูกแก้ไปหลัง merge
+    /// </summary>
+    private void ResolveReferences()
+    {
+        if (summaryPanel == null)
+        {
+            Transform canvas = transform.parent;
+            Transform found = canvas != null ? canvas.Find("DailySummaryPanel") : null;
+            if (found != null) summaryPanel = found.gameObject;
+        }
+
+        if (summaryPanel == null) return;
+        Transform root = summaryPanel.transform;
+
+        if (dayTitleText == null) dayTitleText = FindText(root, "HeaderBar/TitleText", "TitleText");
+        if (dailyScoreText == null) dailyScoreText = FindText(root, "DailyScoreValue");
+        if (totalScoreText == null) totalScoreText = FindText(root, "TotalScoreValue");
+        if (rejectedCountText == null) rejectedCountText = FindText(root, "RejectValue");
+        if (approvedCountText == null) approvedCountText = FindText(root, "ApproveValue");
+        if (legalCountText == null) legalCountText = FindText(root, "LegalValue");
+        if (illegalCountText == null) illegalCountText = FindText(root, "IllegalValue");
+        if (alienCountText == null) alienCountText = FindText(root, "AlienValue");
+        if (totalShippedText == null) totalShippedText = FindText(root, "TotalValue");
+        if (shippedRequirementText == null) shippedRequirementText = FindText(root, "ShippedValue");
+        if (stationFeeText == null) stationFeeText = FindText(root, "StationFeeValue");
+        if (penaltyRow == null) penaltyRow = FindObject(root, "PenaltyRow");
+        if (penaltyText == null) penaltyText = FindText(root, "PenaltyRow/PenaltyValue", "PenaltyValue");
+        if (resultText == null) resultText = FindText(root, "ResultText");
+
+        if (nextDayButton == null) nextDayButton = FindButton(root, "NextDayButton");
+        if (restartButton == null) restartButton = FindButton(root, "RestartButton");
+        if (mainMenuButton == null) mainMenuButton = FindButton(root, "MainMenuButton");
+    }
+
+    /// <summary>รายงาน ref ที่ยังว่างเป็น warning (ไม่บล็อกการผูกปุ่ม)</summary>
+    private void LogMissingReferences()
     {
         List<string> missing = new List<string>();
 
+        // endDayHUDButton ไม่นับว่าจำเป็น — ปุ่มจบวันบน HUD ถูกยกเลิกใช้แล้ว
+        // (ปัจจุบันจบวันผ่าน EndDayInteractable ในฉาก)
         if (summaryPanel == null) missing.Add(nameof(summaryPanel));
-        if (endDayHUDButton == null) missing.Add(nameof(endDayHUDButton));
         if (dayTitleText == null) missing.Add(nameof(dayTitleText));
         if (dailyScoreText == null) missing.Add(nameof(dailyScoreText));
         if (totalScoreText == null) missing.Add(nameof(totalScoreText));
@@ -127,11 +169,50 @@ public class DailySummaryUI : MonoBehaviour
         if (restartButton == null) missing.Add(nameof(restartButton));
         if (mainMenuButton == null) missing.Add(nameof(mainMenuButton));
 
-        if (missing.Count == 0) return true;
+        if (missing.Count > 0)
+        {
+            Debug.LogWarning(
+                $"[DailySummaryUI] reference บางตัวว่าง จะข้ามการอัปเดตส่วนนั้น — {string.Join(", ", missing)}", this);
+        }
+    }
 
-        Debug.LogError(
-            $"[DailySummaryUI] ลาก reference ไม่ครบ — ขาด: {string.Join(", ", missing)}", this);
-        return false;
+    private static TextMeshProUGUI FindText(Transform root, params string[] paths)
+    {
+        foreach (string path in paths)
+        {
+            Transform found = root.Find(path);
+            if (found == null) continue;
+
+            TextMeshProUGUI text = found.GetComponent<TextMeshProUGUI>();
+            if (text != null) return text;
+        }
+
+        return null;
+    }
+
+    private static Button FindButton(Transform root, params string[] paths)
+    {
+        foreach (string path in paths)
+        {
+            Transform found = root.Find(path);
+            if (found == null) continue;
+
+            Button button = found.GetComponent<Button>();
+            if (button != null) return button;
+        }
+
+        return null;
+    }
+
+    private static GameObject FindObject(Transform root, params string[] paths)
+    {
+        foreach (string path in paths)
+        {
+            Transform found = root.Find(path);
+            if (found != null) return found.gameObject;
+        }
+
+        return null;
     }
 
     // ------------------------------------------------------------- Summary
