@@ -1467,12 +1467,12 @@ MonoBehaviour:
   spawnMode: 2
   traceSeed: 1033
   legalSettings:
-    spawnChancePercent: 85
+    spawnChancePercent: 30
     minTraces: 1
     maxTraces: 2
     uvTraceRatioPercent: 0
   illegalSettings:
-    spawnChancePercent: 90
+    spawnChancePercent: 70
     minTraces: 1
     maxTraces: 3
     uvTraceRatioPercent: 35

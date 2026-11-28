@@ -120,7 +120,7 @@ public class EndDayBlockedDialog : MonoBehaviour
         string message = failure.reason;
         if (failure.penalty > 0)
         {
-            message += $"\n\nยืนยันจบวันจะถูกหัก {failure.penalty} คะแนน";
+            message += $"\n\nEnding the day will deduct {failure.penalty} credit";
         }
 
         messageText.text = message;

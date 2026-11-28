@@ -619,7 +619,7 @@ MonoBehaviour:
     declaredWeight: 0
     actualWeight: 0
   discrepancyType: 0
-  discrepancyChance: 75
+  discrepancyChance: 0
   boxAnimator: {fileID: 0}
   openParameterName: IsOpen
   hideHathWhenAnimated: 0
@@ -639,17 +639,17 @@ MonoBehaviour:
   spawnMode: 1
   traceSeed: 0
   legalSettings:
-    spawnChancePercent: 85
+    spawnChancePercent: 30
     minTraces: 1
     maxTraces: 2
     uvTraceRatioPercent: 0
   illegalSettings:
-    spawnChancePercent: 90
+    spawnChancePercent: 70
     minTraces: 1
     maxTraces: 3
     uvTraceRatioPercent: 35
   alienSettings:
-    spawnChancePercent: 100
+    spawnChancePercent: 70
     minTraces: 2
     maxTraces: 4
     uvTraceRatioPercent: 70
