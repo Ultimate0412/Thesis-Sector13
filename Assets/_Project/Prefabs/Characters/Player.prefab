@@ -1488,15 +1488,15 @@ GameObject:
   - component: {fileID: 5343182309705613369}
   - component: {fileID: 8384744311934400119}
   - component: {fileID: 8784618594318634333}
-  - component: {fileID: 85400503073610002}
   - component: {fileID: 3021395955318020696}
   - component: {fileID: 8676000309339607367}
   - component: {fileID: 384995915331344342}
   - component: {fileID: 516351515494862012}
   - component: {fileID: 3247765406195922488}
   - component: {fileID: 5028286250582607369}
-  - component: {fileID: 1938475610293847561}
   - component: {fileID: 1933935042388753447}
+  - component: {fileID: 1938475610293847561}
+  - component: {fileID: 85400503073610002}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1604,37 +1604,6 @@ MonoBehaviour:
   staminaDrainRate: 20
   staminaRegenRate: 15
   maxWeightCapacity: 50
---- !u!114 &85400503073610002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7298374657433779711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e867d2df89a2d14da15682ade350b94, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  walkSpeed: 4
-  runSpeed: 7
-  jumpHeight: 1.2
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  groundCheckDistance: 0.15
-  _isGrounded: 0
-  playerCamera: {fileID: 8550138162432030878}
-  lookSpeed: 2
-  lookXLimit: 90
-  speedParamName: 
-  isGroundedParamName: IsGrounded
-  jumpTriggerName: 
-  rb: {fileID: 0}
-  capsuleCollider: {fileID: 0}
-  stats: {fileID: 0}
-  rotationX: 0
-  rotationY: 0
 --- !u!114 &3021395955318020696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1738,6 +1707,7 @@ MonoBehaviour:
   hitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  attackSound: {fileID: 8300000, guid: f548e5a3ae650fc46b90c0406e1bf5d7, type: 3}
   attackTriggerName: Attack
   enableCombatLogs: 1
 --- !u!114 &5028286250582607369
@@ -1773,32 +1743,6 @@ MonoBehaviour:
   positionSmoothing: 14
   moveThreshold: 0.1
   animator: {fileID: 0}
---- !u!114 &1938475610293847561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7298374657433779711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ef6ecdcb67a4bbeac2519d9712b0291, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
-  toggleKey: 50
-  triggerAttackOnLeftClick: 1
-  attackAnimCooldown: 0.5
-  weaponPrefab: {fileID: 2318033623218128181, guid: 43757fd52db5c4645a6fbba72f664448, type: 3}
-  weaponSlot: {fileID: 1642594368800530789}
-  playerAnimator: {fileID: 3242580395502947709}
-  batonEquippedBoolParam: IsBatonEquipped
-  batonAttackTriggerParam: BatonAttack
-  useRigAnimationPose: 1
-  drawnLocalPosition: {x: 0.01, y: 0.05, z: 0}
-  drawnLocalRotation: {x: 0, y: 0, z: 180}
-  holsteredLocalPosition: {x: 0, y: -0.6, z: 0.1}
-  holsteredLocalRotation: {x: -70, y: 0, z: 0}
-  transitionSpeed: 14
 --- !u!114 &1933935042388753447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1837,6 +1781,70 @@ MonoBehaviour:
     handRotationOffset: {x: 0, y: 0, z: 0}
     activeGrip: {fileID: 0}
     currentWeight: 0
+--- !u!114 &1938475610293847561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7298374657433779711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef6ecdcb67a4bbeac2519d9712b0291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
+  toggleKey: 50
+  weaponPrefab: {fileID: 2318033623218128181, guid: 43757fd52db5c4645a6fbba72f664448, type: 3}
+  weaponSlot: {fileID: 1642594368800530789}
+  audioSource: {fileID: 0}
+  drawWeaponSound: {fileID: 8300000, guid: e04def870a49c4941b5c1c679644974e, type: 3}
+  playerAnimator: {fileID: 3242580395502947709}
+  batonEquippedBoolParam: IsBatonEquipped
+  batonAttackTriggerParam: BatonAttack
+  useRigAnimationPose: 1
+  drawnLocalPosition: {x: 0.01, y: 0.05, z: 0}
+  drawnLocalRotation: {x: 0, y: 0, z: 180}
+  holsteredLocalPosition: {x: 0, y: -0.6, z: 0.1}
+  holsteredLocalRotation: {x: -70, y: 0, z: 0}
+  transitionSpeed: 14
+--- !u!114 &85400503073610002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7298374657433779711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e867d2df89a2d14da15682ade350b94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  walkSpeed: 4
+  runSpeed: 7
+  jumpHeight: 1.2
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundCheckDistance: 0.15
+  _isGrounded: 0
+  playerCamera: {fileID: 8550138162432030878}
+  lookSpeed: 2
+  lookXLimit: 90
+  speedParamName: 
+  isGroundedParamName: IsGrounded
+  jumpTriggerName: 
+  audioSource: {fileID: 0}
+  walkStepSound: {fileID: 8300000, guid: 493e9497745a0824cb1bd6f491113249, type: 3}
+  runStepSound: {fileID: 8300000, guid: aeb2e56da0a2a7040816e9d4b541a7ab, type: 3}
+  jumpSound: {fileID: 8300000, guid: f5d9e24ac3382bf4693c0a7549b9c2d3, type: 3}
+  landSound: {fileID: 8300000, guid: 3af80e2a733d5f64b8612e157a913019, type: 3}
+  walkStepInterval: 0.5
+  runStepInterval: 0.32
+  rb: {fileID: 0}
+  capsuleCollider: {fileID: 0}
+  stats: {fileID: 0}
+  rotationX: 0
+  rotationY: 0
 --- !u!1 &7375681977615966776
 GameObject:
   m_ObjectHideFlags: 0
