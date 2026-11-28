@@ -134,13 +134,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31954fd17e2e3714d89c23d59d12e133, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StorageDropPoint
-  placementSlot: {fileID: 0}
+  placementSlot: {fileID: 2608888047039362514}
   hologramMaterial: {fileID: 2100000, guid: bbdd9da744a8e63498204d5e289ccd59, type: 2}
   redHologramMaterial: {fileID: 2100000, guid: 92146e108b257b84ba5212d7777c8485, type: 2}
   currentPlacedItem: {fileID: 0}
   hologramInstance: {fileID: 0}
   roomManager: {fileID: 0}
-  targetSlotIndex: 4
+  targetSlotIndex: 0
 --- !u!65 &8032969033336508853
 BoxCollider:
   m_ObjectHideFlags: 0
