@@ -1409,7 +1409,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PackageBox
   possibleInnerItemPrefabs:
-  - {fileID: 3631325783640814000, guid: 99df4683cd54fe9469451af8d0242ca2, type: 3}
   - {fileID: 138198487204227546, guid: 543e409c2b2834d48bebaf6bf8ab3329, type: 3}
   - {fileID: 8852178910862732008, guid: e3f0df9cf35790843b805f8768d85254, type: 3}
   - {fileID: 913962141465011701, guid: b661e5349037fb94bac9b7ea7380c87a, type: 3}
