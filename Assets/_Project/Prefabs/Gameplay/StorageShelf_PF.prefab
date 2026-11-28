@@ -24,13 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3613501906006796398}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
   m_LocalPosition: {x: -0.00962019, y: 0, z: -0.057785034}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8563850134551031448}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
 --- !u!1001 &7626535298937354746
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41,7 +41,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2237740498015688546, guid: bb20e1fa05ae0a14e97b5fc14c54d7b9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.394
+      value: -4.377
       objectReference: {fileID: 0}
     - target: {fileID: 2237740498015688546, guid: bb20e1fa05ae0a14e97b5fc14c54d7b9, type: 3}
       propertyPath: m_LocalPosition.y
@@ -140,7 +140,7 @@ MonoBehaviour:
   currentPlacedItem: {fileID: 0}
   hologramInstance: {fileID: 0}
   roomManager: {fileID: 0}
-  targetSlotIndex: 5
+  targetSlotIndex: 4
 --- !u!65 &8032969033336508853
 BoxCollider:
   m_ObjectHideFlags: 0
