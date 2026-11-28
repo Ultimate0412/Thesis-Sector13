@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Day2
   m_EditorClassIdentifier: Assembly-CSharp::DayConfig
   dayName: Day 2
-  openQuota: 10
-  spawnQuota: 10
+  openQuota: 4
+  spawnQuota: 8
   minShippedPerDay: 6
   shortfallPenaltyPerBox: 75
-  stationFee: 400
+  stationFee: 200
   categoryRate:
     legalWeight: 60
     illegalWeight: 25
