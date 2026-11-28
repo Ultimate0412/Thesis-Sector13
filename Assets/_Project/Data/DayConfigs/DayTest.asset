@@ -44,7 +44,7 @@ MonoBehaviour:
     enableDialogue: 1
     startDelay: 1.5
     speakerName: Speaker
-    portrait: {fileID: 21300000, guid: 27acdbcbbcaad3045bb7a79f1fe964d4, type: 3}
+    portrait: {fileID: 21300000, guid: 26f616a1cdb5f634f88223ead06e6b2b, type: 3}
     charactersPerSecond: 35
     holdDuration: 2.5
     lines:
