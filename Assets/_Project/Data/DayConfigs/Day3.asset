@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Day3
   m_EditorClassIdentifier: Assembly-CSharp::DayConfig
   dayName: Day 3
-  openQuota: 15
+  openQuota: 5
   spawnQuota: 10
   minShippedPerDay: 8
   shortfallPenaltyPerBox: 100
-  stationFee: 600
+  stationFee: 300
   categoryRate:
     legalWeight: 70
     illegalWeight: 20
-    alienWeight: 10
+    alienWeight: 15
   packagePrefabs:
   - {fileID: 3243164209049455, guid: b2681f0e3eac2bd4a8151b82c9891d25, type: 3}
   - {fileID: 3243164209049455, guid: af1f7c388e3a99448854c4125f85e84f, type: 3}

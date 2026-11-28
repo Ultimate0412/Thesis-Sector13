@@ -17,7 +17,7 @@ MonoBehaviour:
   spawnQuota: 5
   minShippedPerDay: 3
   shortfallPenaltyPerBox: 50
-  stationFee: 200
+  stationFee: 100
   categoryRate:
     legalWeight: 70
     illegalWeight: 20
@@ -33,7 +33,7 @@ MonoBehaviour:
     allowedEventIds:
     - NoGravity
   thief:
-    enableThief: 1
+    enableThief: 0
     minStampsThreshold: 3
     guaranteedStampsThreshold: 5
     spawnChancePerStamp: 0.45
