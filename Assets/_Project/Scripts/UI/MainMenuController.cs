@@ -71,6 +71,10 @@ public class MainMenuController : MonoBehaviour
         if (!ValidateReferences()) return;
 
         WireButtons();
+
+        // Back must stay on top of the slot screen so nothing can steal its clicks.
+        if (backButton != null) backButton.transform.SetAsLastSibling();
+
         ShowRoot();
     }
 
@@ -176,7 +180,7 @@ public class MainMenuController : MonoBehaviour
 
     // ------------------------------------------------------------- Navigation
 
-    private void ShowRoot()
+    public void ShowRoot()
     {
         state = ScreenState.Root;
         confirmAction = null;
@@ -199,6 +203,8 @@ public class MainMenuController : MonoBehaviour
         rootScreen.SetActive(false);
         slotScreen.SetActive(true);
         confirmScreen.SetActive(false);
+
+        if (backButton != null) backButton.transform.SetAsLastSibling();
 
         RefreshSlots();
     }
